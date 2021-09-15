@@ -1,15 +1,65 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "useDefineForClassFields": true,
     "module": "esnext",
-    "moduleResolution": "node",
-    "strict": true,
+    "lib": ["esnext", "dom", "es6", "es7"],
+    "allowJs": true,
+    "checkJs": true,
     "jsx": "preserve",
+    "declaration": true,
+    // "outFile": "./out.js",
+    "outDir": "src/dist",
+    "rootDir": ".",
+    // "removeComments": false,
+    // "noEmit": true,
+    "importHelpers": true,
+
+    /* 严格的类型检查选项 */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    // "alwaysStrict": true,
+
+    /* 额外的检查 */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+
+    /* 模块解析选项 */
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "#/*": ["typings/*"]
+    },
+    "allowSyntheticDefaultImports": true,
+
+    /* Source Map Options */
     "sourceMap": true,
+    // "sourceRoot": ".",
+    // "mapRoot": ".",
+    // "inlineSourceMap": true,
+    // "inlineSources": true,
+
+    /* 其他选项 */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "isolatedModules": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "lib": ["esnext", "dom"]
+    "esModuleInterop": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "typings/**/*.d.ts",
+    "typings/**/*.ts",
+    "build/**/*.ts",
+    "build/**/*.d.ts",
+    "mock/**/*.ts",
+    "vite.config.ts"
+  ],
+  "exclude": ["node_modules", "tests/server/**/*.ts", "src/dist", "**/*.js"]
 }
