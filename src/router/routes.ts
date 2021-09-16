@@ -8,3 +8,14 @@ export const RootRoute: RouteRecordRaw = {
     title: 'Root',
   },
 };
+
+export const EditorRoute: RouteRecordRaw = {
+  path: '/editor',
+  name: 'Editor',
+  component: () => import('@/views/Editor.vue'),
+  meta: {
+    title: 'Editor',
+  },
+};
+
+export const routes: RouteRecordRaw[] = [RootRoute, EditorRoute];

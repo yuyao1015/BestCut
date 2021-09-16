@@ -1,9 +1,13 @@
 <template>
-  <div ref="spliter" :class="['splitter', vertical ? 'splitterV' : 'splitterH']" />
+  <div
+    ref="spliter"
+    :class="['bg-black', vertical ? 'splitterV' : 'splitterH']"
+    :style="splitterStyle"
+  />
 </template>
 
 <script lang="ts">
-  import { defineComponent, ref, onMounted, nextTick } from 'vue';
+  import { defineComponent, ref, onMounted, nextTick, computed } from 'vue';
 
   export default defineComponent({
     name: 'Splitter',
@@ -11,6 +15,10 @@
       vertical: {
         type: Boolean,
         default: () => false,
+      },
+      value: {
+        type: Number,
+        default: 10,
       },
     },
     emits: ['width'],
@@ -78,7 +86,16 @@
       function onSpliterUp(event: PointerEvent) {
         spliter.value.releasePointerCapture(event.pointerId);
       }
-      return { spliter };
+
+      const splitterStyle = computed(() => {
+        const attr = props.vertical ? 'width' : 'height';
+        return {
+          [attr]: `${props.value}px`,
+          ['min-' + attr]: `${props.value}px`,
+          ['max-' + attr]: `${props.value}px`,
+        };
+      });
+      return { spliter, splitterStyle };
     },
   });
 </script>
@@ -87,21 +104,10 @@
   .splitterV {
     cursor: col-resize;
     height: 100%;
-    width: 10px;
-    min-width: 10px;
-    max-width: 10px;
   }
 
   .splitterH {
     cursor: row-resize;
     width: 100%;
-    height: 10px;
-    min-height: 10px;
-    max-height: 10px;
-  }
-
-  .splitter {
-    background-color: aliceblue;
-    display: block;
   }
 </style>

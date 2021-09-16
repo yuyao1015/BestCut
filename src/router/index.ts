@@ -1,13 +1,7 @@
 import type { App } from 'vue';
-import type { RouteRecordRaw } from 'vue-router';
 
 import { createRouter, createWebHashHistory } from 'vue-router';
-import { RootRoute } from './routes';
-
-const routes: RouteRecordRaw[] = [
-  //
-  RootRoute,
-];
+import { routes } from './routes';
 
 export const router = createRouter({
   history: createWebHashHistory(import.meta.env.VITE_PUBLIC_PATH as string | undefined),

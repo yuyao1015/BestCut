@@ -11,35 +11,38 @@
       </slot>
     </LayoutHeader>
 
-    <Layout class="content">
-      <LayoutSider class="bg-blue-500" :width="resourceW">
+    <Layout class="content border-black border-l-8 border-r-8">
+      <LayoutSider :width="resourceW">
         <slot name="resource">
-          <div class="text">{{ t('common.resource') }}</div>
+          <div class="text bg-blue-500 rounded-md">{{ t('common.resource') }}</div>
         </slot>
       </LayoutSider>
 
       <Splitter vertical @width="onWidthChangeLeft"></Splitter>
 
-      <LayoutContent class="bg-green-500">
+      <LayoutContent class="bg-black">
         <slot name="preview">
-          <div class="text">{{ t('common.preview') }}</div>
+          <div class="text bg-green-500 rounded-md">{{ t('common.preview') }}</div>
         </slot>
       </LayoutContent>
 
       <Splitter vertical @width="onWidthChangeRight"></Splitter>
 
-      <LayoutSider class="bg-red-500" :width="configW">
+      <LayoutSider :width="configW">
         <slot name="config">
-          <div class="text">{{ t('common.config') }}</div>
+          <div class="text bg-red-500 rounded-md">{{ t('common.config') }}</div>
         </slot>
       </LayoutSider>
     </Layout>
 
-    <Splitter></Splitter>
+    <Splitter :value="splitterHeight"></Splitter>
 
-    <LayoutFooter class="footer bg-purple-500">
+    <LayoutFooter
+      class="footer border-black border-8 bg-black"
+      :style="`height: calc(40vh - ${splitterHeight}px)`"
+    >
       <slot name="footer">
-        <div class="text">{{ t('common.footer') }}</div>
+        <div class="text bg-purple-500 rounded-md">{{ t('common.footer') }}</div>
       </slot>
     </LayoutFooter>
   </Layout>
@@ -108,10 +111,12 @@
         location.reload();
       };
 
+      const splitterHeight = ref(2);
       return {
         resourceW,
         configW,
         getLocaleText,
+        splitterHeight,
         onWidthChangeLeft,
         onWidthChangeRight,
         switchLang,
@@ -142,11 +147,15 @@
   }
 
   .footer {
-    height: calc(40vh - 10px);
     min-height: 30vh;
   }
 
   .ant-layout-sider {
     transition: 0ms;
+  }
+
+  .ant-layout-footer {
+    // padding: 0 10px 10px 10px;
+    padding: 0;
   }
 </style>
