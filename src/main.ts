@@ -4,13 +4,21 @@ import App from './App.vue';
 
 import { registerGlobComp } from '@/components/registerGlobComp';
 import { setupRouter } from '@/router';
+import { setupI18n } from '@/locales';
 
 import 'ant-design-vue/dist/antd.css';
+import '@/design/tailwind.css';
 
-const app = createApp(App);
+async function bootstrap() {
+  const app = createApp(App);
 
-registerGlobComp(app);
+  registerGlobComp(app);
 
-setupRouter(app);
+  await setupI18n(app);
 
-app.mount('#app', true);
+  setupRouter(app);
+
+  app.mount('#app', true);
+}
+
+bootstrap();

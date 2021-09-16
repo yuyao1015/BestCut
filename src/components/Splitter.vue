@@ -24,7 +24,7 @@
       const afterSpaceOri = ref(0);
 
       onMounted(() => {
-        console.log('======= spliter mounted:', spliter.value);
+        // console.log('======= spliter mounted:', spliter.value);
         nextTick(() => {
           if (!spliter.value) return;
           spliter.value.addEventListener('pointermove', onSpliterMove);

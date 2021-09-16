@@ -13,6 +13,7 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
   const root = process.cwd();
   const env = loadEnv(mode, root);
 
+  const viteEnv = wrapperEnv(env);
   const isBuild = command === 'build';
 
   return {
@@ -52,6 +53,31 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
       },
     },
 
-    plugins: createVitePlugins(env.viteEnv, isBuild),
+    plugins: createVitePlugins(viteEnv, isBuild),
   };
 };
+
+type Recordable<T = any> = Record<string, T>;
+
+export function wrapperEnv(envConf: Recordable): ViteEnv {
+  const ret: any = {};
+
+  for (const envName of Object.keys(envConf)) {
+    let realName = envConf[envName].replace(/\\n/g, '\n');
+    realName = realName === 'true' ? true : realName === 'false' ? false : realName;
+
+    if (envName === 'VITE_PORT') {
+      realName = Number(realName);
+    }
+    if (envName === 'VITE_PROXY') {
+      try {
+        realName = JSON.parse(realName);
+      } catch (error) {
+        //
+      }
+    }
+    ret[envName] = realName;
+    process.env[envName] = realName;
+  }
+  return ret;
+}
