@@ -1,264 +1,242 @@
-
 /**
  * 所有模型基类
  */
+
+import type { PropEditInfo } from '#/viewItem';
+import { PropComType } from '@/enums/viewItem';
 export abstract class Base {
-    private id: string;
-    private name: string;
+  private id: string;
+  private name: string;
 
-    constructor(name = '未命名', id: string = uuid()) {
-        this.id = id;
-        this.name = name;
-    }
+  constructor(name = '未命名', id: string = uuid()) {
+    this.id = id;
+    this.name = name;
+  }
 
-    getId() {
-        return this.id;
-    }
+  getId() {
+    return this.id;
+  }
 
-    setId(id: string) {
-        this.id = id;
-    }
+  setId(id: string) {
+    this.id = id;
+  }
 
-    getName() {
-        return this.name;
-    }
+  getName() {
+    return this.name;
+  }
 
-    setName(name: string) {
-        this.name = name;
-    }
+  setName(name: string) {
+    this.name = name;
+  }
 
-    abstract getProps(): any;
-}
-
-
-export enum PropComType {
-    TextArea,
-    Font,
-    Style,
-    Slider,
-    Select,
-    Color,
-    File
-} 
-
-
-export interface PropEditInfo {
-    editable: boolean;
-    edit: {
-        component: PropComType;
-        props: any;
-        checkValid: ((val: any) => boolean | string) | null;
-    }
-        
-    title: string;
-    value: any;
+  abstract getProps(): any;
 }
 
 function uuid() {
-    return 'todo';
+  return 'todo';
 }
 
-export abstract class ViewItemBorder extends Base {
-}
+export abstract class ViewItemBorder extends Base {}
 
 export class ViewItemBorderPureColor extends ViewItemBorder {
-    private color: string = '#000';
-    private width: number = 1;
-    
-    getProps(): PropEditInfo[] {
-        return [
-            {
-                editable: true,
-                edit: { 
-                    component: PropComType.Color,
-                    props: null,
-                    checkValid: null
-                },
-                title: '颜色',
-                value: this.color,
-            },
-            {
-                editable: true,
-                edit: { 
-                    component: PropComType.Color,
-                    props: {
-                        from: 1,
-                        to: 1000
-                    },
-                    checkValid: null
-                },
-                title: '颜色',
-                value: this.color,
-            },
-        ];
-    }
+  private color = '#000';
+  private width = 1;
+
+  getProps(): PropEditInfo[] {
+    return [
+      {
+        editable: true,
+        edit: {
+          component: PropComType.Color,
+          props: null,
+          checkValid: null,
+        },
+        title: '颜色',
+        value: this.color,
+      },
+      {
+        editable: true,
+        edit: {
+          component: PropComType.Color,
+          props: {
+            from: 1,
+            to: 1000,
+          },
+          checkValid: null,
+        },
+        title: '颜色',
+        value: this.color,
+      },
+    ];
+  }
 }
 
 export class ViewItemBorder9Regions extends ViewItemBorder {
-    private thumb: string = '';
+  private thumb = '';
 
-    getProps(): PropEditInfo[] {
-        return [
-            {
-                editable: true,
-                edit: { 
-                    component: PropComType.File,
-                    props: "*.png;*.jpeg;*.jpg",
-                    checkValid: null
-                },
-                title: '图片',
-                value: this.thumb,
-            },
-        ];
-    }
+  getProps(): PropEditInfo[] {
+    return [
+      {
+        editable: true,
+        edit: {
+          component: PropComType.File,
+          props: '*.png;*.jpeg;*.jpg',
+          checkValid: null,
+        },
+        title: '图片',
+        value: this.thumb,
+      },
+    ];
+  }
 }
 
-
 export abstract class ViewItem extends Base {
-    x: number = 0; // 0~1
-    y: number = 0;
+  x = 0; // 0~1
+  y = 0;
 
-    width: number = 0; // 0~1
-    height: number = 0;
+  width = 0; // 0~1
+  height = 0;
 
-    rotation: number = 0; //
+  rotation = 0; //
 
-    border: ViewItemBorder | null = null;
+  border: ViewItemBorder | null = null;
 }
 
 export class ViewItemVideo extends ViewItem {
-    private path: string;
+  private path: string;
 
-    constructor(path: string = '') {
-        super();
-        this.path = path;
-    }
+  constructor(path = '') {
+    super();
+    this.path = path;
+  }
 
-    getPath() {
-        return this.path;
-    }
+  getPath() {
+    return this.path;
+  }
 
-    setPath(path: string) {
-        this.path = path;
-    }
+  setPath(path: string) {
+    this.path = path;
+  }
 
-    getProps(): PropEditInfo[] {
-        return [
-            {
-                editable: true,
-                edit: { 
-                    component: PropComType.File,
-                    props: "*.mp4",
-                    checkValid: null
-                },
-                title: '路径',
-                value: this.path,
-            },
-        ];
-    }
+  getProps(): PropEditInfo[] {
+    return [
+      {
+        editable: true,
+        edit: {
+          component: PropComType.File,
+          props: '*.mp4',
+          checkValid: null,
+        },
+        title: '路径',
+        value: this.path,
+      },
+    ];
+  }
 }
 
 export class ViewItemText extends ViewItem {
-    private text: string = '未命名';
+  private text = '未命名';
 
-    constructor() {
-        super();
-    }
+  constructor() {
+    super();
+  }
 
-    getText() {
-        return this.text;
-    }
+  getText() {
+    return this.text;
+  }
 
-    setText(text: string) {
-        this.text = text;
-    }
+  setText(text: string) {
+    this.text = text;
+  }
 
-    getProps(): PropEditInfo[] {
-        return [
-            {
-                editable: true,
-                edit: { 
-                    component: PropComType.TextArea,
-                    props: null,
-                    checkValid: (text: string) => {
-                        return text.length > 1 && text.length < 50;
-                    }
-                },
-                title: '文本内容',
-                value: this.text,
-            },
-        ];
-    }
+  getProps(): PropEditInfo[] {
+    return [
+      {
+        editable: true,
+        edit: {
+          component: PropComType.TextArea,
+          props: null,
+          checkValid: (text: string) => {
+            return text.length > 1 && text.length < 50;
+          },
+        },
+        title: '文本内容',
+        value: this.text,
+      },
+    ];
+  }
 }
 
 export class ViewItemSprite extends ViewItem {
-    constructor() {
-        super();
-    }
+  constructor() {
+    super();
+  }
 
-    getProps() {
-        return null;
-    }
+  getProps() {
+    return null;
+  }
 }
 
 export abstract class Effect extends Base {
-    private duration: number = 20;
-    constructor() {
-        super();
-    }
+  private duration = 20;
+  constructor() {
+    super();
+  }
 
-    getProps(): PropEditInfo[] {
-        return [
-            {
-                editable: true,
-                edit: { 
-                    component: PropComType.TextArea,
-                    props: null,
-                    checkValid: (text: string) => {
-                        return text.length > 20 && text.length < 100000000;
-                    }
-                },
-                title: '持续时长',
-                value: this.duration,
-            },
-        ];
-    }
+  getProps(): PropEditInfo[] {
+    return [
+      {
+        editable: true,
+        edit: {
+          component: PropComType.TextArea,
+          props: null,
+          checkValid: (text: string) => {
+            return text.length > 20 && text.length < 100000000;
+          },
+        },
+        title: '持续时长',
+        value: this.duration,
+      },
+    ];
+  }
 
-    abstract transite: (time: number, blobl: any) => any;
+  abstract transit: (time: number, blob: any) => any;
 }
 
-
 export class TrackItem extends Base {
-    target: TrackItem | null = null;
-    postion: number = -1;
-    duration: number = 10000;
+  target: TrackItem | null = null;
+  postion = -1;
+  duration = 10000;
 
-    getProps() {
-        return null;
-    }
+  getProps() {
+    return null;
+  }
 }
 
 export abstract class TrackItemMedia extends TrackItem {
-    refer: {from: number, to: number} | null = null;
-    path: string = '';
-    muted = false;
+  refer: { from: number; to: number } | null = null;
+  path = '';
+  muted = false;
 }
 
 export class TrackItemVideo extends TrackItemMedia {
-    position: number = -1;
-    videoId: string = '';
+  position = -1;
+  videoId = '';
 
-    getProps() {return null;} // todo;
-} 
+  getProps() {
+    return null;
+  } // todo;
+}
 
 export class TrackItemAudio extends TrackItemMedia {
-    position: number = -1;
-    audioId: string = '';
+  position = -1;
+  audioId = '';
 
-    getProps() {return null;} // todo;
+  getProps() {
+    return null;
+  } // todo;
 }
 
 export class Track {
-    items: TrackItem[] = [];
+  items: TrackItem[] = [];
 }
-

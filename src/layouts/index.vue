@@ -1,6 +1,6 @@
 <template>
   <Layout class="layout">
-    <LayoutHeader class="header">
+    <LayoutHeader class="header bg-black">
       <slot name="header">
         <div class="text">
           {{ t('common.header') }}
@@ -11,7 +11,7 @@
       </slot>
     </LayoutHeader>
 
-    <Layout class="content border-black border-l-8 border-r-8">
+    <Layout class="content bg-black px-2">
       <LayoutSider :width="resourceW">
         <slot name="resource">
           <div class="text bg-blue-500 rounded-md">{{ t('common.resource') }}</div>
@@ -38,8 +38,10 @@
     <Splitter :value="splitterHeight"></Splitter>
 
     <LayoutFooter
-      class="footer border-black border-8 bg-black"
-      :style="`height: calc(40vh - ${splitterHeight}px)`"
+      class="footer bg-black px-2 pb-2 pt-0"
+      :style="`height: calc(40vh - ${splitterHeight}px);
+      min-height: calc(30vh - ${splitterHeight}px);
+      max-height: calc(60vh - ${splitterHeight}px);`"
     >
       <slot name="footer">
         <div class="text bg-purple-500 rounded-md">{{ t('common.footer') }}</div>
@@ -111,7 +113,7 @@
         location.reload();
       };
 
-      const splitterHeight = ref(2);
+      const splitterHeight = ref(10);
       return {
         resourceW,
         configW,
@@ -152,10 +154,5 @@
 
   .ant-layout-sider {
     transition: 0ms;
-  }
-
-  .ant-layout-footer {
-    // padding: 0 10px 10px 10px;
-    padding: 0;
   }
 </style>

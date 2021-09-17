@@ -136,6 +136,7 @@
     "stylelint",
     "antd",
     "lintstagedrc",
-    "loglevel"
+    "loglevel",
+    "vueuse"
   ]
 }

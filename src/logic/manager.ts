@@ -1,24 +1,23 @@
 import { Track, TrackItem, TrackItemAudio, TrackItemVideo } from './data';
 
 export class TimeLine {
-    mainTrack: TrackItemVideo[] = [];
-    viewTrack: TrackItem[][] = [];
-    audioTrack: TrackItemAudio[][] = [];
+  mainTrack: TrackItemVideo[] = [];
+  viewTrack: TrackItem[][] = [];
+  audioTrack: TrackItemAudio[][] = [];
 
-    remove(id: string) {
-
-    }
+  remove(id: string) {
+    //   TODO:
+  }
 }
 
-
 export class Manager {
-    timeline: TimeLine;
+  timeline: TimeLine;
 
-    constructor() {
-        this.timeline = new TimeLine();
-    }
+  constructor() {
+    this.timeline = new TimeLine();
+  }
 
-    exportProject() {
-
-    }
+  exportProject() {
+    //   TODO:
+  }
 }
