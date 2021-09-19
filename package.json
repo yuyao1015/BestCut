@@ -8,7 +8,7 @@
     "prettier": "prettier --write --loglevel warn \"src/**/*.{js,json,tsx,css,less,scss,vue,html,md}\"",
     "stylelint": "stylelint --fix \"**/*.{vue,less,postcss,css,scss}\" --cache --cache-location node_modules/.cache/stylelint/",
     "lint-staged": "lint-staged -c ./.husky/lintstagedrc.js",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit --skipLibCheck && vite build",
     "build:test": "vite build --mode test",
     "build:no-cache": "yarn clean:cache && npm run build",
     "type:check": "vue-tsc --noEmit --skipLibCheck",

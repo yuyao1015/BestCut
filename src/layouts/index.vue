@@ -1,8 +1,8 @@
 <template>
   <Layout class="layout">
-    <LayoutHeader class="header bg-black">
+    <LayoutHeader class="layout-header bg-black">
       <slot name="header">
-        <div class="text">
+        <div class="center">
           {{ t('common.header') }}
           <a-button class="absolute right-36" @click="switchLang">
             {{ getLocaleText }}
@@ -11,47 +11,41 @@
       </slot>
     </LayoutHeader>
 
-    <Layout class="content bg-black px-2">
+    <Layout class="layout-content bg-black px-2" :style="`height: ${95 - trackRatio}vh;`">
       <LayoutSider :width="resourceW">
         <slot name="resource">
-          <div class="text bg-blue-500 rounded-md">{{ t('common.resource') }}</div>
+          <div class="center bg-blue-500 rounded-md">{{ t('common.resource') }}</div>
         </slot>
       </LayoutSider>
 
-      <Splitter vertical @width="onWidthChangeLeft"></Splitter>
+      <Splitter vertical :value="splitterWidth" @width="onWidthChangeLeft"></Splitter>
 
       <LayoutContent class="bg-black">
         <slot name="preview">
-          <div class="text bg-green-500 rounded-md">{{ t('common.preview') }}</div>
+          <div class="center bg-green-500 rounded-md">{{ t('common.preview') }}</div>
         </slot>
       </LayoutContent>
 
-      <Splitter vertical @width="onWidthChangeRight"></Splitter>
-
+      <Splitter vertical :value="splitterWidth" @width="onWidthChangeRight"></Splitter>
       <LayoutSider :width="configW">
         <slot name="config">
-          <div class="text bg-red-500 rounded-md">{{ t('common.config') }}</div>
+          <div class="center bg-red-500 rounded-md">{{ t('common.config') }}</div>
         </slot>
       </LayoutSider>
     </Layout>
 
-    <Splitter :value="splitterHeight"></Splitter>
+    <Splitter :value="splitterHeight" @height="onHeightChange"></Splitter>
 
-    <LayoutFooter
-      class="footer bg-black px-2 pb-2 pt-0"
-      :style="`height: calc(40vh - ${splitterHeight}px);
-      min-height: calc(30vh - ${splitterHeight}px);
-      max-height: calc(60vh - ${splitterHeight}px);`"
-    >
+    <LayoutFooter class="layout-footer bg-black px-2 pb-2 pt-0" :style="`height: ${trackRatio}vh`">
       <slot name="footer">
-        <div class="text bg-purple-500 rounded-md">{{ t('common.footer') }}</div>
+        <div class="center bg-purple-500 rounded-md">{{ t('common.footer') }}</div>
       </slot>
     </LayoutFooter>
   </Layout>
 </template>
 
 <script lang="ts">
-  import { computed, defineComponent, onMounted, ref, unref, watchEffect } from 'vue';
+  import { computed, defineComponent, onMounted, onUnmounted, ref, unref, watchEffect } from 'vue';
 
   import { Layout } from 'ant-design-vue';
 
@@ -69,30 +63,72 @@
       LayoutFooter: Layout.Footer,
       Splitter,
     },
-    setup() {
+    props: {
+      leftRatio: {
+        type: Number,
+        default: 0.3,
+      },
+      rightRatio: {
+        type: Number,
+        default: 0.25,
+      },
+      bottomRatio: {
+        type: Number,
+        default: 0.4,
+      },
+    },
+    setup(props) {
+      const { leftRatio, rightRatio, bottomRatio } = props;
       const resourceW = ref(0);
       const configW = ref(0);
 
-      onMounted(() => {
+      const splitterWidth = ref(10);
+      const splitterHeight = ref(10);
+
+      const previewRatio = rightRatio;
+
+      const resourceRatio = ref(leftRatio);
+      const configRatio = ref(rightRatio);
+      const trackRatio = ref(bottomRatio * 100);
+
+      const updateWidth = () => {
         const { clientWidth } = document.body;
-        resourceW.value = clientWidth * 0.3;
-        configW.value = clientWidth * 0.25;
+        resourceW.value = clientWidth * resourceRatio.value;
+        configW.value = clientWidth * configRatio.value;
+      };
+
+      onMounted(() => {
+        window.addEventListener('resize', updateWidth);
+        updateWidth();
+      });
+
+      onUnmounted(() => {
+        window.removeEventListener('resize', updateWidth);
       });
 
       const onWidthChangeLeft = (widthChange: any) => {
-        let { preW } = widthChange;
+        let { pre } = widthChange;
         const { clientWidth: w } = document.body;
-        preW = preW > w * 0.3 ? preW : w * 0.3;
-        const remain = w * 0.75 - configW.value - 20;
-        resourceW.value = remain > preW ? preW : remain;
+        pre = pre > w * leftRatio ? pre : w * leftRatio;
+        const remain = w * (1 - previewRatio) - configW.value - 2 * splitterWidth.value;
+        resourceW.value = remain > pre ? pre : remain;
+        resourceRatio.value = resourceW.value / w;
       };
 
       const onWidthChangeRight = (widthChange: any) => {
-        let { afterW } = widthChange;
+        let { after } = widthChange;
         const { clientWidth: w } = document.body;
-        afterW = afterW > w * 0.25 ? afterW : w * 0.25;
-        const remain = w * 0.75 - resourceW.value - 20;
-        configW.value = remain > afterW ? afterW : remain;
+        after = after > w * rightRatio ? after : w * rightRatio;
+        const remain = w * (1 - previewRatio) - resourceW.value - 2 * splitterWidth.value;
+        configW.value = remain > after ? after : remain;
+        configRatio.value = configW.value / w;
+      };
+
+      const onHeightChange = (heightChange: any) => {
+        let { after } = heightChange;
+        const { clientHeight: h } = document.body;
+        const ratio = Math.max((after / h) * 100, 30);
+        trackRatio.value = Math.min(ratio, 60) - (splitterHeight.value * 100) / h;
       };
 
       const { t } = useI18n();
@@ -113,14 +149,16 @@
         location.reload();
       };
 
-      const splitterHeight = ref(10);
       return {
         resourceW,
         configW,
+        trackRatio,
         getLocaleText,
+        splitterWidth,
         splitterHeight,
         onWidthChangeLeft,
         onWidthChangeRight,
+        onHeightChange,
         switchLang,
         t,
       };
@@ -128,8 +166,8 @@
   });
 </script>
 
-<style lang="less">
-  .text {
+<style lang="less" scoped>
+  .center {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -138,18 +176,20 @@
     font-size: 30px;
   }
 
-  .header {
+  .layout-header {
     height: 5vh;
   }
 
-  .content {
-    height: 55vh;
-    min-height: 35vh;
-    max-height: 65vh;
+  .layout-content {
+    // height: 55vh;
+    // min-height: 35vh;
+    // max-height: 65vh;
   }
 
-  .footer {
-    min-height: 30vh;
+  .layout-footer {
+    // height: 40vh;
+    // min-height: 30vh;
+    // max-height: 60vh;
   }
 
   .ant-layout-sider {

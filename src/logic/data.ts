@@ -40,7 +40,7 @@ export abstract class ViewItemBorder extends Base {}
 
 export class ViewItemBorderPureColor extends ViewItemBorder {
   private color = '#000';
-  private width = 1;
+  // private width = 1;
 
   getProps(): PropEditInfo[] {
     return [

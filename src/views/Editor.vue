@@ -1,14 +1,29 @@
 <template>
   <Layout>
     <!-- <template #header></template> -->
-    <!-- <template #resource></template> -->
 
-    <!-- <template #preview>
-      <div>preview</div>
-    </template> -->
-    <!-- <template #config></template> -->
+    <template #resource>
+      <SectionBox :title="t('components.resource')">
+        <template #content>
+          <ResourceBox></ResourceBox>
+        </template>
+      </SectionBox>
+    </template>
 
-    <!-- <template #footer></template> -->
+    <template #preview>
+      <SectionBox :title="t('components.preview')">
+        <template #content>
+          <ResourceBox></ResourceBox>
+        </template>
+      </SectionBox>
+    </template>
+    <template #config>
+      <SectionBox :title="t('components.config')"></SectionBox>
+    </template>
+
+    <template #footer>
+      <SectionBox :title="t('components.tracks')"></SectionBox>
+    </template>
   </Layout>
 </template>
 
@@ -16,19 +31,27 @@
   import { defineComponent } from 'vue';
 
   import Layout from '@/layouts/index.vue';
+  import SectionBox from '@/components/SectionBox.vue';
+  import ResourceBox from '@/components/ResourceBox.vue';
+
+  import { useI18n } from '@/hooks/useI18n';
 
   export default defineComponent({
     name: 'Editor',
     components: {
       Layout,
+      SectionBox,
+      ResourceBox,
     },
     props: {
       //
     },
     emits: [],
     setup() {
+      const { t } = useI18n();
       return {
         //
+        t,
       };
     },
   });

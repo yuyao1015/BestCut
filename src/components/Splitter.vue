@@ -21,7 +21,7 @@
         default: 10,
       },
     },
-    emits: ['width'],
+    emits: ['width', 'height'],
     setup(props, { emit }) {
       const spliter: any = ref(null);
       const preLay: any = ref(null);
@@ -68,17 +68,18 @@
       function onSpliterMove(event: PointerEvent) {
         if (spliter.value.hasPointerCapture(event.pointerId) === true) {
           if (props.vertical === false) {
-            preLay.value.style.height =
-              preSpaceOri.value - (spliterOri.value - event.clientY) + 'px';
-            afterLay.value.style.height =
-              afterSpaceOri.value + (spliterOri.value - event.clientY) + 'px';
+            const pre = preSpaceOri.value - (spliterOri.value - event.clientY);
+            const after = afterSpaceOri.value + (spliterOri.value - event.clientY);
+            preLay.value.style.height = pre + 'px';
+            afterLay.value.style.height = after + 'px';
+            emit('height', { pre, after });
           } else {
             // console.log('move');
-            const preW = preSpaceOri.value - (spliterOri.value - event.clientX);
-            const afterW = afterSpaceOri.value + (spliterOri.value - event.clientX);
-            preLay.value.style.width = preW + 'px';
-            afterLay.value.style.width = afterW + 'px';
-            emit('width', { preW, afterW });
+            const pre = preSpaceOri.value - (spliterOri.value - event.clientX);
+            const after = afterSpaceOri.value + (spliterOri.value - event.clientX);
+            preLay.value.style.width = pre + 'px';
+            afterLay.value.style.width = after + 'px';
+            emit('width', { pre, after });
           }
         }
       }
