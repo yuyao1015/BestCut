@@ -3,35 +3,31 @@
     <!-- <template #header></template> -->
 
     <template #resource>
-      <SectionBox :title="t('components.resource')">
+      <SectionBox sider :title="t('components.resource')">
         <template #content>
-          <ResourceBox></ResourceBox>
+          <ResourceBox v-model:usable="usable"></ResourceBox>
         </template>
       </SectionBox>
     </template>
 
     <template #preview>
-      <SectionBox :title="t('components.preview')">
-        <template #content>
-          <ResourceBox></ResourceBox>
-        </template>
-      </SectionBox>
+      <SectionBox footer :title="t('components.preview')"> </SectionBox>
     </template>
     <template #config>
       <SectionBox :title="t('components.config')"></SectionBox>
     </template>
 
-    <template #footer>
+    <template #track>
       <SectionBox :title="t('components.tracks')"></SectionBox>
     </template>
   </Layout>
 </template>
 
 <script lang="ts">
-  import { defineComponent } from 'vue';
+  import { defineComponent, ref } from 'vue';
 
   import Layout from '@/layouts/index.vue';
-  import SectionBox from '@/components/SectionBox.vue';
+  import SectionBox from '@/layouts/SectionBox.vue';
   import ResourceBox from '@/components/ResourceBox.vue';
 
   import { useI18n } from '@/hooks/useI18n';
@@ -49,8 +45,10 @@
     emits: [],
     setup() {
       const { t } = useI18n();
+
       return {
         //
+        usable: ref(false),
         t,
       };
     },

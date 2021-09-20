@@ -1,27 +1,30 @@
 <template>
-  <div class="resource-box relative rounded-md h-20 w-40">
-    <!-- template -->
+  <div class="resource-box relative rounded-md h-20 w-40" @click="display">
+    <slot name="content" {Component}>
+      {{ 'resource content' }}
+    </slot>
+
     <StarFilled
       v-if="favorite"
       :class="[checked ? 'text-yellow-400' : '', 'favorite absolute bottom-1 right-6']"
       @click="onChecked"
     />
-    <!-- <StarFilled /> -->
-    <PlusCircleFilled v-if="add" :class="['add absolute bottom-1 right-1']" />
 
-    <VerticalAlignBottomOutlined
-      v-if="_download && !isLoading"
-      class="download absolute bottom-1 right-1"
+    <PlusCircleFilled
+      v-if="usable"
+      :class="[showAdd ? '' : 'hidden', 'absolute bottom-1 right-1 add']"
     />
-    <LoadingOutlined v-if="_download && isLoading" class="downloading absolute bottom-1 right-1" />
+
+    <DownloadOutlined v-if="!usable && !isLoading" class="download absolute bottom-1 right-1" />
+    <LoadingOutlined v-if="!usable && isLoading" class="downloading absolute bottom-1 right-1" />
   </div>
 </template>
 <script lang="ts">
-  import { computed, defineComponent, ref } from 'vue';
+  import { defineComponent, ref } from 'vue';
   import {
     PlusCircleFilled,
     StarFilled,
-    VerticalAlignBottomOutlined,
+    DownloadOutlined,
     LoadingOutlined,
   } from '@ant-design/icons-vue';
 
@@ -31,7 +34,7 @@
       //
       PlusCircleFilled,
       StarFilled,
-      VerticalAlignBottomOutlined,
+      DownloadOutlined,
       LoadingOutlined,
     },
     props: {
@@ -39,41 +42,57 @@
         type: Boolean,
         default: false,
       },
-      add: {
-        type: Boolean,
-        default: true,
-      },
-      download: {
-        type: Boolean,
-        default: true,
-      },
-      favorite: {
+      showAdd: {
         type: Boolean,
         default: false,
       },
-      checked: {
+      favorite: {
         type: Boolean,
         default: true,
       },
+      checked: {
+        type: Boolean,
+        default: false,
+      },
     },
-    emits: [],
-    setup(props) {
-      const _download = computed(() => {
-        if (props.add && props.download) return false;
-        else return props.download;
-      });
-
+    emits: ['update:usable'],
+    setup(props, { emit }) {
       const checked = ref(false);
       const onChecked = () => {
         checked.value = !checked.value;
       };
 
       const isLoading = ref(false);
+      const display = () => {
+        if (props.usable) {
+          // TODO: display
+        } else {
+          isLoading.value = true;
+          // TODO: download
+          const download = new Promise((resolve, reject) => {
+            setTimeout(() => {
+              resolve('success');
+              reject('error');
+            }, 500);
+          });
+          download
+            .then((res) => {
+              console.log(res);
+              emit('update:usable', true);
+            })
+            .catch((err) => {
+              console.log(err);
+            })
+            .then(() => {
+              isLoading.value = false;
+            });
+        }
+      };
 
       return {
-        _download,
         checked,
         isLoading,
+        display,
         onChecked,
       };
     },
@@ -90,13 +109,9 @@
   }
 
   .resource-box:hover {
-    // .download {
-    //   opacity: 0;
-    // }
-
-    // .add-hover {
-    //   color: aqua;
-    //   opacity: 1;
-    // }
+    .add {
+      color: aqua;
+      display: block;
+    }
   }
 </style>

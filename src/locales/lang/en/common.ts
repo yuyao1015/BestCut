@@ -4,5 +4,5 @@ export default {
   resource: 'resource panel',
   preview: 'preview panel',
   config: 'config panel',
-  footer: 'track lay',
+  track: 'track lay',
 };

@@ -70,15 +70,10 @@
           if (props.vertical === false) {
             const pre = preSpaceOri.value - (spliterOri.value - event.clientY);
             const after = afterSpaceOri.value + (spliterOri.value - event.clientY);
-            preLay.value.style.height = pre + 'px';
-            afterLay.value.style.height = after + 'px';
             emit('height', { pre, after });
           } else {
-            // console.log('move');
             const pre = preSpaceOri.value - (spliterOri.value - event.clientX);
             const after = afterSpaceOri.value + (spliterOri.value - event.clientX);
-            preLay.value.style.width = pre + 'px';
-            afterLay.value.style.width = after + 'px';
             emit('width', { pre, after });
           }
         }

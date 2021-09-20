@@ -36,9 +36,12 @@
 
     <Splitter :value="splitterHeight" @height="onHeightChange"></Splitter>
 
-    <LayoutFooter class="layout-footer bg-black px-2 pb-2 pt-0" :style="`height: ${trackRatio}vh`">
-      <slot name="footer">
-        <div class="center bg-purple-500 rounded-md">{{ t('common.footer') }}</div>
+    <LayoutFooter
+      class="layout-footer bg-black px-2 pb-2 pt-0"
+      :style="`height: calc(${trackRatio}vh - ${splitterHeight}px)`"
+    >
+      <slot name="track">
+        <div class="center bg-purple-500 rounded-md">{{ t('common.track') }}</div>
       </slot>
     </LayoutFooter>
   </Layout>
@@ -126,9 +129,11 @@
 
       const onHeightChange = (heightChange: any) => {
         let { after } = heightChange;
-        const { clientHeight: h } = document.body;
-        const ratio = Math.max((after / h) * 100, 30);
-        trackRatio.value = Math.min(ratio, 60) - (splitterHeight.value * 100) / h;
+        const { innerHeight: h } = window;
+        let ratio = (after / h) * 100;
+        ratio = Math.max(ratio, 30);
+        ratio = Math.min(ratio, 60);
+        trackRatio.value = ratio;
       };
 
       const { t } = useI18n();
@@ -180,19 +185,8 @@
     height: 5vh;
   }
 
-  .layout-content {
-    // height: 55vh;
-    // min-height: 35vh;
-    // max-height: 65vh;
-  }
-
-  .layout-footer {
-    // height: 40vh;
-    // min-height: 30vh;
-    // max-height: 60vh;
-  }
-
   .ant-layout-sider {
     transition: 0ms;
+    background-color: black;
   }
 </style>
