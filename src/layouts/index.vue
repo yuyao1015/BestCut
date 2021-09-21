@@ -94,19 +94,39 @@
       const configRatio = ref(rightRatio);
       const trackRatio = ref(bottomRatio * 100);
 
-      const updateWidth = () => {
-        const { clientWidth } = document.body;
-        resourceW.value = clientWidth * resourceRatio.value;
-        configW.value = clientWidth * configRatio.value;
+      const ratio = 16 / 9;
+
+      const canvasSizeChange = () => {
+        const { innerWidth, innerHeight } = window;
+        const previewCanvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
+
+        const previewW =
+          innerWidth * (1 - resourceRatio.value - configRatio.value) - 2 * splitterWidth.value;
+        const previewH =
+          innerHeight * (1 - 0.05 - trackRatio.value / 100) - 1 * splitterHeight.value;
+
+        let w = Math.floor(previewW * 0.9);
+        let h = Math.floor(previewH * 0.7);
+        while (w / ratio > h) w *= 0.99;
+
+        previewCanvas.width = w;
+        previewCanvas.height = w / ratio;
+      };
+
+      const onResize = () => {
+        const { innerWidth: w } = window;
+        resourceW.value = w * resourceRatio.value;
+        configW.value = w * configRatio.value;
+        canvasSizeChange();
       };
 
       onMounted(() => {
-        window.addEventListener('resize', updateWidth);
-        updateWidth();
+        window.addEventListener('resize', onResize);
+        onResize();
       });
 
       onUnmounted(() => {
-        window.removeEventListener('resize', updateWidth);
+        window.removeEventListener('resize', onResize);
       });
 
       const onWidthChangeLeft = (widthChange: any) => {
@@ -116,6 +136,7 @@
         const remain = w * (1 - previewRatio) - configW.value - 2 * splitterWidth.value;
         resourceW.value = remain > pre ? pre : remain;
         resourceRatio.value = resourceW.value / w;
+        canvasSizeChange();
       };
 
       const onWidthChangeRight = (widthChange: any) => {
@@ -125,6 +146,7 @@
         const remain = w * (1 - previewRatio) - resourceW.value - 2 * splitterWidth.value;
         configW.value = remain > after ? after : remain;
         configRatio.value = configW.value / w;
+        canvasSizeChange();
       };
 
       const onHeightChange = (heightChange: any) => {
@@ -134,6 +156,8 @@
         ratio = Math.max(ratio, 30);
         ratio = Math.min(ratio, 60);
         trackRatio.value = ratio;
+
+        canvasSizeChange();
       };
 
       const { t } = useI18n();

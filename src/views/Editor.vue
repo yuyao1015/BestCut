@@ -11,14 +11,15 @@
     </template>
 
     <template #preview>
-      <SectionBox footer :title="t('components.preview')"> </SectionBox>
+      <Preview> </Preview>
     </template>
+
     <template #config>
       <SectionBox :title="t('components.config')"></SectionBox>
     </template>
 
     <template #track>
-      <SectionBox :title="t('components.tracks')"></SectionBox>
+      <SectionBox sider :title="t('components.tracks')"></SectionBox>
     </template>
   </Layout>
 </template>
@@ -30,6 +31,8 @@
   import SectionBox from '@/layouts/SectionBox.vue';
   import ResourceBox from '@/components/ResourceBox.vue';
 
+  import Preview from '@/views/preview/index.vue';
+
   import { useI18n } from '@/hooks/useI18n';
 
   export default defineComponent({
@@ -38,6 +41,7 @@
       Layout,
       SectionBox,
       ResourceBox,
+      Preview,
     },
     props: {
       //

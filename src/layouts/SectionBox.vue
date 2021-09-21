@@ -9,7 +9,7 @@
     </LayoutHeader>
 
     <Layout class="rounded-b-md overflow-hidden">
-      <LayoutSider v-if="sider" class="border-r border-black" width="50">
+      <LayoutSider v-if="sider" class="border-r border-black" width="90">
         <slot name="sider">
           <div class="center">
             {{ 'sider' }}
@@ -18,7 +18,7 @@
       </LayoutSider>
 
       <Layout class="">
-        <LayoutContent class="">
+        <LayoutContent class="h-5/6">
           <slot name="content">
             <div class="center">
               {{ 'content' }}
@@ -26,7 +26,7 @@
           </slot>
         </LayoutContent>
 
-        <LayoutFooter v-if="footer" class="h-10 p-0">
+        <LayoutFooter v-if="footer" class="h-1/6 p-0">
           <slot name="footer">
             <div class="center">
               {{ 'footer' }}
@@ -78,12 +78,13 @@
   }
 
   .ant-layout-sider,
-  .ant-layout-content {
+  .ant-layout-content,
+  .ant-layout-footer {
     background-color: #272728;
+    color: inherit;
   }
 
-  .ant-layout-header,
-  .ant-layout-footer {
+  .ant-layout-header {
     background-color: #414145;
     color: inherit;
   }
