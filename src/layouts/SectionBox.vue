@@ -17,7 +17,7 @@
         </slot>
       </LayoutSider>
 
-      <Layout class="">
+      <Layout>
         <LayoutContent class="h-5/6">
           <slot name="content">
             <div class="center">

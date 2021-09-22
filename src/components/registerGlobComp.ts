@@ -4,11 +4,7 @@ import {
   // Need
   Button,
   Input,
-  Layout,
-  Carousel,
   Form,
-  Popover,
-  Divider,
   Modal,
 } from 'ant-design-vue';
 
@@ -16,11 +12,7 @@ const compList = [
   //
   Button,
   Input,
-  Layout,
-  Carousel,
   Form,
-  Popover,
-  Divider,
   Modal,
 ];
 

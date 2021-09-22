@@ -9,7 +9,7 @@
     <template #footer>
       <div :class="[active ? '' : 'opacity-50', 'preview-panel h-full relative flex items-center']">
         <div class="absolute flex flex-col items-center left-2">
-          <div class="text-red-500">{{ currentTime }}</div>
+          <div class="active-color">{{ currentTime }}</div>
           <div class="border-white border-t">{{ duration }}</div>
         </div>
         <div

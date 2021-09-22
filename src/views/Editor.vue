@@ -3,11 +3,7 @@
     <!-- <template #header></template> -->
 
     <template #resource>
-      <SectionBox sider :title="t('components.resource')">
-        <template #content>
-          <ResourceBox v-model:usable="usable"></ResourceBox>
-        </template>
-      </SectionBox>
+      <ResourceBox></ResourceBox>
     </template>
 
     <template #preview>
@@ -25,13 +21,13 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent, ref } from 'vue';
+  import { defineComponent } from 'vue';
 
   import Layout from '@/layouts/index.vue';
   import SectionBox from '@/layouts/SectionBox.vue';
-  import ResourceBox from '@/components/ResourceBox.vue';
 
   import Preview from '@/views/preview/index.vue';
+  import ResourceBox from '@/views/resource/index.vue';
 
   import { useI18n } from '@/hooks/useI18n';
 
@@ -40,8 +36,8 @@
     components: {
       Layout,
       SectionBox,
-      ResourceBox,
       Preview,
+      ResourceBox,
     },
     props: {
       //
@@ -52,7 +48,6 @@
 
       return {
         //
-        usable: ref(false),
         t,
       };
     },

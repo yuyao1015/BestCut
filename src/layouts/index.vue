@@ -110,7 +110,7 @@
         while (w / ratio > h) w *= 0.99;
 
         previewCanvas.width = w;
-        previewCanvas.height = w / ratio;
+        previewCanvas.height = Math.floor(w / ratio);
       };
 
       const onResize = () => {
