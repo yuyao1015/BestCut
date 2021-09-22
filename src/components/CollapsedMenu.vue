@@ -13,14 +13,16 @@
       :header="resource.title"
       :showArrow="Boolean(resource.fragments.length > 1)"
     >
-      <p
-        v-for="(fragment, j) in resource.fragments"
-        :key="fragment.name"
-        :class="[selectedFragment === j ? 'active-color' : '', 'my-2']"
-        @click="switchItem(j)"
-      >
-        {{ fragment.name }}
-      </p>
+      <div v-if="resource.fragments.length && resource.fragments[0].name">
+        <div
+          v-for="(fragment, j) in resource.fragments"
+          :key="fragment.name"
+          :class="[selectedFragment === j ? 'active-color' : '', 'my-2']"
+          @click="switchItem(j)"
+        >
+          {{ fragment.name }}
+        </div>
+      </div>
     </CollapsePanel>
   </Collapse>
 </template>

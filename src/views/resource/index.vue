@@ -59,7 +59,7 @@
         activeTab.value = idx;
       };
 
-      const selectedLib = ref(1);
+      const selectedLib = ref(0);
       const selectedFragment = ref(0);
 
       return {

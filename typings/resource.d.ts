@@ -18,14 +18,14 @@ export interface VideoResourceItem extends Partial<Item> {
   // type: ResourceType.Video;
   type: string;
 }
-export interface AudioReourceItem extends Partial<Item> {
+export interface AudioResourceItem extends Partial<Item> {
   // type: ResourceType.Audio;
   type: string;
   album?: string;
   author?: string;
 }
 
-export type ResourceItem = VideoResourceItem | AudioReourceItem;
+export type ResourceItem = VideoResourceItem | AudioResourceItem;
 
 export interface ResourceFragment {
   name?: string;
@@ -35,7 +35,7 @@ export interface ResourceFragment {
 
 export interface ResourceLibItem {
   title: string;
-  fragments: ResourceFragment[] | ResourceFragment;
+  fragments: ResourceFragment[];
   component?: VNode;
   boxSize?: string;
 }

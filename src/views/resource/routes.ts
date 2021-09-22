@@ -1,4 +1,3 @@
-import { vue } from '@vitejs/plugin-vue';
 import type { ResourceFragment, ResourceLibItem, ResourceTabItem, ResourceItem } from '#/resource';
 
 import { h } from 'vue';
@@ -13,10 +12,7 @@ import {
   ForkOutlined,
 } from '@ant-design/icons-vue';
 
-import LocalResource from '@/views/resource/LocalResource.vue';
-import { resourceListWrapper, ResourceList } from '@/views/resource/ResourceList';
-import ResourceList from '@/views/resource/ResourceList.vue';
-// import Resource from '@/components/Resource.vue';
+import { useResourceWrapper } from '@/views/resource/useResource';
 
 import icon from '@/assets/rhino.jpg';
 
@@ -72,15 +68,15 @@ const lists = fragGen(5, 6);
 export const resourceLibs: ResourceLibItem[] = [
   {
     title: t('resource.local'),
-    fragments: { list: localResource },
-    component: h(LocalResource),
+    fragments: [{ list: localResource }],
+    component: useResourceWrapper([{ list: localResource }], 'local'),
   },
   {
     title: t('resource.material'),
     fragments: lists,
-    component: h(ResourceList, { list: lists }),
-    // component: resourceListWrapper(lists),
-    // component: ResourceList,
+    // component: h(ResourceList, { list: lists }),
+    // component: () => useResourceList(lists[0]),
+    component: useResourceWrapper(lists),
   },
 ];
 

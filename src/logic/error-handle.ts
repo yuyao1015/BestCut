@@ -24,5 +24,6 @@ function registerImgErrorHandler() {
 }
 
 export function setupErrorHandle(app: App) {
+  app;
   registerImgErrorHandler();
 }
