@@ -8,7 +8,7 @@
     "jsx": "preserve",
     "declaration": true,
     // "outFile": "./out.js",
-    "outDir": "src/dist",
+    "outDir": "./dist",
     "rootDir": ".",
     // "removeComments": false,
     // "noEmit": true,
@@ -58,7 +58,7 @@
     "typings/**/*.ts",
     "build/**/*.ts",
     "build/**/*.d.ts",
-    "mock/**/*.ts",
+    "mocks/**/*.ts",
     "vite.config.ts"
   ],
   "exclude": ["node_modules", "tests/server/**/*.ts", "src/dist", "**/*.js"]

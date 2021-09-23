@@ -45,12 +45,6 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
     server: {
       host: true,
       port: +env.VITE_PORT,
-      cors: true,
-      proxy: {
-        '/login': 'http://localhost:8081',
-        '/resume': 'http://localhost:8081',
-        '/github': 'http://localhost:8081',
-      },
     },
 
     plugins: createVitePlugins(viteEnv, isBuild),

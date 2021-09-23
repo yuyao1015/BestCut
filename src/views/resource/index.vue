@@ -24,19 +24,22 @@
     </template>
 
     <template #content>
-      <component :is="resourceLibs[selectedLib].component" class="m-1"></component>
+      <component :is="currentLib.component(currentLib.fragments)" class="m-1" />
     </template>
   </SectionBox>
 </template>
 
 <script lang="ts">
-  import { defineComponent, ref } from 'vue';
+  import { computed, defineComponent, ref, watch } from 'vue';
 
   import SectionBox from '@/layouts/SectionBox.vue';
   import CollapsedMenu from '@/components/CollapsedMenu.vue';
 
   import { useI18n } from '@/hooks/useI18n';
-  import { tabsData, resourceLibs } from './routes';
+  import { tabsData } from './routes';
+
+  import axios from 'axios';
+  import { useResourceList } from './useResource';
 
   export default defineComponent({
     name: 'ResourceBox',
@@ -55,21 +58,36 @@
       const title = t('components.resource');
 
       const activeTab = ref(0);
+      const selectedLib = ref(0);
+      const selectedFragment = ref(0);
+
+      const tabs = ref(tabsData);
+      const resourceLibs = computed(() => tabs.value[activeTab.value].libs);
+      const currentLib = computed(() => resourceLibs.value[selectedLib.value]);
+
+      const updateFragments = async () => {
+        if (!currentLib.value.fragments.length) {
+          const { data } = await axios.get(`/${currentLib.value.libName}`);
+          currentLib.value.fragments = data;
+        }
+      };
+      updateFragments();
+      watch(selectedLib, async () => updateFragments());
+
       const switchTab = (idx: number) => {
         activeTab.value = idx;
       };
 
-      const selectedLib = ref(0);
-      const selectedFragment = ref(0);
-
       return {
         title,
-        tabsData,
-        resourceLibs,
         activeTab,
         selectedLib,
         selectedFragment,
+        tabsData,
+        resourceLibs,
+        currentLib,
         switchTab,
+        useResourceList,
       };
     },
   });

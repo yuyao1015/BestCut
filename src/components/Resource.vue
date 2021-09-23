@@ -19,7 +19,11 @@
       </div>
 
       <!-- tl referenced -->
-      <div v-if="referenced" class="absolute top-1 left-1" style="background-color: #282828">
+      <div
+        v-if="referenced"
+        class="absolute top-1 left-1"
+        style="background-color: rgb(255, 255, 255, 0.3)"
+      >
         <div class="">已添加</div>
       </div>
 
@@ -36,12 +40,12 @@
       />
 
       <PlusCircleFilled
-        v-if="usable"
+        v-if="_usable"
         :class="[showAdd ? '' : 'hidden', 'absolute bottom-1 right-1 add']"
       />
 
-      <DownloadOutlined v-if="!usable && !isLoading" class="download absolute bottom-1 right-1" />
-      <LoadingOutlined v-if="!usable && isLoading" class="downloading absolute bottom-1 right-1" />
+      <DownloadOutlined v-if="!_usable && !isLoading" class="download absolute bottom-1 right-1" />
+      <LoadingOutlined v-if="!_usable && isLoading" class="downloading absolute bottom-1 right-1" />
     </div>
 
     <div v-if="resourceName" class="desc-color text-left text-xs ml-2 h-4"> {{ resourceName }}</div>
@@ -119,6 +123,8 @@
     emits: ['update:usable', 'update:checked'],
     setup(props, { emit }) {
       const checked = ref(false);
+      const _usable = ref(props.usable);
+
       const onChecked = () => {
         checked.value = !checked.value;
         emit('update:checked', checked.value);
@@ -140,6 +146,7 @@
           download
             .then((res) => {
               console.log(res);
+              _usable.value = true;
               emit('update:usable', true);
             })
             .catch((err) => {
@@ -153,6 +160,7 @@
 
       return {
         checked,
+        _usable,
         isLoading,
         display,
         onChecked,

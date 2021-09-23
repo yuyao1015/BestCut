@@ -15,14 +15,14 @@ const loadLocalFile = () => {
   input.click();
 };
 
-export const LoadLocalResource = (fragment: ResourceFragment) => {
+export const LoadLocalResource = (empty: boolean) => {
   return () =>
     h(
       'div',
       {
         class: [
           'load-local-file',
-          fragment.list.length ? 'h-20 w-36 mx-2 my-2' : 'h-28 w-54 mx-auto my-10 p-10 ',
+          empty ? 'h-20 w-36 mx-2 my-2' : 'h-28 w-54 mx-auto my-10 p-10 ',
           'rounded-md',
           'flex flex-col item-center justify-center',
           'border border-dotted',
@@ -44,25 +44,33 @@ export const useResourceList = (fragment: ResourceFragment, component?: () => VN
     fragment.name ? h('div', { class: 'ml-2' }, fragment.name) : '',
     h('div', { class: 'flex flex-wrap' }, [
       component ? component() : '',
-      ...fragment.list.map((resource, j) =>
-        h(Resource, {
+
+      ...fragment.list.map((resource, j) => {
+        return h(Resource, {
           key: j,
           class: 'local-resource-list relative mx-2 my-2 text-xs',
+          usable: resource.usable ? resource.usable : fragment.usable,
+          checked: resource.checked,
           type: resource.type,
           cover: resource.cover,
-          usable: resource.usable,
           duration: resource.duration,
-        })
-      ),
+          referenced: resource.referenced,
+          resourceName: resource.resourceName,
+        });
+      }),
     ]),
   ]);
 
-export const useResourceWrapper = (list: ResourceFragment[], libName = '') => {
-  return h('div', { class: 'h-full overflow-y-scroll' }, [
-    ...list.map((fragment, i) => {
-      return i === 0 && libName === 'local'
-        ? useResourceList(fragment, LoadLocalResource(fragment))
-        : useResourceList(fragment);
-    }),
-  ]);
+export const useResourceWrapper = (
+  loc = ''
+  // component: (fragment: ResourceFragment) => () => VNode
+): ((list: ResourceFragment[]) => VNode) => {
+  return (list: ResourceFragment[]) =>
+    h('div', { class: 'h-full overflow-y-scroll' }, [
+      ...list.map((fragment, i) => {
+        return i === 0 && loc === 'wrap'
+          ? useResourceList(fragment, LoadLocalResource(fragment.list.length > 0))
+          : useResourceList(fragment);
+      }),
+    ]);
 };

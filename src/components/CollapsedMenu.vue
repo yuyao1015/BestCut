@@ -10,7 +10,7 @@
       v-for="(resource, i) of libs"
       :key="i"
       :class="[selectedLib === i ? 'active-color' : 'text-white', 'my-2']"
-      :header="resource.title"
+      :header="t(`resource.${resource.libName}`)"
       :showArrow="Boolean(resource.fragments.length > 1)"
     >
       <div v-if="resource.fragments.length && resource.fragments[0].name">
@@ -32,6 +32,8 @@
   import { Collapse, CollapsePanel } from 'ant-design-vue';
 
   import { CaretRightOutlined, CaretDownOutlined } from '@ant-design/icons-vue';
+
+  import { useI18n } from '@/hooks/useI18n';
 
   export default defineComponent({
     name: 'CollapsedMenu',
@@ -55,6 +57,8 @@
     },
     emits: ['update:selectedLib', 'update:selectedFragment'],
     setup(props, { emit }) {
+      const { t } = useI18n();
+
       const activeLib = ref(props.selectedLib);
       const selectedLib = ref(props.selectedLib);
       const selectedFragment = ref(props.selectedFragment);
@@ -84,6 +88,7 @@
         selectedLib,
         activeLib,
         selectedFragment,
+        t,
         icon,
         switchItem,
       };

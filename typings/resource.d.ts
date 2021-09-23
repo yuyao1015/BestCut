@@ -34,13 +34,14 @@ export interface ResourceFragment {
 }
 
 export interface ResourceLibItem {
-  title: string;
+  libName: string;
   fragments: ResourceFragment[];
-  component?: VNode;
+  component: (list: ResourceFragment[]) => VNode;
   boxSize?: string;
 }
 
 export interface ResourceTabItem {
-  icon?: VNode;
   name: string;
+  icon?: VNode;
+  libs: ResourceLibItem[];
 }

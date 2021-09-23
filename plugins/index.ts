@@ -5,6 +5,7 @@ import vueJsx from '@vitejs/plugin-vue-jsx';
 
 import { configHtmlPlugin } from './html';
 import { configHmrPlugin } from './hmr';
+import { configMockPlugin } from './mock';
 
 export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
   const vitePlugins: (Plugin | Plugin[])[] = [
@@ -16,6 +17,8 @@ export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
   !isBuild && vitePlugins.push(configHmrPlugin());
 
   vitePlugins.push(configHtmlPlugin(viteEnv, isBuild));
+
+  vitePlugins.push(configMockPlugin(isBuild));
 
   return vitePlugins;
 }
