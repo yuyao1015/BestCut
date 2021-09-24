@@ -25,22 +25,24 @@ export interface AudioResourceItem extends Partial<Item> {
   author?: string;
 }
 
-export type ResourceItem = VideoResourceItem | AudioResourceItem;
+export type ResourceItem = VideoResourceItem & AudioResourceItem;
 
 export interface ResourceFragment {
   name?: string;
   usable?: boolean;
+  favorite?: boolean;
   list: ResourceItem[];
 }
 
 export interface ResourceLibItem {
   libName: string;
   fragments: ResourceFragment[];
-  component: (list: ResourceFragment[]) => VNode;
+  component: (list: ResourceFragment[]) => any;
   boxSize?: string;
 }
 
 export interface ResourceTabItem {
+  tabName: string;
   name: string;
   icon?: VNode;
   libs: ResourceLibItem[];

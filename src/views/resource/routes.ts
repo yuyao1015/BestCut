@@ -30,6 +30,7 @@ class ResourceLib implements ResourceLibItem {
 export const tabsData: ResourceTabItem[] = [
   {
     icon: h(PlayCircleOutlined),
+    tabName: 'media',
     name: t('resource.media'),
     libs: [
       new ResourceLib('local', useResourceWrapper('wrap')),
@@ -38,49 +39,56 @@ export const tabsData: ResourceTabItem[] = [
   },
   {
     icon: h(AudioOutlined),
+    tabName: 'audio',
     name: t('resource.audio'),
     libs: [
-      new ResourceLib('musics', useResourceWrapper()),
-      new ResourceLib('soundSffects', useResourceWrapper()),
-      new ResourceLib('audioExtract', useResourceWrapper()),
-      new ResourceLib('collections', useResourceWrapper()),
-      new ResourceLib('audioNetwork', useResourceWrapper()),
+      new ResourceLib('music', useResourceWrapper()),
+      new ResourceLib('sound', useResourceWrapper()),
+      new ResourceLib('extract', useResourceWrapper('wrap')),
+      new ResourceLib('collection', useResourceWrapper()),
+      new ResourceLib('link', useResourceWrapper()),
     ],
   },
   {
     icon: h(FontSizeOutlined),
+    tabName: 'text',
     name: t('resource.text'),
     libs: [
-      new ResourceLib('newText', useResourceWrapper()),
-      new ResourceLib('textTemplate', useResourceWrapper()),
+      new ResourceLib('create', useResourceWrapper()),
+      new ResourceLib('template', useResourceWrapper()),
     ],
   },
   {
     icon: h(PaperClipOutlined),
+    tabName: 'sticker',
     name: t('resource.sticker'),
     libs: [new ResourceLib('sticker', useResourceWrapper())],
   },
   {
     icon: h(ThunderboltOutlined),
+    tabName: 'effect',
     name: t('resource.effect'),
     libs: [new ResourceLib('effect', useResourceWrapper())],
   },
   {
     icon: h(RetweetOutlined),
+    tabName: 'transition',
     name: t('resource.transition'),
     libs: [new ResourceLib('transition', useResourceWrapper())],
   },
   {
     icon: h(FilterOutlined),
+    tabName: 'filter',
     name: t('resource.filter'),
     libs: [new ResourceLib('filter', useResourceWrapper())],
   },
   {
     icon: h(ForkOutlined),
+    tabName: 'adjust',
     name: t('resource.adjust'),
     libs: [
       new ResourceLib('adjust', useResourceWrapper()),
-      new ResourceLib('Lut', useResourceWrapper()),
+      new ResourceLib('lut', useResourceWrapper('wrap')),
     ],
   },
 ];

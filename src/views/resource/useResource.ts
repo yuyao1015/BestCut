@@ -46,17 +46,18 @@ export const useResourceList = (fragment: ResourceFragment, component?: () => VN
       component ? component() : '',
 
       ...fragment.list.map((resource, j) => {
-        return h(Resource, {
-          key: j,
-          class: 'local-resource-list relative mx-2 my-2 text-xs',
-          usable: resource.usable ? resource.usable : fragment.usable,
-          checked: resource.checked,
-          type: resource.type,
-          cover: resource.cover,
-          duration: resource.duration,
-          referenced: resource.referenced,
-          resourceName: resource.resourceName,
-        });
+        return h(
+          Resource,
+          Object.assign(
+            {
+              key: j,
+              class: 'local-resource-list relative mx-2 my-2 text-xs',
+              usable: resource.usable ? resource.usable : fragment.usable,
+              favorite: resource.favorite ? resource.favorite : fragment.favorite,
+            },
+            resource
+          )
+        );
       }),
     ]),
   ]);

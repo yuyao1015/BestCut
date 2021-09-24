@@ -68,13 +68,21 @@
       watch(activeLib, () => {
         if (activeLib.value) {
           selectedLib.value = +activeLib.value;
-          emit('update:selectedLib', selectedLib.value);
         }
+        emit('update:selectedLib', selectedLib.value);
       });
+      watch(
+        () => props.selectedLib,
+        () => (activeLib.value = selectedLib.value = props.selectedLib)
+      );
+      watch(
+        () => props.selectedFragment,
+        () => (selectedFragment.value = props.selectedFragment)
+      );
 
       const switchItem = (idx: number) => {
         selectedFragment.value = idx;
-        emit('update:selectedFragment', selectedFragment.value);
+        emit('update:selectedFragment', idx);
       };
 
       // const icon = (prop: Recordable) => {

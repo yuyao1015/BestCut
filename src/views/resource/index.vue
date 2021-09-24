@@ -10,6 +10,7 @@
           @click="switchTab(idx)"
         >
           <component :is="tab.icon" class="mb-1"></component>
+
           <span class="text-xs">{{ tab.name }}</span>
         </div>
       </div>
@@ -71,12 +72,19 @@
           currentLib.value.fragments = data;
         }
       };
-      updateFragments();
-      watch(selectedLib, async () => updateFragments());
+
+      watch(activeTab, () => {
+        if (selectedFragment.value !== 0) selectedFragment.value = 0;
+        if (selectedLib.value === 0) updateFragments();
+        else selectedLib.value = 0;
+      });
+      watch(selectedLib, () => updateFragments());
 
       const switchTab = (idx: number) => {
         activeTab.value = idx;
       };
+
+      updateFragments();
 
       return {
         title,

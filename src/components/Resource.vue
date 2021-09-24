@@ -6,7 +6,7 @@
     >
       <div class="resource-content overflow-hidden absolute h-full w-full">
         <div v-if="type === 'audio'" class="h-full flex items-center">
-          <img class="rounded-md h-5/6 w-1/2 mx-1" :src="cover" />
+          <img class="rounded-md h-5/6 w-2/5 ml-2 mr-1" :src="cover" />
           <div class="text-xs flex flex-col justify-between h-5/6">
             <div>
               <div style="color: #999">{{ album }}</div>
@@ -35,17 +35,17 @@
       <!-- br icons  -->
       <StarFilled
         v-if="favorite"
-        :class="[checked ? 'text-yellow-400' : '', 'favorite absolute bottom-1 right-6']"
-        @click="onChecked"
+        :class="[checked ? 'text-yellow-400' : '', 'favorite absolute bottom-1 right-5']"
+        @click.stop="onChecked"
       />
 
       <PlusCircleFilled
-        v-if="_usable"
+        v-if="usable"
         :class="[showAdd ? '' : 'hidden', 'absolute bottom-1 right-1 add']"
       />
 
-      <DownloadOutlined v-if="!_usable && !isLoading" class="download absolute bottom-1 right-1" />
-      <LoadingOutlined v-if="!_usable && isLoading" class="downloading absolute bottom-1 right-1" />
+      <DownloadOutlined v-if="!usable && !isLoading" class="download absolute bottom-1 right-1" />
+      <LoadingOutlined v-if="!usable && isLoading" class="downloading absolute bottom-1 right-1" />
     </div>
 
     <div v-if="resourceName" class="desc-color text-left text-xs ml-2 h-4"> {{ resourceName }}</div>
@@ -123,7 +123,7 @@
     emits: ['update:usable', 'update:checked'],
     setup(props, { emit }) {
       const checked = ref(false);
-      const _usable = ref(props.usable);
+      const usable = ref(props.usable);
 
       const onChecked = () => {
         checked.value = !checked.value;
@@ -146,7 +146,7 @@
           download
             .then((res) => {
               console.log(res);
-              _usable.value = true;
+              usable.value = true;
               emit('update:usable', true);
             })
             .catch((err) => {
@@ -160,7 +160,7 @@
 
       return {
         checked,
-        _usable,
+        usable,
         isLoading,
         display,
         onChecked,
