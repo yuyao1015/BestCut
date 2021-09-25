@@ -3,3 +3,8 @@ export enum ResourceType {
   Audio,
   Picture,
 }
+
+export enum ResourceLoc {
+  WrapTop = 1,
+  Top,
+}

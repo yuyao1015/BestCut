@@ -33,8 +33,8 @@ export const tabsData: ResourceTabItem[] = [
     tabName: 'media',
     name: t('resource.media'),
     libs: [
-      new ResourceLib('local', useResourceWrapper('wrap')),
-      new ResourceLib('material', useResourceWrapper()),
+      new ResourceLib('local', useResourceWrapper({ loc: 'wrap-top', offline: true })),
+      new ResourceLib('mediaMaterial', useResourceWrapper()),
     ],
   },
   {
@@ -42,11 +42,10 @@ export const tabsData: ResourceTabItem[] = [
     tabName: 'audio',
     name: t('resource.audio'),
     libs: [
-      new ResourceLib('music', useResourceWrapper()),
-      new ResourceLib('sound', useResourceWrapper()),
-      new ResourceLib('extract', useResourceWrapper('wrap')),
-      new ResourceLib('collection', useResourceWrapper()),
-      new ResourceLib('link', useResourceWrapper()),
+      new ResourceLib('audioMusic', useResourceWrapper()),
+      new ResourceLib('audioSound', useResourceWrapper()),
+      new ResourceLib('audioExtract', useResourceWrapper({ loc: 'wrap-top' })),
+      new ResourceLib('audioLink', useResourceWrapper()),
     ],
   },
   {
@@ -54,33 +53,33 @@ export const tabsData: ResourceTabItem[] = [
     tabName: 'text',
     name: t('resource.text'),
     libs: [
-      new ResourceLib('create', useResourceWrapper()),
-      new ResourceLib('template', useResourceWrapper()),
+      new ResourceLib('textCreate', useResourceWrapper()),
+      new ResourceLib('textTemplate', useResourceWrapper()),
     ],
   },
   {
     icon: h(PaperClipOutlined),
     tabName: 'sticker',
     name: t('resource.sticker'),
-    libs: [new ResourceLib('sticker', useResourceWrapper())],
+    libs: [new ResourceLib('stickerMaterial', useResourceWrapper())],
   },
   {
     icon: h(ThunderboltOutlined),
     tabName: 'effect',
     name: t('resource.effect'),
-    libs: [new ResourceLib('effect', useResourceWrapper())],
+    libs: [new ResourceLib('effectEffect', useResourceWrapper())],
   },
   {
     icon: h(RetweetOutlined),
     tabName: 'transition',
     name: t('resource.transition'),
-    libs: [new ResourceLib('transition', useResourceWrapper())],
+    libs: [new ResourceLib('transitionEffect', useResourceWrapper())],
   },
   {
     icon: h(FilterOutlined),
     tabName: 'filter',
     name: t('resource.filter'),
-    libs: [new ResourceLib('filter', useResourceWrapper())],
+    libs: [new ResourceLib('filterLib', useResourceWrapper())],
   },
   {
     icon: h(ForkOutlined),
@@ -88,7 +87,7 @@ export const tabsData: ResourceTabItem[] = [
     name: t('resource.adjust'),
     libs: [
       new ResourceLib('adjust', useResourceWrapper()),
-      new ResourceLib('lut', useResourceWrapper('wrap')),
+      new ResourceLib('lut', useResourceWrapper({ loc: 'wrap-top' })),
     ],
   },
 ];

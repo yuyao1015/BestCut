@@ -31,16 +31,17 @@
 </template>
 
 <script lang="ts">
-  import { computed, defineComponent, ref, watch } from 'vue';
+  import { computed, defineComponent, watch, ref } from 'vue';
 
   import SectionBox from '@/layouts/SectionBox.vue';
   import CollapsedMenu from '@/components/CollapsedMenu.vue';
 
   import { useI18n } from '@/hooks/useI18n';
-  import { tabsData } from './routes';
+  // import { tabsData } from './routes';
 
   import axios from 'axios';
-  import { useResourceList } from './useResource';
+
+  import { useResourceStore } from '@/store/resource';
 
   export default defineComponent({
     name: 'ResourceBox',
@@ -58,31 +59,39 @@
       const { t } = useI18n();
       const title = t('components.resource');
 
-      const activeTab = ref(0);
+      const resourceStore = useResourceStore();
+
       const selectedLib = ref(0);
       const selectedFragment = ref(0);
-
-      const tabs = ref(tabsData);
-      const resourceLibs = computed(() => tabs.value[activeTab.value].libs);
-      const currentLib = computed(() => resourceLibs.value[selectedLib.value]);
+      const activeTab = computed(() => resourceStore.activeTab);
+      const tabsData = computed(() => resourceStore.tabs);
+      const resourceLibs = computed(() => resourceStore.resourceLibs);
+      const currentLib = computed(() => resourceStore.currentLib);
 
       const updateFragments = async () => {
         if (!currentLib.value.fragments.length) {
-          const { data } = await axios.get(`/${currentLib.value.libName}`);
-          currentLib.value.fragments = data;
+          const { tabName } = tabsData.value[activeTab.value];
+          const { libName } = currentLib.value;
+          const { data } = await axios.get(`/${tabName}/${libName}`);
+          resourceStore.updateFragments(data);
         }
       };
 
       watch(activeTab, () => {
-        if (selectedFragment.value !== 0) selectedFragment.value = 0;
-        if (selectedLib.value === 0) updateFragments();
-        else selectedLib.value = 0;
+        if (resourceStore.selectedFragment !== 0) {
+          resourceStore.switchFragment(0);
+          selectedFragment.value = 0;
+        }
+        if (resourceStore.selectedLib === 0) updateFragments();
+        else {
+          resourceStore.switchLib(0);
+          selectedLib.value = 0;
+        }
       });
-      watch(selectedLib, () => updateFragments());
-
-      const switchTab = (idx: number) => {
-        activeTab.value = idx;
-      };
+      watch(selectedLib, (idx: number) => {
+        resourceStore.switchLib(idx);
+        updateFragments();
+      });
 
       updateFragments();
 
@@ -94,8 +103,7 @@
         tabsData,
         resourceLibs,
         currentLib,
-        switchTab,
-        useResourceList,
+        switchTab: resourceStore.switchTab,
       };
     },
   });

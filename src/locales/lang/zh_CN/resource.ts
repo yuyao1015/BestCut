@@ -11,18 +11,22 @@ export default {
 
   // media
   local: '本地',
-  material: '素材库',
+  mediaMaterial: '素材库',
 
   // audio
-  music: '音乐素材',
-  sound: '音效素材',
-  extract: '音乐提取',
-  collection: '收藏',
-  link: '链接下载',
+  audioMusic: '音乐素材',
+  audioSound: '音效素材',
+  audioExtract: '音乐提取',
+  audioLink: '链接下载',
 
   // text
-  create: '新建文本',
-  template: '文字模版',
+  textCreate: '新建文本',
+  textTemplate: '文字模版',
+
+  stickerMaterial: '贴纸素材',
+  effectEffect: '特效效果',
+  transitionEffect: '转场效果',
+  filterLib: '滤镜库',
 
   lut: 'Lut',
 };

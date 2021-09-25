@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router';
 
 import { t } from '@/hooks/useI18n';
+import { createAsyncComponent } from '@/utils';
 
 export const RootRoute: RouteRecordRaw = {
   path: '/',
@@ -32,7 +33,7 @@ export const EditorRoute: RouteRecordRaw = {
 export const LoginRoute: RouteRecordRaw = {
   path: '/login',
   name: 'Login',
-  component: () => import('/@/views/login/Login.vue'),
+  component: createAsyncComponent(() => import('/@/views/login/Login.vue')),
   meta: {
     title: t('routes.login'),
   },

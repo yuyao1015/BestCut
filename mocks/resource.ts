@@ -5,6 +5,7 @@ const video = (n: number) =>
     type: 'video',
     duration: '@time("mm:ss")',
     resourceName: '@word().mp4',
+    cover: '',
     referenced: true,
   });
 
@@ -14,6 +15,7 @@ const audio = (n: number, album = '', author = '') =>
     duration: '@time("mm:ss")',
     resourceName: '@word().aac',
     referenced: false,
+    cover: '',
     album,
     author,
   });
@@ -23,6 +25,7 @@ const picture = (n: number) =>
     type: 'picture',
     duration: '03:00',
     resourceName: '@word().png',
+    cover: '',
     referenced: false,
   });
 
@@ -34,123 +37,68 @@ const resourceMsg = (url: string, response: () => ResourceFragment[]) => ({
 });
 
 // media
-const localLib = resourceMsg('/local', () => [
+const localLib = resourceMsg('/media/local', () => [
   {
     usable: true,
     list: [...video(2), ...audio(1), ...picture(1)],
+    // list: [],
   },
 ]);
 
-const materialLib = resourceMsg('/material', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    list: [...video(6)],
-  })
-);
+const frags = (favorite = false, type = 'video', n = 6) => {
+  const collections = [
+    {
+      favorite: true,
+      name: type === 'video' ? '' : '收藏',
+      showAdd: type === 'video' ? false : true,
+      list: [],
+    },
+  ];
+  const arr = new Array(n).fill(
+    type === 'video'
+      ? {
+          name: 'frag-@word(2)',
+          list: [...video(n)],
+        }
+      : {
+          name: 'frag-@word(2)',
+          favorite: true,
+          showAdd: true,
+          list: [...audio(6, '@word(2,6)', '@word(2,6)')],
+        }
+  );
+  return favorite ? collections.concat(arr) : arr;
+};
+
+const materialLib = resourceMsg('/media/mediaMaterial', () => frags(true));
 
 // audio
-const musicLib = resourceMsg('/music', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    favorite: true,
-    list: [...audio(6, '@word(2,6)', '@word(2,6)')],
-  })
-);
-
-const soundLib = resourceMsg('/sound', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    favorite: true,
-    list: [...audio(6, '@word(2,6)', '@word(2,6)')],
-  })
-);
-
-const extractLib = resourceMsg('/extract', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    usable: true,
-    list: [...audio(6, '@word(2,6)')],
-  })
-);
-
-const collectionLib = resourceMsg('/collection', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    usable: true,
-    list: [...audio(6, '@word(2,6)')],
-  })
-);
-
-const linkLib = resourceMsg('/link', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    usable: true,
-    list: [...audio(6, '@word(2,6)')],
-  })
-);
+const musicLib = resourceMsg('/audio/audioMusic', () => frags(true, ''));
+const soundLib = resourceMsg('/audio/audioSound', () => frags(true, ''));
+const extractLib = resourceMsg('/audio/audioExtract', () => frags(true, ''));
+const linkLib = resourceMsg('/audio/audioLink', () => frags(true, ''));
 
 // text
-const textCreateLib = resourceMsg('/create', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    list: [...video(6)],
-  })
-);
-
-const textTemplateLib = resourceMsg('/template', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    list: [...video(6)],
-  })
-);
+const textCreateLib = resourceMsg('/text/textCreate', () => frags(true));
+const textTemplateLib = resourceMsg('/text/textTemplate', () => frags(true));
 
 // sticker
-const stickerLib = resourceMsg('/sticker', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    list: [...video(6)],
-  })
-);
+const stickerLib = resourceMsg('/sticker/stickerMaterial', () => frags(true));
 
 // effect
-const effectLib = resourceMsg('/effect', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    list: [...video(6)],
-  })
-);
+const effectLib = resourceMsg('/effect/effectEffect', () => frags(false));
 
 // transition
-const transitionLib = resourceMsg('/transition', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    list: [...video(6)],
-  })
-);
+const transitionLib = resourceMsg('/transition/transitionEffect', () => frags(false));
 
 // filter
-const filterLib = resourceMsg('/filter', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    list: [...video(6)],
-  })
-);
+const filterLib = resourceMsg('/filter/filterLib', () => frags(false));
 
 // adjust
-const adjustLib = resourceMsg('/adjust', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    list: [...video(6)],
-  })
-);
+const adjustLib = resourceMsg('/adjust/adjust', () => frags(true));
 
 // lut
-const lutLib = resourceMsg('/lut', () =>
-  new Array(6).fill({
-    name: 'frag-@word(2)',
-    list: [...video(6)],
-  })
-);
+const lutLib = resourceMsg('/adjust/lut', () => frags(false));
 
 export default [
   localLib,
@@ -159,7 +107,6 @@ export default [
   musicLib,
   soundLib,
   extractLib,
-  collectionLib,
   linkLib,
 
   textCreateLib,

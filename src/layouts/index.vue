@@ -98,7 +98,8 @@
 
       const canvasSizeChange = () => {
         const { innerWidth, innerHeight } = window;
-        const previewCanvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
+        let previewCanvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
+        if (!previewCanvas) previewCanvas = document.createElement('canvas');
 
         const previewW =
           innerWidth * (1 - resourceRatio.value - configRatio.value) - 2 * splitterWidth.value;

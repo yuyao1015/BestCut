@@ -9,16 +9,19 @@ export default {
   adjust: 'Adjust',
 
   local: 'Local',
-  material: 'Material',
+  mediaMaterial: 'Material',
 
-  music: 'Music Material',
-  sound: 'Sound Material',
-  extract: 'Audio Extract',
-  collection: 'Collection',
-  link: 'Link Download',
+  audioMusic: 'Music Material',
+  audioSound: 'Sound Material',
+  audioExtract: 'Audio Extract',
+  audioLink: 'Link Download',
 
-  create: 'Create',
-  template: 'Template',
+  textCreate: 'Create',
+  textTemplate: 'Template',
+  stickerMaterial: 'Material',
+  effectEffect: 'Effect',
+  transitionEffect: 'Effect',
+  filterLib: 'Library',
 
   lut: 'Lut',
 };

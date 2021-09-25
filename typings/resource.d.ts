@@ -31,6 +31,7 @@ export interface ResourceFragment {
   name?: string;
   usable?: boolean;
   favorite?: boolean;
+  showAdd?: boolean;
   list: ResourceItem[];
 }
 
