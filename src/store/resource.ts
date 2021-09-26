@@ -34,6 +34,7 @@ export const useResourceStore = defineStore({
   actions: {
     updateFragments(data: ResourceFragment[]) {
       this.currentLib.fragments = data;
+      // this.tabs[this.activeTab].libs[this.selectedLib].fragments = data;
     },
     switchFragment(idx: number) {
       this.selectedFragment = idx;
@@ -48,11 +49,13 @@ export const useResourceStore = defineStore({
       return idx;
     },
     addFavorite(resource: ResourceItem) {
+      if (!resource) return;
       resource.checked = true;
       this.favoriteList.push(resource);
     },
     removeFavorite(resource: ResourceItem) {
       const idx = this.favoriteList.indexOf(resource);
+      if (idx === -1) return;
       this.favoriteList[idx].checked = false;
       this.favoriteList.splice(idx, 1);
     },

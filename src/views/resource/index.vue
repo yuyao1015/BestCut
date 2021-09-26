@@ -20,24 +20,26 @@
       <CollapsedMenu
         :libs="resourceLibs"
         v-model:selectedLib="selectedLib"
-        v-model:selectedFragment="selectedFragment"
+        :selectedFragment="selectedFragment"
+        @clickFragment="switchFragment"
       ></CollapsedMenu>
     </template>
 
     <template #content>
-      <component :is="currentLib.component(currentLib.fragments)" class="m-1" />
+      <keep-alive>
+        <component :is="currentLib.component(currentLib.fragments)" class="m-1" />
+      </keep-alive>
     </template>
   </SectionBox>
 </template>
 
 <script lang="ts">
-  import { computed, defineComponent, watch, ref } from 'vue';
+  import { computed, defineComponent, watch, ref, onMounted, onUnmounted } from 'vue';
 
   import SectionBox from '@/layouts/SectionBox.vue';
   import CollapsedMenu from '@/components/CollapsedMenu.vue';
 
   import { useI18n } from '@/hooks/useI18n';
-  // import { tabsData } from './routes';
 
   import axios from 'axios';
 
@@ -61,8 +63,8 @@
 
       const resourceStore = useResourceStore();
 
-      const selectedLib = ref(0);
-      const selectedFragment = ref(0);
+      const selectedLib = ref(resourceStore.selectedLib);
+      const selectedFragment = ref(resourceStore.selectedFragment);
       const activeTab = computed(() => resourceStore.activeTab);
       const tabsData = computed(() => resourceStore.tabs);
       const resourceLibs = computed(() => resourceStore.resourceLibs);
@@ -92,6 +94,62 @@
         resourceStore.switchLib(idx);
         updateFragments();
       });
+      watch(selectedFragment, (idx: number) => {
+        scrollTo(idx);
+      });
+
+      const switchFragment = (idx: number) => {
+        if (!downScroll) downScroll = true;
+        selectedFragment.value = idx;
+      };
+
+      const stepArr: number[][] = [];
+      let lastScrollHeight = 0;
+      let downScroll = false;
+
+      const scrollTo = (idx: number) => {
+        const resourceList = document.getElementById('resource-list') as HTMLElement;
+        if (!resourceList) return;
+
+        const { children } = resourceList;
+        if (children.length < idx) return;
+        let h = 0;
+        for (let i = 0; i < idx; i++) h += children[i].clientHeight;
+        if (downScroll) resourceList.scrollTop = h;
+      };
+
+      const switchFragmentByScroll = (e: Event) => {
+        const resourceList = document.getElementById('resource-list') as HTMLElement;
+        if (!resourceList) return;
+        const { scrollTop, children } = resourceList;
+
+        if (!stepArr.length) {
+          let h = 0;
+          for (let i = 0; i < children.length; i++) {
+            stepArr.push([h, h + children[i].clientHeight]);
+            h += children[i].clientHeight;
+          }
+        }
+
+        downScroll = scrollTop > lastScrollHeight;
+        for (let i = 0; i < stepArr.length; i++) {
+          const [lo, hi] = stepArr[i];
+          if (scrollTop > lo && scrollTop < hi && selectedFragment.value !== i) {
+            resourceStore.switchFragment(i);
+            selectedFragment.value = i;
+          }
+        }
+
+        lastScrollHeight = scrollTop;
+        e.stopPropagation();
+      };
+
+      onMounted(() => {
+        window.addEventListener('mousewheel', switchFragmentByScroll, { passive: false });
+      });
+      onUnmounted(() => {
+        window.removeEventListener('mousewheel', switchFragmentByScroll);
+      });
 
       updateFragments();
 
@@ -103,6 +161,7 @@
         tabsData,
         resourceLibs,
         currentLib,
+        switchFragment,
         switchTab: resourceStore.switchTab,
       };
     },

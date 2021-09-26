@@ -44,7 +44,10 @@ export const tabsData: ResourceTabItem[] = [
     libs: [
       new ResourceLib('audioMusic', useResourceWrapper()),
       new ResourceLib('audioSound', useResourceWrapper()),
-      new ResourceLib('audioExtract', useResourceWrapper({ loc: 'wrap-top' })),
+      new ResourceLib(
+        'audioExtract',
+        useResourceWrapper({ loc: 'wrap-top', offline: true, indexes: [0, 2] })
+      ),
       new ResourceLib('audioLink', useResourceWrapper()),
     ],
   },

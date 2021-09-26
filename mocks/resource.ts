@@ -40,8 +40,8 @@ const resourceMsg = (url: string, response: () => ResourceFragment[]) => ({
 const localLib = resourceMsg('/media/local', () => [
   {
     usable: true,
-    list: [...video(2), ...audio(1), ...picture(1)],
-    // list: [],
+    // list: [...video(2), ...audio(1), ...picture(1)],
+    list: [],
   },
 ]);
 
@@ -49,7 +49,7 @@ const frags = (favorite = false, type = 'video', n = 6) => {
   const collections = [
     {
       favorite: true,
-      name: type === 'video' ? '' : '收藏',
+      name: type === 'video' ? '收藏' : '收藏',
       showAdd: type === 'video' ? false : true,
       list: [],
     },
@@ -75,7 +75,13 @@ const materialLib = resourceMsg('/media/mediaMaterial', () => frags(true));
 // audio
 const musicLib = resourceMsg('/audio/audioMusic', () => frags(true, ''));
 const soundLib = resourceMsg('/audio/audioSound', () => frags(true, ''));
-const extractLib = resourceMsg('/audio/audioExtract', () => frags(true, ''));
+const extractLib = resourceMsg('/audio/audioExtract', () => [
+  {
+    usable: true,
+    // list: [...audio(3)],
+    list: [],
+  },
+]);
 const linkLib = resourceMsg('/audio/audioLink', () => frags(true, ''));
 
 // text

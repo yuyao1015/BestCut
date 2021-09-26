@@ -55,7 +55,7 @@
         default: 0,
       },
     },
-    emits: ['update:selectedLib', 'update:selectedFragment'],
+    emits: ['update:selectedLib', 'clickFragment'],
     setup(props, { emit }) {
       const { t } = useI18n();
 
@@ -82,7 +82,7 @@
 
       const switchItem = (idx: number) => {
         selectedFragment.value = idx;
-        emit('update:selectedFragment', idx);
+        emit('clickFragment', idx);
       };
 
       // const icon = (prop: Recordable) => {

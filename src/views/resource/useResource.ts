@@ -95,12 +95,11 @@ export const useResourceWrapper = (
 ): ((list: ResourceFragment[]) => VNode) => {
   return (list: ResourceFragment[]) => {
     const { loc, offline, indexes = [0] } = resourceDescriptor;
-
     let cached = () => h('');
     let empty = false;
     return h('div', { class: 'h-full' }, [
       // h('div', { class: 'bg-red-200 text-center w-full' }, 'search'),
-      h('div', { class: 'h-full overflow-y-scroll' }, [
+      h('div', { id: 'resource-list', class: 'h-full overflow-y-scroll' }, [
         ...list.map((fragment, i) => {
           let ret;
           empty = fragment.list.length === 0;
@@ -110,6 +109,7 @@ export const useResourceWrapper = (
             ret = useResourceList(fragment, cached, offline);
           } else ret = useResourceList(fragment);
 
+          if (empty && offline) cached = cachedResource(empty, offline);
           return ret;
         }),
         empty ? cached() : '',

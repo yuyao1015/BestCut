@@ -60,7 +60,7 @@
 <script lang="ts">
   import type { ResourceItem } from '#/resource';
 
-  import { defineComponent, ref, PropType } from 'vue';
+  import { defineComponent, ref, PropType, watch } from 'vue';
   import {
     PlusCircleFilled,
     DownloadOutlined,
@@ -122,12 +122,16 @@
 
       const onChecked = () => {
         checked.value = !checked.value;
-        // emit('update:checked', checked.value);
-
         checked.value
           ? resourceStore.addFavorite(props.resource)
           : resourceStore.removeFavorite(props.resource);
       };
+      watch(
+        () => props.resource.checked,
+        () => {
+          checked.value = props.resource.checked;
+        }
+      );
 
       const isLoading = ref(false);
       const display = () => {
