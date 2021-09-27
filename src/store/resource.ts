@@ -4,6 +4,7 @@ import { defineStore } from 'pinia';
 
 import { store } from '@/store';
 import { tabsData } from '@/views/resource/routes';
+import { MP4Player } from '@/logic/mp4';
 
 interface ResourceState {
   tabs: ResourceTabItem[];
@@ -11,16 +12,18 @@ interface ResourceState {
   selectedLib: number;
   selectedFragment: number;
   resource?: ResourceItem;
+  player: MP4Player | null;
 }
 
 export const useResourceStore = defineStore({
   id: 'app-resource',
   state: (): ResourceState => ({
     tabs: tabsData,
-    activeTab: 1,
+    activeTab: 0,
     selectedLib: 0,
     selectedFragment: 0,
     resource: undefined,
+    player: null,
   }),
   getters: {
     resourceLibs(): ResourceLibItem[] {
@@ -28,6 +31,9 @@ export const useResourceStore = defineStore({
     },
     currentLib(): ResourceLibItem {
       return this.resourceLibs[this.selectedLib];
+    },
+    currentFragment(): ResourceFragment {
+      return this.currentLib.fragments[this.selectedFragment];
     },
     favoriteList(): ResourceItem[] {
       return this.currentLib.fragments.filter((v) => v.name === '收藏')[0].list;
@@ -63,9 +69,18 @@ export const useResourceStore = defineStore({
     },
 
     setResource(resource: ResourceItem | undefined) {
-      if (this.resource?.active) this.resource.active = false;
-      if (resource && !resource.active) resource.active = true;
+      if (this.resource?.active) {
+        this.resource.active = false;
+        this.player = null;
+      }
+      if (resource && !resource.active) {
+        resource.active = true;
+        if (resource.src) this.player = new MP4Player(resource.src) as any;
+      }
       this.resource = resource;
+    },
+    addResource(resource: ResourceItem) {
+      this.currentFragment.list.push(resource);
     },
   },
 });

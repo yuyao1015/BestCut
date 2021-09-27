@@ -1,16 +1,24 @@
-import type { ResourceFragment } from '#/resource';
+import type { ResourceFragment, ResourceItem } from '#/resource';
 import type { VNode } from 'vue';
 
 import { h } from 'vue';
 import { PlusCircleFilled } from '@ant-design/icons-vue';
 
 import Resource from '@/views/resource/Resource.vue';
+import { useResourceStore } from '@/store/resource';
 
 const loadLocalFile = () => {
   const input = document.createElement('input');
+  input.type = 'file';
   input.accept = '.mp4,.aac,.mp3,.jpg,.png';
-  input.onclick = () => {
-    console.log('load file');
+  input.onchange = () => {
+    const file = input.files && input.files[0];
+    if (file && file.name.slice(-4) in ['.mp4']) 'wrong type';
+    const resource: ResourceItem = {
+      type: 'video',
+      src: URL.createObjectURL(file),
+    };
+    useResourceStore().addResource(resource);
   };
   input.click();
 };
@@ -95,7 +103,7 @@ export const useResourceWrapper = (
 ): ((list: ResourceFragment[]) => VNode) => {
   return (list: ResourceFragment[]) => {
     const { loc, offline, indexes = [0] } = resourceDescriptor;
-    let cached = () => h('');
+    let cached = () => h('div');
     let empty = false;
     return h('div', { class: 'h-full' }, [
       // h('div', { class: 'bg-red-200 text-center w-full' }, 'search'),

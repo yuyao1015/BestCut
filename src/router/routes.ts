@@ -33,7 +33,7 @@ export const EditorRoute: RouteRecordRaw = {
 export const LoginRoute: RouteRecordRaw = {
   path: '/login',
   name: 'Login',
-  component: createAsyncComponent(() => import('/@/views/login/Login.vue')),
+  component: createAsyncComponent(() => import('@/views/login/Login.vue')),
   meta: {
     title: t('routes.login'),
   },

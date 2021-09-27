@@ -12,6 +12,7 @@ type Item = {
   resourceName: string;
   boxSize: string;
   cover: string;
+  src: string;
   duration: string;
   link: string;
 };

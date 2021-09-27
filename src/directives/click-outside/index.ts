@@ -1,5 +1,5 @@
 import { on } from '@/utils/dom';
-import { isServer, isIterable } from '@/utils/is';
+import { isServer } from '@/utils/is';
 
 import type { ComponentPublicInstance, DirectiveBinding, ObjectDirective } from 'vue';
 
@@ -70,50 +70,41 @@ function createDocumentHandler(el: HTMLElement, binding: DirectiveBinding): Docu
 }
 
 const ClickOutside: ObjectDirective = {
-  beforeMount(els: HTMLElement[] | HTMLElement, binding: DirectiveBinding) {
-    const before = (el: HTMLElement) => {
-      if (!nodeList.has(el)) {
-        nodeList.set(el, []);
-      }
-      const list = nodeList.get(el);
-      list &&
-        list.push({
-          documentHandler: createDocumentHandler(el, binding),
-          bindingFn: binding.value,
-        });
-    };
+  beforeMount(el: HTMLElement, binding: DirectiveBinding) {
     // there could be multiple handlers on the element
-    if (isIterable(els)) for (const el of els) before(el);
-    else before(els);
-  },
-  updated(els: HTMLElement[] | HTMLElement, binding: DirectiveBinding) {
-    const update = (el: HTMLElement) => {
-      if (!nodeList.has(el)) {
-        nodeList.set(el, []);
-      }
-
-      const handlers = nodeList.get(el);
-      if (!handlers) return;
-      const oldHandlerIndex = handlers.findIndex((item) => item.bindingFn === binding.oldValue);
-      const newHandler = {
+    if (!nodeList.has(el)) {
+      nodeList.set(el, []);
+    }
+    const list = nodeList.get(el);
+    list &&
+      list.push({
         documentHandler: createDocumentHandler(el, binding),
         bindingFn: binding.value,
-      };
-
-      if (oldHandlerIndex && oldHandlerIndex >= 0) {
-        // replace the old handler to the new handler
-        handlers.splice(oldHandlerIndex, 1, newHandler);
-      } else {
-        handlers.push(newHandler);
-      }
-    };
-    if (isIterable(els)) for (const el of els) update(el);
-    else update(els);
+      });
   },
-  unmounted(els: HTMLElement[] | HTMLElement) {
+  updated(el: HTMLElement, binding: DirectiveBinding) {
+    if (!nodeList.has(el)) {
+      nodeList.set(el, []);
+    }
+
+    const handlers = nodeList.get(el);
+    if (!handlers) return;
+    const oldHandlerIndex = handlers.findIndex((item) => item.bindingFn === binding.oldValue);
+    const newHandler = {
+      documentHandler: createDocumentHandler(el, binding),
+      bindingFn: binding.value,
+    };
+
+    if (oldHandlerIndex >= 0) {
+      // replace the old handler to the new handler
+      handlers.splice(oldHandlerIndex, 1, newHandler);
+    } else {
+      handlers.push(newHandler);
+    }
+  },
+  unmounted(el: HTMLElement) {
     // remove all listeners when a component unmounted
-    if (isIterable(els)) for (const el of els) nodeList.delete(el);
-    else nodeList.delete(els);
+    nodeList.delete(el);
   },
 };
 

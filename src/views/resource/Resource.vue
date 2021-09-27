@@ -7,7 +7,7 @@
         resource.active ? 'active-border' : '',
       ]"
       @click="display"
-      v-click-outside="onClickOutside"
+      v-click-outside:[preview]="onClickOutside"
     >
       <div class="resource-content overflow-hidden absolute h-full w-full">
         <div v-if="resource.type === 'audio'" class="h-full flex items-center">
@@ -65,7 +65,7 @@
 <script lang="ts">
   import type { ResourceItem } from '#/resource';
 
-  import { defineComponent, ref, PropType, watch, computed } from 'vue';
+  import { defineComponent, ref, PropType, watch, computed, onBeforeMount } from 'vue';
   import {
     PlusCircleFilled,
     DownloadOutlined,
@@ -145,9 +145,9 @@
 
       const isLoading = ref(false);
       const display = () => {
+        resourceStore.setResource(props.resource);
         if (usable.value) {
           // TODO: display
-          resourceStore.setResource(props.resource);
           return;
         } else {
           isLoading.value = true;
@@ -166,6 +166,7 @@
               display();
             })
             .catch((err) => {
+              resourceStore.setResource(undefined);
               console.log(err);
             })
             .then(() => {
@@ -174,14 +175,24 @@
         }
       };
 
+      const preview = ref<HTMLElement>();
+      onBeforeMount(() => {
+        if (!preview.value) preview.value = document.getElementById('preview-box') as HTMLElement;
+      });
       const onClickOutside = () => {
-        resourceStore.setResource(undefined);
+        if (resourceStore.player) {
+          const { ctx, decoder } = resourceStore.player;
+          ctx?.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+          decoder.close();
+        }
+        if (resourceStore.resource) resourceStore.setResource(undefined);
       };
 
       return {
         usable,
         isLoading,
         active,
+        preview,
         display,
         onClickOutside,
         onChecked,

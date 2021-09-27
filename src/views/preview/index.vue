@@ -1,5 +1,5 @@
 <template>
-  <SectionBox footer :title="title">
+  <SectionBox footer :title="title" id="preview-box">
     <template #content>
       <div class="h-full flex items-center">
         <canvas id="preview-canvas" class="bg-black mx-auto"></canvas>
@@ -19,7 +19,7 @@
           <CaretRightOutlined v-if="!paused" />
           <PauseOutlined v-else />
         </div>
-        <div class="absolute w-15 right-2 flex items-center">
+        <div class="absolute w-15 right-2 flex items-center leading-7">
           <button class="mr-2">原始</button>
           <FullscreenOutlined class="cursor-pointer" @click="fullScreen" />
         </div>
@@ -28,7 +28,7 @@
   </SectionBox>
 </template>
 <script lang="ts">
-  import { defineComponent, ref, watch } from 'vue';
+  import { defineComponent, ref, watch, computed } from 'vue';
   import { CaretRightOutlined, PauseOutlined, FullscreenOutlined } from '@ant-design/icons-vue';
   import SectionBox from '@/layouts/SectionBox.vue';
   import { useI18n } from '@/hooks/useI18n';
@@ -54,15 +54,24 @@
       const { t } = useI18n();
       const title = t('components.preview');
 
-      const paused = ref(false);
-      const pauseResume = () => {
-        paused.value = !paused.value;
-      };
+      const resourceStore = useResourceStore();
 
       const active = ref(false);
-      const currentTime = ref('00:07:35:28');
-      const duration = ref('00:10:34:17');
-      const resourceStore = useResourceStore();
+      const duration = ref('00:00:00:00');
+      const currentTime = computed(() => {
+        return resourceStore.player?.currentTime
+          ? resourceStore.player?.currentTime
+          : '00:00:00:00';
+      });
+
+      const paused = ref(false);
+      const pauseResume = () => {
+        if (!active.value) return;
+        paused.value = !paused.value;
+        if (resourceStore.player) resourceStore.player?.pauseResume();
+
+        duration.value = resourceStore.player?.demuxer.total as string;
+      };
 
       watch(
         () => resourceStore.resource,
