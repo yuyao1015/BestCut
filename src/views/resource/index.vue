@@ -37,7 +37,7 @@
   import { computed, defineComponent, watch, ref, onMounted, onUnmounted } from 'vue';
 
   import SectionBox from '@/layouts/SectionBox.vue';
-  import CollapsedMenu from '@/components/CollapsedMenu.vue';
+  import CollapsedMenu from '@/views/resource/CollapsedMenu.vue';
 
   import { useI18n } from '@/hooks/useI18n';
 

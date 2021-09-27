@@ -3,11 +3,11 @@
     <!-- <template #header></template> -->
 
     <template #resource>
-      <ResourceBox></ResourceBox>
+      <ResourceBox />
     </template>
 
     <template #preview>
-      <Preview> </Preview>
+      <Preview />
     </template>
 
     <template #config>

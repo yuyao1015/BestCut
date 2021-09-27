@@ -10,6 +10,7 @@ interface ResourceState {
   activeTab: number;
   selectedLib: number;
   selectedFragment: number;
+  resource?: ResourceItem;
 }
 
 export const useResourceStore = defineStore({
@@ -19,6 +20,7 @@ export const useResourceStore = defineStore({
     activeTab: 1,
     selectedLib: 0,
     selectedFragment: 0,
+    resource: undefined,
   }),
   getters: {
     resourceLibs(): ResourceLibItem[] {
@@ -34,7 +36,6 @@ export const useResourceStore = defineStore({
   actions: {
     updateFragments(data: ResourceFragment[]) {
       this.currentLib.fragments = data;
-      // this.tabs[this.activeTab].libs[this.selectedLib].fragments = data;
     },
     switchFragment(idx: number) {
       this.selectedFragment = idx;
@@ -48,6 +49,7 @@ export const useResourceStore = defineStore({
       this.activeTab = idx;
       return idx;
     },
+
     addFavorite(resource: ResourceItem) {
       if (!resource) return;
       resource.checked = true;
@@ -58,6 +60,12 @@ export const useResourceStore = defineStore({
       if (idx === -1) return;
       this.favoriteList[idx].checked = false;
       this.favoriteList.splice(idx, 1);
+    },
+
+    setResource(resource: ResourceItem | undefined) {
+      if (this.resource?.active) this.resource.active = false;
+      if (resource && !resource.active) resource.active = true;
+      this.resource = resource;
     },
   },
 });

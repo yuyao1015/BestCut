@@ -2,7 +2,7 @@ import type { ResourceFragment } from '#/resource';
 import type { VNode } from 'vue';
 
 import { h } from 'vue';
-import { PlusCircleFilled, SearchOutlined } from '@ant-design/icons-vue';
+import { PlusCircleFilled } from '@ant-design/icons-vue';
 
 import Resource from '@/views/resource/Resource.vue';
 

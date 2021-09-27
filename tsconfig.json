@@ -19,6 +19,7 @@
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noImplicitThis": true,
+    "strictFunctionTypes": false,
     // "alwaysStrict": true,
 
     /* 额外的检查 */

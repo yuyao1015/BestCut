@@ -28,10 +28,12 @@
   </SectionBox>
 </template>
 <script lang="ts">
-  import { defineComponent, ref } from 'vue';
+  import { defineComponent, ref, watch } from 'vue';
   import { CaretRightOutlined, PauseOutlined, FullscreenOutlined } from '@ant-design/icons-vue';
   import SectionBox from '@/layouts/SectionBox.vue';
   import { useI18n } from '@/hooks/useI18n';
+
+  import { useResourceStore } from '@/store/resource';
 
   export default defineComponent({
     name: '',
@@ -42,7 +44,7 @@
       FullscreenOutlined,
     },
     props: {
-      active: {
+      prop: {
         type: Boolean,
         default: false,
       },
@@ -57,6 +59,19 @@
         paused.value = !paused.value;
       };
 
+      const active = ref(false);
+      const currentTime = ref('00:07:35:28');
+      const duration = ref('00:10:34:17');
+      const resourceStore = useResourceStore();
+
+      watch(
+        () => resourceStore.resource,
+        () => {
+          if (resourceStore.resource) active.value = true;
+          else active.value = false;
+        }
+      );
+
       const fullScreen = () => {
         // TODO:
       };
@@ -64,8 +79,9 @@
       return {
         title,
         paused,
-        currentTime: '00:07:35:28',
-        duration: '00:10:34:17',
+        active,
+        currentTime,
+        duration,
         pauseResume,
         fullScreen,
       };

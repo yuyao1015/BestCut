@@ -3,6 +3,7 @@ import type { VNode } from 'vue';
 import { ResourceType } from '@/enums/resource';
 
 type Item = {
+  active: boolean;
   usable: boolean;
   showAdd: boolean;
   favorite: boolean;
@@ -12,6 +13,7 @@ type Item = {
   boxSize: string;
   cover: string;
   duration: string;
+  link: string;
 };
 
 export interface VideoResourceItem extends Partial<Item> {

@@ -1,8 +1,13 @@
 <template>
   <div class="resource-box-wrapper">
     <div
-      :class="[size === '' ? 'h-20 w-36' : 'h-14 w-28', 'resource-box relative rounded-md ']"
+      :class="[
+        'resource-box relative rounded-md',
+        size === '' ? 'h-20 w-36' : 'h-14 w-28',
+        resource.active ? 'active-border' : '',
+      ]"
       @click="display"
+      v-click-outside="onClickOutside"
     >
       <div class="resource-content overflow-hidden absolute h-full w-full">
         <div v-if="resource.type === 'audio'" class="h-full flex items-center">
@@ -12,9 +17,9 @@
               <div style="color: #999">{{ resource.album }}</div>
               <div style="color: #474747">{{ resource.author }}</div>
             </div>
-            <div v-if="resource.album && resource.author" style="color: #474747">{{
-              resource.duration
-            }}</div>
+            <div v-if="resource.album && resource.author" style="color: #474747">
+              {{ resource.duration }}
+            </div>
           </div>
         </div>
         <img v-else class="h-full w-full rounded-md" :src="resource.cover" />
@@ -60,7 +65,7 @@
 <script lang="ts">
   import type { ResourceItem } from '#/resource';
 
-  import { defineComponent, ref, PropType, watch } from 'vue';
+  import { defineComponent, ref, PropType, watch, computed } from 'vue';
   import {
     PlusCircleFilled,
     DownloadOutlined,
@@ -71,6 +76,7 @@
   } from '@ant-design/icons-vue';
 
   import { useResourceStore } from '@/store/resource';
+  import { ClickOutside } from '@/directives';
 
   export default defineComponent({
     name: 'Resource',
@@ -81,6 +87,9 @@
       FileImageOutlined,
       StarFilled,
       // StarOutlined,
+    },
+    directives: {
+      ClickOutside,
     },
     props: {
       usable: {
@@ -116,6 +125,7 @@
     emits: ['update:usable', 'update:checked'],
     setup(props, { emit }) {
       const checked = ref(props.resource.checked);
+      const active = computed(() => props.resource.active);
       const usable = ref(props.usable);
 
       const resourceStore = useResourceStore();
@@ -135,8 +145,10 @@
 
       const isLoading = ref(false);
       const display = () => {
-        if (props.usable) {
+        if (usable.value) {
           // TODO: display
+          resourceStore.setResource(props.resource);
+          return;
         } else {
           isLoading.value = true;
           // TODO: download
@@ -151,6 +163,7 @@
               console.log(res);
               usable.value = true;
               emit('update:usable', true);
+              display();
             })
             .catch((err) => {
               console.log(err);
@@ -161,10 +174,16 @@
         }
       };
 
+      const onClickOutside = () => {
+        resourceStore.setResource(undefined);
+      };
+
       return {
         usable,
         isLoading,
+        active,
         display,
+        onClickOutside,
         onChecked,
       };
     },
@@ -181,5 +200,9 @@
       color: aqua;
       display: block;
     }
+  }
+
+  .active-border {
+    border: solid 2px aqua;
   }
 </style>
