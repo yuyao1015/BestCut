@@ -76,6 +76,8 @@
   } from '@ant-design/icons-vue';
 
   import { useResourceStore } from '@/store/resource';
+  import { usePlayerStore } from '@/store/player';
+
   import { ClickOutside } from '@/directives';
 
   export default defineComponent({
@@ -129,6 +131,7 @@
       const usable = ref(props.usable);
 
       const resourceStore = useResourceStore();
+      const playerStore = usePlayerStore();
 
       const onChecked = () => {
         checked.value = !checked.value;
@@ -148,6 +151,8 @@
         resourceStore.setResource(props.resource);
         if (usable.value) {
           // TODO: display
+          playerStore.init(props.resource.src || '');
+          playerStore.pauseResume();
           return;
         } else {
           isLoading.value = true;
@@ -180,11 +185,7 @@
         if (!preview.value) preview.value = document.getElementById('preview-box') as HTMLElement;
       });
       const onClickOutside = () => {
-        if (resourceStore.player) {
-          const { ctx, decoder } = resourceStore.player;
-          ctx?.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-          decoder.close();
-        }
+        playerStore.stop();
         if (resourceStore.resource) resourceStore.setResource(undefined);
       };
 

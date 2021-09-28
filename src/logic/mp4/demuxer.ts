@@ -11,7 +11,7 @@ export class MP4Source {
   fps = 0;
   interval = 0;
   timescale = 1000;
-  currtenTime = 0;
+  currentTime = 0;
   lastTime = 0;
   paused = true;
   rAF: any;
@@ -72,8 +72,8 @@ export class MP4Source {
   }
 
   display() {
-    this.currtenTime = performance.now();
-    const elapsed = this.currtenTime - this.lastTime;
+    this.currentTime = performance.now();
+    const elapsed = this.currentTime - this.lastTime;
     if (elapsed > this.interval && this.chunks.length && this.onChunk) {
       this.onChunk(this.chunks[0]);
       this.chunks.shift();
@@ -84,8 +84,8 @@ export class MP4Source {
   }
 
   updateLastTime() {
-    const elapsed = this.currtenTime - this.lastTime;
-    this.lastTime = this.currtenTime - (elapsed % this.interval);
+    const elapsed = this.currentTime - this.lastTime;
+    this.lastTime = this.currentTime - (elapsed % this.interval);
   }
 
   pauseResume() {
@@ -101,7 +101,7 @@ export class MP4Source {
     cancelAnimationFrame(this.rAF);
   }
   resume() {
-    if (!this.currtenTime) this.lastTime = performance.now();
+    if (!this.currentTime) this.lastTime = performance.now();
     this.updateLastTime();
     this.rAF = requestAnimationFrame(() => this.display());
   }
@@ -162,7 +162,7 @@ class Writer {
   }
 
   writeUint16(value: number) {
-    // TODO: find a more elegant solution to endianess.
+    // TODO: find a more elegant solution to endian.
     const arr = new Uint16Array(1);
     arr[0] = value;
     const buffer = new Uint8Array(arr.buffer);
@@ -184,7 +184,7 @@ export class MP4Demuxer {
     this.source = new MP4Source(uri);
   }
 
-  getExtradata(avccBox: any) {
+  getExtraData(avccBox: any) {
     let i,
       size = 7;
     for (i = 0; i < avccBox.SPS.length; i++) {
@@ -223,13 +223,13 @@ export class MP4Demuxer {
   async getConfig() {
     const info = await this.source.getInfo();
     this.track = info.videoTracks[0];
-    const extradata = this.getExtradata(this.source.getAvccBox());
+    const extraData = this.getExtraData(this.source.getAvccBox());
 
     const config = {
       codec: this.track.codec,
       codedHeight: this.track.track_height,
       codedWidth: this.track.track_width,
-      description: extradata,
+      description: extraData,
     };
     return Promise.resolve(config);
   }

@@ -14,7 +14,6 @@ type Item = {
   cover: string;
   src: string;
   duration: string;
-  link: string;
 };
 
 export interface VideoResourceItem extends Partial<Item> {

@@ -13,10 +13,12 @@ const loadLocalFile = () => {
   input.accept = '.mp4,.aac,.mp3,.jpg,.png';
   input.onchange = () => {
     const file = input.files && input.files[0];
-    if (file && file.name.slice(-4) in ['.mp4']) 'wrong type';
+    if (!file) return;
+    if (file.name.slice(-4) in ['.mp4']) 'wrong type';
     const resource: ResourceItem = {
       type: 'video',
       src: URL.createObjectURL(file),
+      resourceName: file.name,
     };
     useResourceStore().addResource(resource);
   };

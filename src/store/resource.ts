@@ -4,7 +4,6 @@ import { defineStore } from 'pinia';
 
 import { store } from '@/store';
 import { tabsData } from '@/views/resource/routes';
-import { MP4Player } from '@/logic/mp4';
 
 interface ResourceState {
   tabs: ResourceTabItem[];
@@ -12,7 +11,6 @@ interface ResourceState {
   selectedLib: number;
   selectedFragment: number;
   resource?: ResourceItem;
-  player: MP4Player | null;
 }
 
 export const useResourceStore = defineStore({
@@ -20,10 +18,9 @@ export const useResourceStore = defineStore({
   state: (): ResourceState => ({
     tabs: tabsData,
     activeTab: 0,
-    selectedLib: 0,
+    selectedLib: 1,
     selectedFragment: 0,
     resource: undefined,
-    player: null,
   }),
   getters: {
     resourceLibs(): ResourceLibItem[] {
@@ -71,11 +68,9 @@ export const useResourceStore = defineStore({
     setResource(resource: ResourceItem | undefined) {
       if (this.resource?.active) {
         this.resource.active = false;
-        this.player = null;
       }
       if (resource && !resource.active) {
         resource.active = true;
-        if (resource.src) this.player = new MP4Player(resource.src) as any;
       }
       this.resource = resource;
     },

@@ -137,6 +137,16 @@
     "antd",
     "lintstagedrc",
     "loglevel",
-    "vueuse"
+    "vueuse",
+    "avcc",
+    "moov",
+    "traks",
+    "mdia",
+    "minf",
+    "stbl",
+    "stsd",
+    "nalus",
+    "nalu",
+    "demuxer"
   ]
 }

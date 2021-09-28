@@ -34,6 +34,7 @@
   import { useI18n } from '@/hooks/useI18n';
 
   import { useResourceStore } from '@/store/resource';
+  import { usePlayerStore } from '@/store/player';
 
   export default defineComponent({
     name: '',
@@ -55,22 +56,17 @@
       const title = t('components.preview');
 
       const resourceStore = useResourceStore();
+      const playerStore = usePlayerStore();
 
       const active = ref(false);
-      const duration = ref('00:00:00:00');
-      const currentTime = computed(() => {
-        return resourceStore.player?.currentTime
-          ? resourceStore.player?.currentTime
-          : '00:00:00:00';
-      });
+      const duration = computed(() => playerStore.duration);
+      const currentTime = computed(() => playerStore.currentTime);
 
       const paused = ref(false);
       const pauseResume = () => {
         if (!active.value) return;
         paused.value = !paused.value;
-        if (resourceStore.player) resourceStore.player?.pauseResume();
-
-        duration.value = resourceStore.player?.demuxer.total as string;
+        playerStore.pauseResume();
       };
 
       watch(
