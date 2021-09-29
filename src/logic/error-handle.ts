@@ -10,6 +10,7 @@ function registerImgErrorHandler() {
       const times = Number(target?.dataset?.times) || 0;
       const allTimes = 3;
 
+      if (!tagName) return;
       if (tagName.toUpperCase() === 'IMG') {
         if (times >= allTimes) {
           target.src = placeholder;

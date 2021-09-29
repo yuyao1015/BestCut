@@ -9,14 +9,14 @@
     <template #footer>
       <div :class="[active ? '' : 'opacity-50', 'preview-panel h-full relative flex items-center']">
         <div class="absolute flex flex-col items-center left-2">
-          <div class="active-color">{{ currentTime }}</div>
-          <div class="border-white border-t">{{ duration }}</div>
+          <div class="active-color">{{ current }}</div>
+          <div class="border-white border-t">{{ total }}</div>
         </div>
         <div
           class="absolute flex left-1/2 -translate-x-1/2 text-lg cursor-pointer"
           @click="pauseResume"
         >
-          <CaretRightOutlined v-if="!paused" />
+          <CaretRightOutlined v-if="paused" />
           <PauseOutlined v-else />
         </div>
         <div class="absolute w-15 right-2 flex items-center leading-7">
@@ -28,7 +28,7 @@
   </SectionBox>
 </template>
 <script lang="ts">
-  import { defineComponent, ref, watch, computed } from 'vue';
+  import { defineComponent, ref, watch, computed, onMounted } from 'vue';
   import { CaretRightOutlined, PauseOutlined, FullscreenOutlined } from '@ant-design/icons-vue';
   import SectionBox from '@/layouts/SectionBox.vue';
   import { useI18n } from '@/hooks/useI18n';
@@ -59,13 +59,12 @@
       const playerStore = usePlayerStore();
 
       const active = ref(false);
-      const duration = computed(() => playerStore.duration);
-      const currentTime = computed(() => playerStore.currentTime);
+      const total = computed(() => playerStore.total);
+      const current = computed(() => playerStore.current);
 
-      const paused = ref(false);
+      const paused = computed(() => playerStore.paused);
       const pauseResume = () => {
         if (!active.value) return;
-        paused.value = !paused.value;
         playerStore.pauseResume();
       };
 
@@ -85,8 +84,8 @@
         title,
         paused,
         active,
-        currentTime,
-        duration,
+        current,
+        total,
         pauseResume,
         fullScreen,
       };

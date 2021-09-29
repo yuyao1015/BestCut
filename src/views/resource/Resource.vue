@@ -6,7 +6,7 @@
         size === '' ? 'h-20 w-36' : 'h-14 w-28',
         resource.active ? 'active-border' : '',
       ]"
-      @click="display"
+      @click="play"
       v-click-outside:[preview]="onClickOutside"
     >
       <div class="resource-content overflow-hidden absolute h-full w-full">
@@ -147,16 +147,13 @@
       );
 
       const isLoading = ref(false);
-      const display = () => {
+      const play = () => {
         resourceStore.setResource(props.resource);
         if (usable.value) {
-          // TODO: display
-          playerStore.init(props.resource.src || '');
-          playerStore.pauseResume();
+          playerStore.mount({ id: 'preview-canvas', url: props.resource.src || '' });
           return;
         } else {
           isLoading.value = true;
-          // TODO: download
           const download = new Promise((resolve, reject) => {
             setTimeout(() => {
               resolve('success');
@@ -168,7 +165,7 @@
               console.log(res);
               usable.value = true;
               emit('update:usable', true);
-              display();
+              play();
             })
             .catch((err) => {
               resourceStore.setResource(undefined);
@@ -185,7 +182,7 @@
         if (!preview.value) preview.value = document.getElementById('preview-box') as HTMLElement;
       });
       const onClickOutside = () => {
-        playerStore.stop();
+        if (playerStore.player) playerStore.player.stop();
         if (resourceStore.resource) resourceStore.setResource(undefined);
       };
 
@@ -194,7 +191,7 @@
         isLoading,
         active,
         preview,
-        display,
+        play,
         onClickOutside,
         onChecked,
       };

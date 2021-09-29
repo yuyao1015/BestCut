@@ -24,4 +24,13 @@ declare global {
     EncodedVideoChunk: any;
     VideoDecoder: any;
   }
+
+  type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+  type XOR<T, U> = T | U extends Record<string, unknown>
+    ? (Without<T, U> & U) | (Without<U, T> & T)
+    : T | U;
+
+  type Id = { id: string; url?: string };
+  type Canvas = { canvas: HTMLCanvasElement; url?: string };
+  type MP4PlayerOption = XOR<Id, Canvas>;
 }
