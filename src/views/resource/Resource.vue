@@ -2,13 +2,20 @@
   <div class="resource-box-wrapper">
     <div
       :class="[
-        'resource-box relative rounded-md',
+        'resource-box relative rounded-md overflow-hidden',
         size === '' ? 'h-20 w-36' : 'h-14 w-28',
         resource.active ? 'active-border' : '',
       ]"
+      ref="resourceItem"
       @click="play"
       v-click-outside:[preview]="onClickOutside"
     >
+      <div
+        v-if="resource.active"
+        class="timeline-locator absolute rounded-md h-full w-px bg-yellow-300 top-0 z-10"
+        :style="{ left: `${ratio}%` }"
+      />
+
       <div class="resource-content overflow-hidden absolute h-full w-full">
         <div v-if="resource.type === 'audio'" class="h-full flex items-center">
           <img class="rounded-md h-5/6 w-2/5 ml-2 mr-1" :src="resource.cover" />
@@ -132,6 +139,7 @@
 
       const resourceStore = useResourceStore();
       const playerStore = usePlayerStore();
+      const ratio = computed(() => playerStore.ratio);
 
       const onChecked = () => {
         checked.value = !checked.value;
@@ -147,10 +155,18 @@
       );
 
       const isLoading = ref(false);
-      const play = () => {
+      const resourceItem = ref<HTMLElement>();
+      const play = (e: MouseEvent) => {
         resourceStore.setResource(props.resource);
         if (usable.value) {
-          playerStore.mount({ id: 'preview-canvas', url: props.resource.src || '' });
+          if (playerStore.playing) {
+            if (!resourceItem.value) return;
+            const left = resourceItem.value?.getBoundingClientRect().left || 0;
+            const width = parseInt(getComputedStyle(resourceItem.value).width);
+            const w = e.pageX - left - scrollX;
+            const ratio = w / width;
+            playerStore.jumpTo(ratio);
+          } else playerStore.mount({ id: 'preview-canvas', url: props.resource.src || '' });
           return;
         } else {
           isLoading.value = true;
@@ -165,7 +181,7 @@
               console.log(res);
               usable.value = true;
               emit('update:usable', true);
-              play();
+              play(e);
             })
             .catch((err) => {
               resourceStore.setResource(undefined);
@@ -182,15 +198,17 @@
         if (!preview.value) preview.value = document.getElementById('preview-box') as HTMLElement;
       });
       const onClickOutside = () => {
-        if (playerStore.player) playerStore.player.stop();
+        if (active.value) playerStore.player.stop();
         if (resourceStore.resource) resourceStore.setResource(undefined);
       };
 
       return {
         usable,
         isLoading,
+        ratio,
         active,
         preview,
+        resourceItem,
         play,
         onClickOutside,
         onChecked,

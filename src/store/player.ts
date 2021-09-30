@@ -2,27 +2,35 @@
 import { defineStore } from 'pinia';
 
 import { MP4Player } from '@/logic/mp4';
+import { getDurationString } from '@/utils/player';
 
 interface PlayerState {
-  player: MP4Player | null;
+  player: MP4Player;
 }
-
-const DURATION = '00:00:00:00';
 
 export const usePlayerStore = defineStore({
   id: 'app-player',
   state: (): PlayerState => ({
-    player: null,
+    player: new MP4Player({ id: '' }),
   }),
   getters: {
     current(): string {
-      return this.player?.refs.current ? this.player?.refs.current : DURATION;
+      const { player } = this;
+      return getDurationString(player.refs.current, player.fps);
     },
     total(): string {
-      return this.player?.refs.total ? this.player?.refs.total : DURATION;
+      const { player } = this;
+      return getDurationString(player.refs.total, player.fps);
+    },
+    ratio(): string {
+      const { refs } = this.player;
+      return refs.total ? ((refs.current / refs.total) * 100).toFixed(2) : '0';
     },
     paused(): boolean {
-      return this.player ? this.player.refs.paused : true;
+      return this.player.refs.paused;
+    },
+    playing(): boolean {
+      return this.player.configured();
     },
   },
   actions: {
@@ -30,10 +38,14 @@ export const usePlayerStore = defineStore({
       this.player = new MP4Player(opts);
     },
     pauseResume() {
-      this.player && this.player.pauseResume();
+      this.player.pauseResume();
     },
     stop() {
-      this.player && this.player.stop();
+      this.player.stop();
+    },
+    jumpTo(ratio: number) {
+      const frames = this.player?.samples?.length;
+      frames && this.player.jumpTo(Math.ceil(ratio * frames));
     },
   },
 });

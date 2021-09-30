@@ -52,14 +52,12 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "typings/**/*.d.ts",
     "typings/**/*.ts",
     "build/**/*.ts",
-    "build/**/*.d.ts",
     "mocks/**/*.ts",
+    "tests/**/*.ts",
     "vite.config.ts"
   ],
   "exclude": ["node_modules", "tests/server/**/*.ts", "src/dist", "**/*.js"]

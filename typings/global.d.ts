@@ -19,10 +19,15 @@ declare global {
 
   type Recordable<T = any> = Record<string, T>;
 
+  type MP4Box = any;
+  type EncodedVideoChunk = any;
+  type VideoDecoder = any;
+  type VideoFrame = any;
   interface Window {
-    MP4Box: any;
-    EncodedVideoChunk: any;
-    VideoDecoder: any;
+    MP4Box: MP4Box;
+    EncodedVideoChunk: EncodedVideoChunk;
+    VideoDecoder: VideoDecoder;
+    VideoFrame: VideoFrame;
   }
 
   type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };

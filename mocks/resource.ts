@@ -6,7 +6,7 @@ const video = (n: number) =>
     duration: '@time("mm:ss")',
     resourceName: '@word().mp4',
     cover: '',
-    src: 'http://127.0.0.1:5500/samples/media/bbb.mp4',
+    src: '/media/bbb.mp4',
     referenced: true,
   });
 

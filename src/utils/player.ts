@@ -96,3 +96,22 @@ export function getDurationString(duration: number, fps: number) {
   const p = (n: number) => pad(n, 2);
   return `${neg ? '-' : ''}${p(h)}:${p(m)}:${p(s)}:${p(f)}`;
 }
+
+export function clipDuration(duration: string) {
+  const ret = '00:00';
+  if (!duration) return ret;
+
+  const arr = duration.split(':');
+  if (arr.length !== 4) return ret;
+
+  if (+arr[3]) {
+    const val = +arr[2] + 1;
+    arr[2] = val === 60 ? arr[2] : `${val}`;
+  }
+  if (+arr[0]) {
+    const val = +arr[0] * 60;
+    arr[1] = `${+arr[1] + val}`;
+  }
+
+  return `${arr[1]}:${arr[2]}`;
+}

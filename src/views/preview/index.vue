@@ -28,7 +28,7 @@
   </SectionBox>
 </template>
 <script lang="ts">
-  import { defineComponent, ref, watch, computed, onMounted } from 'vue';
+  import { defineComponent, ref, watch, computed } from 'vue';
   import { CaretRightOutlined, PauseOutlined, FullscreenOutlined } from '@ant-design/icons-vue';
   import SectionBox from '@/layouts/SectionBox.vue';
   import { useI18n } from '@/hooks/useI18n';
