@@ -18,7 +18,7 @@ export const useResourceStore = defineStore({
   state: (): ResourceState => ({
     tabs: tabsData,
     activeTab: 0,
-    selectedLib: 1,
+    selectedLib: 0,
     selectedFragment: 0,
     resource: undefined,
   }),

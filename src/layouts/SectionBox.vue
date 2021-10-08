@@ -2,8 +2,9 @@
   <Layout class="function-area-box text-white h-full">
     <LayoutHeader class="rounded-t-md h-10 flex items-center border-black border-b p-0">
       <slot name="header">
-        <div class="capitalize ml-3">
-          {{ title }}
+        <div class="h-full capitalize ml-3">
+          <div class="h-full flex items-center" v-if="isString(title)"> {{ title }}</div>
+          <component class="flex items-center" v-else :is="title" />
         </div>
       </slot>
     </LayoutHeader>
@@ -41,6 +42,8 @@
   import { defineComponent } from 'vue';
   import { Layout } from 'ant-design-vue';
 
+  import { isString } from '@/utils/is';
+
   export default defineComponent({
     name: 'SectionBox',
     components: {
@@ -52,7 +55,7 @@
     },
     props: {
       title: {
-        type: String,
+        type: [String, Object],
         default: 'header',
       },
       sider: {
@@ -68,6 +71,7 @@
     setup() {
       return {
         //
+        isString,
       };
     },
   });

@@ -43,8 +43,13 @@
 
       <div class="absolute top-1 right-1">
         <FileImageOutlined v-if="resource.type === 'picture'" />
-        <div v-if="resource.type === 'video' || (!resource.album && !resource.author)" class=""
-          >{{ resource.duration }}
+        <div
+          v-if="
+            resource.type === 'video' ||
+            (resource.type === 'audio' && !resource.album && !resource.author)
+          "
+        >
+          {{ resource.duration }}
         </div>
       </div>
 
@@ -64,7 +69,7 @@
       <LoadingOutlined v-if="!usable && isLoading" class="downloading absolute bottom-1 right-1" />
     </div>
 
-    <div v-if="resource.resourceName" class="desc-color text-left text-xs ml-2 h-4">
+    <div v-if="resource.resourceName" class="desc-color text-left text-xs ml-2 mt-1 h-4">
       {{ resource.resourceName }}
     </div>
   </div>
@@ -159,14 +164,16 @@
       const play = (e: MouseEvent) => {
         resourceStore.setResource(props.resource);
         if (usable.value) {
-          if (playerStore.playing) {
+          const id = 'preview-canvas';
+          console.log(playerStore.playing, playerStore.player.id);
+          if (playerStore.playing && playerStore.player.id === id) {
             if (!resourceItem.value) return;
             const left = resourceItem.value?.getBoundingClientRect().left || 0;
             const width = parseInt(getComputedStyle(resourceItem.value).width);
             const w = e.pageX - left - scrollX;
             const ratio = w / width;
             playerStore.jumpTo(ratio);
-          } else playerStore.mount({ id: 'preview-canvas', url: props.resource.src || '' });
+          } else playerStore.mount({ id, url: props.resource.src || '' });
           return;
         } else {
           isLoading.value = true;

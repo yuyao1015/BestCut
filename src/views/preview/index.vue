@@ -27,8 +27,9 @@
     </template>
   </SectionBox>
 </template>
-<script lang="ts">
-  import { defineComponent, ref, watch, computed } from 'vue';
+
+<script lang="tsx">
+  import { defineComponent, ref, watch, computed, h, onMounted, onUnmounted } from 'vue';
   import { CaretRightOutlined, PauseOutlined, FullscreenOutlined } from '@ant-design/icons-vue';
   import SectionBox from '@/layouts/SectionBox.vue';
   import { useI18n } from '@/hooks/useI18n';
@@ -53,14 +54,28 @@
     emits: [],
     setup() {
       const { t } = useI18n();
-      const title = t('components.preview');
+      // const title = t('components.preview');
 
       const resourceStore = useResourceStore();
       const playerStore = usePlayerStore();
 
+      const title = computed(() => {
+        const { resource } = resourceStore;
+        if (resource)
+          return h('div', { class: 'h-full flex item-center' }, [
+            h('span', { class: 'w-1 h-1 rounded-md bg-yellow-500 mr-1' }),
+            `正在预览 一 ${t('components.' + resource.type)}`,
+          ]);
+        return `${t('components.player')}`;
+      });
+
       const active = ref(false);
-      const total = computed(() => playerStore.total);
-      const current = computed(() => playerStore.current);
+      const total = computed(() => {
+        return active.value ? playerStore.total : '00:00:00:00';
+      });
+      const current = computed(() => {
+        return active.value ? playerStore.current : '00:00:00:00';
+      });
 
       const paused = computed(() => playerStore.paused);
       const pauseResume = () => {
@@ -79,6 +94,24 @@
       const fullScreen = () => {
         // TODO:
       };
+
+      const shortcut = (e: KeyboardEvent) => {
+        if (e.code === 'Space') {
+          e.preventDefault();
+          pauseResume();
+        } else if (e.code == 'ArrowLeft') {
+          playerStore.prev();
+        } else if (e.code == 'ArrowRight') {
+          playerStore.next();
+        }
+      };
+
+      onMounted(() => {
+        window.addEventListener('keydown', shortcut);
+      });
+      onUnmounted(() => {
+        window.removeEventListener('keydown', shortcut);
+      });
 
       return {
         title,

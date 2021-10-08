@@ -1,6 +1,8 @@
+import type { DowndloadCallback } from './downloader';
 import { reactive } from 'vue';
 
 import { getExtraData } from '@/utils/player';
+import { Downloader } from './downloader';
 
 class MP4Source {
   file: any;
@@ -8,6 +10,7 @@ class MP4Source {
   info_resolver: any;
   videoTrack: any;
   audioTrack: any;
+  downloader: Downloader;
 
   constructor(url: string) {
     this.file = window.MP4Box.createFile();
@@ -17,26 +20,22 @@ class MP4Source {
     this.info = null;
     this.info_resolver = null;
 
-    fetch(url).then((response: Response) => {
-      if (!response.body) return;
-      const reader = response.body.getReader();
-      let offset = 0;
-      const mp4File = this.file;
+    this.downloader = new Downloader(url);
+    this.download();
+  }
 
-      function appendBuffers({ done, value }: any) {
-        if (done) {
-          mp4File.flush();
-          return;
-        }
-        const buf = value.buffer;
-        buf.fileStart = offset;
-        offset += buf.byteLength;
-
-        mp4File.appendBuffer(buf);
-        reader.read().then(appendBuffers);
+  download() {
+    const downloadCallback: DowndloadCallback = (buffer, end) => {
+      let nextStart = 0;
+      nextStart = this.file.appendBuffer(buffer, end);
+      if (end) {
+        this.file.flush();
+      } else {
+        this.downloader.setChunkStart(nextStart);
       }
-      reader.read().then(appendBuffers);
-    });
+    };
+    this.downloader.setCallback(downloadCallback);
+    this.downloader.start();
   }
 
   onReady(info: any) {
@@ -103,7 +102,8 @@ export class MP4Player {
   currentTime = 0;
   lastTime = 0;
   interval = 100 / 3;
-  paint = true;
+  canPaint = true;
+  active = false;
   rAF: number | null = null;
 
   decoder: VideoDecoder;
@@ -154,19 +154,22 @@ export class MP4Player {
       this.source?.start('video');
 
       this.lastTime = performance.now();
+      const { movie_duration, movie_timescale } = this.source?.videoTrack;
+      this.refs.total = movie_duration / movie_timescale;
+      if (this.refs.paused) this.pause();
+
       this.display();
       this.onPlayStart();
     });
   }
 
   onPlayStart() {
-    const { movie_duration, movie_timescale } = this.source?.videoTrack;
-    this.refs.total = movie_duration / movie_timescale;
-    if (this.refs.paused) this.pause();
+    console.log('play start');
   }
-
+  onPlaying() {
+    console.log('playing');
+  }
   onPlayEnd() {
-    if (this.configured()) this.decoder.flush();
     console.log('play end');
   }
 
@@ -174,10 +177,12 @@ export class MP4Player {
     let frameCount = this.chunkStart;
     let startTime = 0;
     return (frame: VideoFrame) => {
+      if (!this.active) this.active = true;
       const now = performance.now();
-      if (this.ctx && this.paint)
+      if (this.ctx && this.canPaint)
         this.ctx.drawImage(frame, 0, 0, this.canvas.width, this.canvas.height);
       frame.close();
+      this.onPlaying();
 
       let fpsAvg = '';
       if (frameCount++) {
@@ -189,6 +194,7 @@ export class MP4Player {
         div = document.createElement('div');
         div.id = '123ƒ';
         div.style.position = 'fixed';
+        // div.style.display = 'none';
         div.style.bottom = '0';
         div.style.right = '0';
         div.style.color = 'white';
@@ -207,17 +213,47 @@ export class MP4Player {
     if (!samples?.length) return;
     if (this.configured() && !paused) this.pause();
     let i = idx;
-    this.paint = false;
+    this.canPaint = false;
     while (!samples[i].is_sync) i--;
     while (i < idx) {
       const sample = samples[i++];
       const chunk = this.getChunk(sample);
       this.decoder.decode(chunk);
     }
-    this.paint = true;
+    this.canPaint = true;
     this.chunkStart = idx;
     this.refs.current = (idx - 1) / this.fps;
     if (!paused) this.resume();
+  }
+
+  prevFrame(n: number) {
+    const {
+      refs: { paused },
+      samples,
+    } = this;
+
+    if (!paused) return;
+
+    this.chunkStart = Math.max(this.chunkStart - n, 0);
+    const sample = samples[this.chunkStart];
+    this.refs.current = this.chunkStart / this.fps;
+    const chunk = this.getChunk(sample);
+    this.decoder.decode(chunk);
+  }
+
+  // TODO: first call current duration 2 frame ++
+  nextFrame(n: number) {
+    const {
+      refs: { paused },
+      samples,
+    } = this;
+
+    if (!paused) return;
+    this.chunkStart = Math.min(this.chunkStart + n, samples.length);
+    const sample = samples[this.chunkStart];
+    this.refs.current = this.chunkStart / this.fps;
+    const chunk = this.getChunk(sample);
+    this.decoder.decode(chunk);
   }
 
   display() {
@@ -236,6 +272,8 @@ export class MP4Player {
     }
 
     if (this.chunkSize && this.chunkStart === this.chunkSize) {
+      if (this.configured()) this.decoder.flush();
+      this.active = false;
       this.onPlayEnd();
     }
 
@@ -274,6 +312,7 @@ export class MP4Player {
     this.refs.current = 0;
     this.refs.total = 0;
     this.refs.paused = true;
+    this.active = false;
   }
   closed() {
     return this.decoder && this.decoder.state === 'closed';
