@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "vite",
     "serve": "vite preview",
-    "eslint": "eslint --cache --max-warnings 0 \"{src,plugins,mocks,tests}/**/*.{vue,js,ts}\" --fix",
+    "eslint": "eslint --cache --max-warnings 0 \"{src,plugins,mocks,tests}/**/*.{vue,js,ts,tsx}\" --fix",
     "prettier": "prettier --write --loglevel warn \"src/**/*.{js,json,tsx,css,less,scss,vue,html,md}\"",
     "stylelint": "stylelint --fix \"**/*.{vue,less,postcss,css,scss}\" --cache --cache-location node_modules/.cache/stylelint/",
     "lint-staged": "lint-staged -c ./.husky/lintstagedrc.js",
@@ -39,7 +39,7 @@
     "@typescript-eslint/parser": "^4.28.3",
     "@vitejs/plugin-legacy": "^1.4.4",
     "@vitejs/plugin-vue": "^1.6.1",
-    "@vitejs/plugin-vue-jsx": "^1.1.6",
+    "@vitejs/plugin-vue-jsx": "^1.1.8",
     "vite-plugin-mock": "^2.9.6",
     "@vue/compiler-sfc": "^3.2.6",
     "autoprefixer": "^10.3.1",

@@ -123,11 +123,13 @@
 
       onMounted(() => {
         window.addEventListener('resize', onResize);
+        document.addEventListener('fullscreenchange', onResize);
         onResize();
       });
 
       onUnmounted(() => {
         window.removeEventListener('resize', onResize);
+        document.removeEventListener('fullscreenchange', onResize);
       });
 
       const onWidthChangeLeft = (widthChange: any) => {

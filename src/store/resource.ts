@@ -75,7 +75,11 @@ export const useResourceStore = defineStore({
       this.resource = resource;
     },
     addResource(resource: ResourceItem) {
-      this.currentFragment.list.push(resource);
+      const idx = this.currentFragment.list.findIndex(
+        (v) => v.resourceName === resource.resourceName
+      );
+      if (idx !== -1) this.currentFragment.list.splice(idx, 1);
+      this.currentFragment.list.unshift(resource);
     },
   },
 });

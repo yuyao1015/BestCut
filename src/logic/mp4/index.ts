@@ -98,6 +98,7 @@ export class MP4Player {
   ctx?: CanvasRenderingContext2D | null;
   url?: string;
 
+  // video
   fps = 30;
   currentTime = 0;
   lastTime = 0;
@@ -105,6 +106,10 @@ export class MP4Player {
   canPaint = true;
   active = false;
   rAF: number | null = null;
+
+  // config
+  ratio = 0;
+  rawRatio = 0;
 
   decoder: VideoDecoder;
   source?: MP4Source;
@@ -141,9 +146,15 @@ export class MP4Player {
     this.source = new MP4Source(url);
     this.source.getConfig().then((config: any) => {
       const { videoCfg } = config;
-      // this.canvas.height = videoCfg.codedHeight;
-      // this.canvas.width = videoCfg.codedWidth;
+
       this.decoder.configure(videoCfg);
+
+      const { codedHeight: h, codedWidth: w } = videoCfg;
+      this.rawRatio = w / h;
+      if (!this.id) {
+        this.canvas.height = h;
+        this.canvas.width = w;
+      }
 
       this.samples = this.source?.getSamples('video');
       if (!this.samples?.length) return;
@@ -179,6 +190,7 @@ export class MP4Player {
     return (frame: VideoFrame) => {
       if (!this.active) this.active = true;
       const now = performance.now();
+
       if (this.ctx && this.canPaint)
         this.ctx.drawImage(frame, 0, 0, this.canvas.width, this.canvas.height);
       frame.close();

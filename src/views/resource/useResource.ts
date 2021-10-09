@@ -6,8 +6,9 @@ import { PlusCircleFilled } from '@ant-design/icons-vue';
 
 import Resource from '@/views/resource/Resource.vue';
 import { useResourceStore } from '@/store/resource';
-
 import { usePlayerStoreWithOut } from '@/store/player';
+
+import { stretchImg } from '@/utils/image';
 
 const loadLocalFile = () => {
   const input = document.createElement('input');
@@ -17,7 +18,8 @@ const loadLocalFile = () => {
     const file = input.files && input.files[0];
     if (!file) return;
 
-    const suffix = file.name.slice(-4);
+    const idx = file.name.lastIndexOf('.');
+    const suffix = file.name.slice(idx);
     const src = URL.createObjectURL(file);
 
     let type = 'video',
@@ -28,13 +30,13 @@ const loadLocalFile = () => {
       const playerStore = usePlayerStoreWithOut();
       const cfg = await playerStore.parseInfo(src);
       playerStore.stop();
-      cover = cfg.cover;
+      cover = await stretchImg(cfg.cover, 144, 80);
       duration = cfg.duration;
     } else if (['.aac', '.mp3'].includes(suffix)) {
       type = 'audio';
-    } else if (['.jpg', '.png'].includes(suffix)) {
+    } else if (['.jpg', '.jpeg', '.png'].includes(suffix)) {
       type = 'picture';
-      cover = src;
+      cover = await stretchImg(src, 144, 80);
     } else {
       console.log('illegal file type');
       return;

@@ -1,37 +1,13 @@
-<template>
-  <SectionBox footer :title="title" id="preview-box">
-    <template #content>
-      <div class="h-full flex items-center">
-        <canvas id="preview-canvas" class="bg-black mx-auto"></canvas>
-      </div>
-    </template>
-
-    <template #footer>
-      <div :class="[active ? '' : 'opacity-50', 'preview-panel h-full relative flex items-center']">
-        <div class="absolute flex flex-col items-center left-2">
-          <div class="active-color">{{ current }}</div>
-          <div class="border-white border-t">{{ total }}</div>
-        </div>
-        <div
-          class="absolute flex left-1/2 -translate-x-1/2 text-lg cursor-pointer"
-          @click="pauseResume"
-        >
-          <CaretRightOutlined v-if="paused" />
-          <PauseOutlined v-else />
-        </div>
-        <div class="absolute w-15 right-2 flex items-center leading-7">
-          <button class="mr-2">原始</button>
-          <FullscreenOutlined class="cursor-pointer" @click="fullScreen" />
-        </div>
-      </div>
-    </template>
-  </SectionBox>
-</template>
-
 <script lang="tsx">
   import { defineComponent, ref, watch, computed, h, onMounted, onUnmounted } from 'vue';
-  import { CaretRightOutlined, PauseOutlined, FullscreenOutlined } from '@ant-design/icons-vue';
+  import {
+    CaretRightOutlined,
+    PauseOutlined,
+    FullscreenOutlined,
+    FullscreenExitOutlined,
+  } from '@ant-design/icons-vue';
   import SectionBox from '@/layouts/SectionBox.vue';
+  import Progress from '@/components/Progress.vue';
   import { useI18n } from '@/hooks/useI18n';
 
   import { useResourceStore } from '@/store/resource';
@@ -41,9 +17,11 @@
     name: '',
     components: {
       SectionBox,
+      Progress,
       CaretRightOutlined,
       PauseOutlined,
       FullscreenOutlined,
+      FullscreenExitOutlined,
     },
     props: {
       prop: {
@@ -77,7 +55,9 @@
         return active.value ? playerStore.current : '00:00:00:00';
       });
 
-      const paused = computed(() => playerStore.paused);
+      const paused = computed(() => {
+        return active.value ? playerStore.paused : true;
+      });
       const pauseResume = () => {
         if (!active.value) return;
         playerStore.pauseResume();
@@ -91,8 +71,37 @@
         }
       );
 
-      const fullScreen = () => {
-        // TODO:
+      const isInFullScreen = ref(false);
+      const fullScreen = async () => {
+        if (!isInFullScreen.value) {
+          isInFullScreen.value = true;
+
+          playerStore.player.onPlaying = function () {
+            const preview = document.getElementById('preview-box') as HTMLDivElement;
+            this.canvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
+            this.ctx = this.canvas.getContext('2d');
+            const { height, width } = getComputedStyle(preview);
+            if (this.canvas.width < parseInt(width) || this.canvas.height < parseInt(height)) {
+              this.canvas.width = parseInt(width);
+              this.canvas.height = parseInt(height);
+            }
+          };
+        } else {
+          isInFullScreen.value = false;
+          playerStore.player.onPlaying = function () {
+            this.canvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
+            this.ctx = this.canvas.getContext('2d');
+          };
+        }
+      };
+      const clickFullScreen = async () => {
+        // if (!active.value) return;
+        if (!isInFullScreen.value) {
+          const preview = document.getElementById('preview-box') as HTMLDivElement;
+          await preview.requestFullscreen();
+        } else if (isInFullScreen.value && document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
       };
 
       const shortcut = (e: KeyboardEvent) => {
@@ -103,25 +112,102 @@
           playerStore.prev();
         } else if (e.code == 'ArrowRight') {
           playerStore.next();
+        } else if (e.code == 'Escape') {
+          clickFullScreen();
         }
       };
 
       onMounted(() => {
         window.addEventListener('keydown', shortcut);
+        const preview = document.getElementById('preview-box') as HTMLDivElement;
+        preview.addEventListener('fullscreenchange', fullScreen);
       });
       onUnmounted(() => {
         window.removeEventListener('keydown', shortcut);
+        const preview = document.getElementById('preview-box') as HTMLDivElement;
+        preview.removeEventListener('fullscreenchange', fullScreen);
       });
 
-      return {
-        title,
-        paused,
-        active,
-        current,
-        total,
-        pauseResume,
-        fullScreen,
-      };
+      const canvas = () => <canvas id="preview-canvas" class="bg-black mx-auto" />;
+      const content = () => <div class="h-full flex items-center">{canvas()}</div>;
+
+      const footer = () => (
+        <div
+          id="preview-panel"
+          class={[
+            active.value ? '' : 'opacity-50',
+            isInFullScreen.value ? '' : 'mt-6',
+            'h-full w-full relative flex item-center',
+          ]}
+        >
+          <div
+            class={[
+              'absolute items-center',
+              isInFullScreen.value ? 'flex left-5 leading-none bottom-1/3' : 'flex flex-col left-2',
+            ]}
+          >
+            <div class="active-color">{current.value}</div>
+            <div
+              class={['border-gray-200', isInFullScreen.value ? 'ml-2 border-l px-1' : 'border-t']}
+            >
+              {total.value}
+            </div>
+          </div>
+
+          {isInFullScreen.value ? (
+            <Progress
+              class={['absolute bottom-1/3 w-1/2 left-1/2 transform -translate-x-3']}
+              percent={50}
+            />
+          ) : (
+            ''
+          )}
+
+          <div
+            class={[
+              'absolute',
+              isInFullScreen.value ? 'bottom-1/3' : 'flex left-1/2 text-xl cursor-pointer top-2',
+            ]}
+            onClick={pauseResume}
+          >
+            {paused.value ? <CaretRightOutlined /> : <PauseOutlined />}
+          </div>
+
+          {isInFullScreen.value ? (
+            <div class="absolute bottom-1/3 right-2">
+              <FullscreenExitOutlined class="cursor-pointer" onClick={clickFullScreen} />
+            </div>
+          ) : (
+            <div class="absolute w-15 right-2 top-1 flex items-center leading-7">
+              <button class="mr-2">原始</button>
+              <FullscreenOutlined class="cursor-pointer" onClick={clickFullScreen} />
+            </div>
+          )}
+        </div>
+      );
+
+      return () => (
+        <div id="preview-box" class={'h-full w-full'}>
+          {isInFullScreen.value ? (
+            <div class={'h-full w-full relative text-white'}>
+              <div class={'absolute h-full w-full'}>{canvas()}</div>
+
+              <div class={'absolute bottom-10 h-10 w-full'}>
+                <div
+                  class="absolute flex h-full w-1/3 left-1/2 transform -translate-x-1/2 px-1 rounded-md"
+                  style="background-color: rgba(84,84,84,.2)"
+                >
+                  {footer()}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <SectionBox footer title={title.value}>
+              {{ content, footer }}
+            </SectionBox>
+          )}
+        </div>
+      );
     },
   });
 </script>

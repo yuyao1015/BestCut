@@ -8,10 +8,14 @@ module.exports = {
   parser: 'vue-eslint-parser',
   parserOptions: {
     parser: '@typescript-eslint/parser',
-    project: ['./tsconfig.json'],
+    // project: ['./tsconfig.json'],
     ecmaVersion: 2020,
     sourceType: 'module',
     extraFileExtensions: ['.vue'],
+    jsxPragma: 'React',
+    ecmaFeatures: {
+      jsx: true,
+    },
   },
 
   extends: [
