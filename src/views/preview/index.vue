@@ -6,23 +6,16 @@
     FullscreenOutlined,
     FullscreenExitOutlined,
   } from '@ant-design/icons-vue';
+  import { Progress } from 'ant-design-vue';
+
   import SectionBox from '@/layouts/SectionBox.vue';
-  import Progress from '@/components/Progress.vue';
   import { useI18n } from '@/hooks/useI18n';
 
   import { useResourceStore } from '@/store/resource';
   import { usePlayerStore } from '@/store/player';
 
   export default defineComponent({
-    name: '',
-    components: {
-      SectionBox,
-      Progress,
-      CaretRightOutlined,
-      PauseOutlined,
-      FullscreenOutlined,
-      FullscreenExitOutlined,
-    },
+    name: 'Preview',
     props: {
       prop: {
         type: Boolean,
@@ -40,7 +33,7 @@
       const title = computed(() => {
         const { resource } = resourceStore;
         if (resource)
-          return h('div', { class: 'h-full flex item-center' }, [
+          return h('div', { class: 'h-full flex items-center' }, [
             h('span', { class: 'w-1 h-1 rounded-md bg-yellow-500 mr-1' }),
             `正在预览 一 ${t('components.' + resource.type)}`,
           ]);
@@ -136,53 +129,60 @@
           id="preview-panel"
           class={[
             active.value ? '' : 'opacity-50',
-            isInFullScreen.value ? '' : 'mt-6',
-            'h-full w-full relative flex item-center',
+            isInFullScreen.value ? '' : '',
+            'h-full w-full relative flex items-end',
           ]}
         >
-          <div
-            class={[
-              'absolute items-center',
-              isInFullScreen.value ? 'flex left-5 leading-none bottom-1/3' : 'flex flex-col left-2',
-            ]}
-          >
-            <div class="active-color">{current.value}</div>
+          <div class="h-full w-full flex items-center">
             <div
-              class={['border-gray-200', isInFullScreen.value ? 'ml-2 border-l px-1' : 'border-t']}
+              class={[
+                'absolute items-center',
+                isInFullScreen.value
+                  ? 'flex left-5 leading-none bottom-1/3'
+                  : 'flex flex-col left-2',
+              ]}
             >
-              {total.value}
+              <div class="active-color">{current.value}</div>
+              <div
+                class={[
+                  'border-gray-200',
+                  isInFullScreen.value ? 'ml-2 border-l px-1' : 'border-t',
+                ]}
+              >
+                {total.value}
+              </div>
             </div>
+
+            {isInFullScreen.value ? (
+              <Progress
+                class={['absolute bottom-1/3 w-1/2 left-1/2 transform -translate-x-3']}
+                percent={50}
+              />
+            ) : (
+              ''
+            )}
+
+            <div
+              class={[
+                'absolute',
+                isInFullScreen.value ? 'bottom-1/3' : 'flex left-1/2 text-xl cursor-pointer',
+              ]}
+              onClick={pauseResume}
+            >
+              {paused.value ? <CaretRightOutlined /> : <PauseOutlined />}
+            </div>
+
+            {isInFullScreen.value ? (
+              <div class="absolute bottom-1/3 right-2">
+                <FullscreenExitOutlined class="cursor-pointer" onClick={clickFullScreen} />
+              </div>
+            ) : (
+              <div class="absolute w-15 right-2 flex items-center leading-7">
+                <button class="mr-2">原始</button>
+                <FullscreenOutlined class="cursor-pointer" onClick={clickFullScreen} />
+              </div>
+            )}
           </div>
-
-          {isInFullScreen.value ? (
-            <Progress
-              class={['absolute bottom-1/3 w-1/2 left-1/2 transform -translate-x-3']}
-              percent={50}
-            />
-          ) : (
-            ''
-          )}
-
-          <div
-            class={[
-              'absolute',
-              isInFullScreen.value ? 'bottom-1/3' : 'flex left-1/2 text-xl cursor-pointer top-2',
-            ]}
-            onClick={pauseResume}
-          >
-            {paused.value ? <CaretRightOutlined /> : <PauseOutlined />}
-          </div>
-
-          {isInFullScreen.value ? (
-            <div class="absolute bottom-1/3 right-2">
-              <FullscreenExitOutlined class="cursor-pointer" onClick={clickFullScreen} />
-            </div>
-          ) : (
-            <div class="absolute w-15 right-2 top-1 flex items-center leading-7">
-              <button class="mr-2">原始</button>
-              <FullscreenOutlined class="cursor-pointer" onClick={clickFullScreen} />
-            </div>
-          )}
         </div>
       );
 

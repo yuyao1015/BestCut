@@ -79,7 +79,7 @@ export const cachedResource = (empty: boolean, offline = false) => {
       {
         class: [
           'load-local-file rounded-md',
-          'flex flex-col item-center justify-center',
+          'flex flex-col items-center justify-center',
           'border border-dotted',
           size,
         ],

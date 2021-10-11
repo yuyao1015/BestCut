@@ -1,5 +1,5 @@
 <template>
-  <Progress :percent="percent" />
+  <Progress :percent="percent" :show-info="false" />
 </template>
 
 <script lang="ts">

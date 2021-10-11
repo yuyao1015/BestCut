@@ -15,7 +15,7 @@
     </template>
 
     <template #track>
-      <SectionBox sider :title="t('components.tracks')"></SectionBox>
+      <Tracks />
     </template>
   </Layout>
 </template>
@@ -28,6 +28,7 @@
 
   import Preview from '@/views/preview/index.vue';
   import ResourceBox from '@/views/resource/index.vue';
+  import Tracks from '@/views/tracks/index.vue';
 
   import { useI18n } from '@/hooks/useI18n';
 
@@ -38,6 +39,7 @@
       SectionBox,
       Preview,
       ResourceBox,
+      Tracks,
     },
     props: {
       //
