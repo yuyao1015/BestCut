@@ -8,11 +8,11 @@
       ]"
       ref="resourceItem"
       @click="play"
-      v-click-outside:[preview]="onClickOutside"
+      v-click-outside:[exclude]="onClickOutside"
     >
       <div
         v-if="resource.active"
-        class="timeline-locator absolute rounded-md h-full w-px bg-yellow-300 top-0 z-10"
+        class="timeline-locator absolute rounded-md h-full w-px bg-yellow-500 top-0 z-10"
         :style="{ left: `${ratio}%` }"
       />
 
@@ -165,7 +165,6 @@
         resourceStore.setResource(props.resource);
         if (usable.value) {
           const id = 'preview-canvas';
-          console.log(playerStore.playing, playerStore.player.id);
           if (playerStore.playing && playerStore.player.id === id) {
             if (!resourceItem.value) return;
             const left = resourceItem.value?.getBoundingClientRect().left || 0;
@@ -200,9 +199,13 @@
         }
       };
 
-      const preview = ref<HTMLElement>();
+      const exclude = ref<Element[]>([]);
       onBeforeMount(() => {
-        if (!preview.value) preview.value = document.getElementById('preview-box') as HTMLElement;
+        if (!exclude.value.length) {
+          const preview = document.getElementById('preview-box') as HTMLElement;
+          const splitters = document.getElementsByClassName('splitter') as HTMLCollection;
+          exclude.value = [preview, ...Array.from(splitters)];
+        }
       });
       const onClickOutside = () => {
         if (active.value) playerStore.player.stop();
@@ -214,7 +217,7 @@
         isLoading,
         ratio,
         active,
-        preview,
+        exclude,
         resourceItem,
         play,
         onClickOutside,

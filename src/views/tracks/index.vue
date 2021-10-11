@@ -1,7 +1,7 @@
 <script lang="tsx">
   import { defineComponent, ref, h } from 'vue';
 
-  import { Tooltip, Progress } from 'ant-design-vue';
+  import { Tooltip, Slider } from 'ant-design-vue';
   import {
     DownOutlined,
     UndoOutlined,
@@ -12,9 +12,12 @@
     RotateLeftOutlined,
     ZoomInOutlined,
     ZoomOutOutlined,
+    SoundFilled,
+    NotificationFilled,
   } from '@ant-design/icons-vue';
 
   import SectionBox from '@/layouts/SectionBox.vue';
+  import TimeLine from './TimeLine.vue';
   import { useI18n } from '@/hooks/useI18n';
 
   export default defineComponent({
@@ -41,136 +44,154 @@
           </div>
         </div>
       );
+
+      const active = ref(false);
+
       const left = [
         {
-          component: mouse(),
+          component: mouse,
           tip: '切换鼠标选择状态或切割状态',
           active: true,
           show: true,
           placement: 'bottomRight',
         },
         {
-          component: UndoOutlined,
+          component: () => UndoOutlined,
           tip: '撤销',
           active: false,
           show: true,
           placement: 'bottomRight',
         },
         {
-          component: RedoOutlined,
+          component: () => RedoOutlined,
           tip: '恢复',
           active: false,
           show: true,
           placement: 'bottomRight',
         },
         {
-          component: SplitCellsOutlined,
+          component: () => SplitCellsOutlined,
           tip: '分割',
-          active: true,
+          active: active.value,
           show: true,
           placement: 'bottomRight',
         },
         {
-          component: DeleteOutlined,
+          component: () => DeleteOutlined,
           tip: '删除',
-          active: false,
+          active: active.value,
           show: true,
           placement: 'bottomRight',
         },
         {
           component: () => <div>定格</div>,
           tip: '定格',
-          active: false,
-          show: true,
+          active: active.value,
+          show: active.value,
           placement: 'bottomRight',
         },
         {
-          component: LeftSquareOutlined,
+          component: () => LeftSquareOutlined,
           tip: '倒放',
-          active: false,
-          show: true,
+          active: active.value,
+          show: active.value,
           placement: 'bottomRight',
         },
         {
           component: () => <div>镜像</div>,
           tip: '镜像',
-          active: false,
-          show: true,
+          active: active.value,
+          show: active.value,
           placement: 'bottomRight',
         },
         {
-          component: RotateLeftOutlined,
+          component: () => RotateLeftOutlined,
           tip: '旋转',
-          active: false,
-          show: true,
+          active: active.value,
+          show: active.value,
           placement: 'bottomRight',
         },
         {
           component: () => <div>裁剪</div>,
           tip: '裁剪',
-          active: false,
-          show: true,
+          active: active.value,
+          show: active.value,
           placement: 'bottomRight',
         },
       ];
 
-      const percent = ref(50);
-      const progress = () => (
+      const percent = ref(15);
+      const scaleChange = (value: number) => {
+        percent.value = value;
+      };
+      const progress = (prop: { disabled: boolean }) => (
         <div class="w-1/3">
-          <Progress percent={percent.value} size="small" show-info={false} />
+          <Slider
+            class="w-full m-0 mx-1"
+            value={percent.value}
+            onChange={scaleChange}
+            tooltipVisible={false}
+            disabled={!prop.disabled}
+          />
         </div>
       );
       const right = [
         {
           component: () => <div class="h-full">吸附</div>,
           tip: '打开自动吸附',
-          active: false,
+          active: true,
           show: true,
           placement: 'bottomRight',
         },
         {
           component: () => <div class="h-2/5 mr-3 pr-3 border-r border-black">预览轴</div>,
           tip: '打开预览轴',
-          active: false,
-          show: true,
-          placement: 'bottomRight',
-        },
-        {
-          component: ZoomInOutlined,
-          tip: '时间线缩小',
-          active: false,
-          show: true,
-          placement: 'bottomRight',
-        },
-        {
-          component: progress(),
-          tip: '',
           active: true,
+          show: true,
+          placement: 'bottomRight',
+        },
+        {
+          component: () => ZoomInOutlined,
+          tip: '时间线缩小',
+          active: active.value,
+          show: true,
+          placement: 'bottomRight',
+        },
+        {
+          component: progress,
+          tip: '',
+          active: active.value,
           show: true,
           placement: '',
         },
         {
-          component: ZoomOutOutlined,
+          component: () => ZoomOutOutlined,
           tip: '时间线放大',
-          active: false,
+          active: active.value,
           show: true,
           placement: 'bottomLeft',
         },
       ];
 
       const getTabs = (list: any, style = '') =>
-        list.map((tab: any) => (
-          <Tooltip class="" placement={tab.placement} title={tab.tip}>
-            {h(tab.component, {
-              class: [
-                'flex items-center cursor-pointer leading-tight',
-                style,
-                tab.show ? 'block' : 'hidden',
-                tab.active ? '' : 'opacity-50',
-              ],
-            })}
-          </Tooltip>
-        ));
+        list.map((tab: any) => {
+          const component = h(tab.component({ disabled: tab.active }), {
+            class: [
+              'flex items-center cursor-pointer leading-tight',
+              style,
+              tab.show ? 'block' : 'hidden',
+              tab.active ? '' : 'opacity-50',
+            ],
+          });
+
+          return tab.tip ? (
+            <Tooltip class="" placement={tab.placement} title={tab.tip}>
+              {component}
+            </Tooltip>
+          ) : (
+            component
+          );
+        });
 
       const header = () => (
         <div class="flex w-full h-full justify-between mx-2">
@@ -179,11 +200,36 @@
         </div>
       );
 
-      const sider = () => <div></div>;
-      const content = () => <div></div>;
+      const mute = ref(false);
+      const sider = () => (
+        <div class="text-lg w-full h-full rounded-md flex items-center justify-center">
+          <div
+            class="rounded-md flex items-center justify-center w-14 h-14"
+            style="border: 5px solid #313135;background-color: #464649"
+            onClick={() => {
+              mute.value = !mute.value;
+            }}
+          >
+            {!mute.value ? <SoundFilled /> : <NotificationFilled />}
+          </div>
+        </div>
+      );
+
+      const content = () => (
+        <div id="tracks" class="relative h-full w-full">
+          <TimeLine />
+
+          <div class="track-list absolute w-full mt-4 h-full ">
+            <div class="video-list h-10 w-full pt-20 min-h-0 max-h-20 bg-blue-500"></div>
+            <div class="main-track h-16 w-full bg-red-500"></div>
+            <div class="audio-list h-full w-full bg-green-500"></div>
+          </div>
+        </div>
+      );
+      // <TimeLine hoverX={hoverX.value} locatorX={locatorX.value} />
 
       return () => (
-        <SectionBox sider title={title}>
+        <SectionBox sider={{ width: 110, class: 'border-r border-black' }} title={title}>
           {{ header, sider, content }}
         </SectionBox>
       );
@@ -191,6 +237,54 @@
   });
 </script>
 
-<style>
-  /* 1 */
+<style lang="less" scoped>
+  :deep(.ant-slider-track),
+  :deep(.ant-slider:hover .ant-slider-track) {
+    background-color: #525155;
+    // border: solid 2px #d4d4d4;
+    border: solid 2px #fff;
+  }
+
+  :deep(.ant-slider-handle) {
+    border: solid 2px #fff;
+    background-color: #fff;
+    width: 10px;
+    border-radius: 0;
+    border-bottom-right-radius: 50%;
+    border-bottom-left-radius: 50%;
+    transition: none;
+  }
+
+  :deep(.ant-slider:hover .ant-slider-handle:not(.ant-tooltip-open)) {
+    border: solid 2px #fff;
+  }
+
+  :deep(.ant-slider-handle:focus) {
+    box-shadow: none;
+  }
+
+  :deep(.ant-slider-rail),
+  :deep(.ant-slider:hover .ant-slider-rail) {
+    background-color: #525155;
+  }
+
+  :deep(.ant-slider-disabled),
+  :deep(.ant-slider-disabled .ant-slider-handle) {
+    cursor: pointer;
+  }
+
+  .timeline-locator {
+    &-head {
+      width: 10px;
+      height: 15px;
+      transform: translateX(-50%);
+      border: solid 2px #fff;
+      border-bottom-left-radius: 50%;
+      border-bottom-right-radius: 50%;
+    }
+
+    &-body {
+      height: calc(100% - 15px);
+    }
+  }
 </style>

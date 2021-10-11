@@ -18,7 +18,7 @@
         </slot>
       </LayoutSider>
 
-      <Splitter vertical :value="splitterWidth" @width="onWidthChangeLeft"></Splitter>
+      <Splitter class="splitter" vertical :value="splitterWidth" @width="onWidthChangeLeft" />
 
       <LayoutContent class="bg-black">
         <slot name="preview">
@@ -26,7 +26,7 @@
         </slot>
       </LayoutContent>
 
-      <Splitter vertical :value="splitterWidth" @width="onWidthChangeRight"></Splitter>
+      <Splitter class="splitter" vertical :value="splitterWidth" @width="onWidthChangeRight" />
       <LayoutSider :width="configW">
         <slot name="config">
           <div class="center bg-red-500 rounded-md">{{ t('common.config') }}</div>
@@ -34,7 +34,7 @@
       </LayoutSider>
     </Layout>
 
-    <Splitter :value="splitterHeight" @height="onHeightChange"></Splitter>
+    <Splitter class="splitter" :value="splitterHeight" @height="onHeightChange" />
 
     <LayoutFooter
       class="layout-footer bg-black px-2 pb-2 pt-0"

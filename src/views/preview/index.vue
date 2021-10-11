@@ -6,7 +6,7 @@
     FullscreenOutlined,
     FullscreenExitOutlined,
   } from '@ant-design/icons-vue';
-  import { Progress } from 'ant-design-vue';
+  import { Slider } from 'ant-design-vue';
 
   import SectionBox from '@/layouts/SectionBox.vue';
   import { useI18n } from '@/hooks/useI18n';
@@ -88,7 +88,7 @@
         }
       };
       const clickFullScreen = async () => {
-        // if (!active.value) return;
+        if (!active.value) return;
         if (!isInFullScreen.value) {
           const preview = document.getElementById('preview-box') as HTMLDivElement;
           await preview.requestFullscreen();
@@ -110,13 +110,29 @@
         }
       };
 
+      const panelVisiable = ref(false);
+      const showPanel = () => {
+        if (!isInFullScreen.value) return;
+        panelVisiable.value = true;
+        // setTimeout(() => {
+        //   panelVisiable.value = false;
+        // }, 3000);
+      };
+
+      const percent = computed(() => +playerStore.ratio);
+      const jumpTo = (value: number) => {
+        playerStore.jumpTo(value / 100);
+      };
+
       onMounted(() => {
         window.addEventListener('keydown', shortcut);
+        window.addEventListener('mousemove', showPanel);
         const preview = document.getElementById('preview-box') as HTMLDivElement;
         preview.addEventListener('fullscreenchange', fullScreen);
       });
       onUnmounted(() => {
         window.removeEventListener('keydown', shortcut);
+        window.removeEventListener('mousemove', showPanel);
         const preview = document.getElementById('preview-box') as HTMLDivElement;
         preview.removeEventListener('fullscreenchange', fullScreen);
       });
@@ -154,9 +170,10 @@
             </div>
 
             {isInFullScreen.value ? (
-              <Progress
-                class={['absolute bottom-1/3 w-1/2 left-1/2 transform -translate-x-3']}
-                percent={50}
+              <Slider
+                class={['absolute bottom-1/3 w-2/5 left-1/2 transform -translate-x-3 m-0 mx-2']}
+                value={percent.value}
+                onChange={jumpTo}
               />
             ) : (
               ''
@@ -192,7 +209,7 @@
             <div class={'h-full w-full relative text-white'}>
               <div class={'absolute h-full w-full'}>{canvas()}</div>
 
-              <div class={'absolute bottom-10 h-10 w-full'}>
+              <div class={['absolute bottom-10 h-10 w-full', panelVisiable.value ? '' : 'hidden']}>
                 <div
                   class="absolute flex h-full w-1/3 left-1/2 transform -translate-x-1/2 px-1 rounded-md"
                   style="background-color: rgba(84,84,84,.2)"
@@ -214,5 +231,33 @@
 <style lang="less" scoped>
   .preview-panel {
     background-color: #272728;
+  }
+
+  :deep(.ant-slider-track),
+  :deep(.ant-slider:hover .ant-slider-track) {
+    background-color: #252528;
+    border: solid 2px #6dced7;
+  }
+
+  :deep(.ant-slider-handle) {
+    border: solid 2px #fff;
+    background-color: #6dced7;
+    width: 10px;
+    height: 10px;
+    margin-top: -3px;
+    transition: none;
+  }
+
+  :deep(.ant-slider:hover .ant-slider-handle:not(.ant-tooltip-open)) {
+    border: solid 2px #fff;
+  }
+
+  :deep(.ant-slider-handle:focus) {
+    box-shadow: none;
+  }
+
+  :deep(.ant-slider-rail),
+  :deep(.ant-slider:hover .ant-slider-rail) {
+    background-color: #252528;
   }
 </style>

@@ -10,7 +10,7 @@
     </LayoutHeader>
 
     <Layout class="rounded-b-md overflow-hidden">
-      <LayoutSider v-if="sider" class="border-r border-black" width="90">
+      <LayoutSider v-if="sider" :class="sider.class" :width="sider.width">
         <slot name="sider">
           <div class="center">
             {{ 'sider' }}
@@ -59,8 +59,8 @@
         default: 'header',
       },
       sider: {
-        type: Boolean,
-        default: false,
+        type: Object,
+        default: () => null,
       },
       footer: {
         type: Boolean,

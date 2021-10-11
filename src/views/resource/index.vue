@@ -1,5 +1,5 @@
 <template>
-  <SectionBox sider :title="title">
+  <SectionBox :sider="{ width: 90, class: 'border-r border-black' }" :title="title">
     <template #header>
       <div class="tabs flex items-center pt-1 px-1 w-full">
         <div
