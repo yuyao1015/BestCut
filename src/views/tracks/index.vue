@@ -18,6 +18,8 @@
 
   import SectionBox from '@/layouts/SectionBox.vue';
   import TimeLine from './TimeLine.vue';
+  import TrackList from './TrackList.vue';
+
   import { useI18n } from '@/hooks/useI18n';
 
   export default defineComponent({
@@ -201,38 +203,36 @@
       );
 
       const mute = ref(false);
-      const sider = () => (
-        <div class="text-lg w-full h-full rounded-md flex items-center justify-center">
-          <div
-            class="rounded-md flex items-center justify-center w-14 h-14"
-            style="border: 5px solid #313135;background-color: #464649"
-            onClick={() => {
-              mute.value = !mute.value;
-            }}
-          >
-            {!mute.value ? <SoundFilled /> : <NotificationFilled />}
-          </div>
-        </div>
-      );
 
       const content = () => (
-        <div id="tracks" class="relative h-full w-full">
+        <div id="tracks" class="relative h-full overflow-scroll">
           <TimeLine />
 
-          <div class="track-list absolute w-full mt-4 h-full ">
-            <div class="video-list h-10 w-full pt-20 min-h-0 max-h-20 bg-blue-500"></div>
-            <div class="main-track h-16 w-full bg-red-500"></div>
-            <div class="audio-list h-full w-full bg-green-500"></div>
+          <div class="track-list absolute w-full h-full mt-4" style={`height: calc(100% - 1rem);`}>
+            <TrackList class="video-list h-10 min-h-0 max-h-40 py-10"></TrackList>
+
+            <TrackList class="main-track h-16">
+              <div class="text-lg w-full h-full rounded-md flex items-center justify-center">
+                <div
+                  class="rounded-md flex items-center justify-center w-14 h-14"
+                  style="border: 5px solid #313135;background-color: #464649"
+                  onClick={() => {
+                    mute.value = !mute.value;
+                  }}
+                >
+                  {!mute.value ? <SoundFilled /> : <NotificationFilled />}
+                </div>
+              </div>
+            </TrackList>
+
+            <TrackList class="audio-list"></TrackList>
           </div>
         </div>
       );
       // <TimeLine hoverX={hoverX.value} locatorX={locatorX.value} />
 
-      return () => (
-        <SectionBox sider={{ width: 110, class: 'border-r border-black' }} title={title}>
-          {{ header, sider, content }}
-        </SectionBox>
-      );
+      // sider={{ width: 110, class: 'border-r border-black' }}
+      return () => <SectionBox title={title}>{{ header, content }}</SectionBox>;
     },
   });
 </script>

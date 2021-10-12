@@ -19,7 +19,7 @@
       </LayoutSider>
 
       <Layout>
-        <LayoutContent class="h-5/6">
+        <LayoutContent class="h-5/6 overflow-auto">
           <slot name="content">
             <div class="center">
               {{ 'content' }}
@@ -70,7 +70,6 @@
     emits: [],
     setup() {
       return {
-        //
         isString,
       };
     },
