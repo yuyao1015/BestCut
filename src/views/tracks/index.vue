@@ -20,6 +20,8 @@
   import TimeLine from './TimeLine.vue';
   import TrackList from './TrackList.vue';
 
+  import { VideoItem } from '@/logic/data';
+
   import { useI18n } from '@/hooks/useI18n';
 
   export default defineComponent({
@@ -122,7 +124,7 @@
         },
       ];
 
-      const percent = ref(15);
+      const percent = ref(0);
       const scaleChange = (value: number) => {
         percent.value = value;
       };
@@ -203,26 +205,34 @@
       );
 
       const mute = ref(false);
+      const mainTrackHead = () => (
+        <div class="text-lg w-full h-full rounded-md flex items-center justify-center">
+          <div
+            class="rounded-md flex items-center justify-center w-14 h-14"
+            style="border: 5px solid #313135;background-color: #464649"
+            onClick={() => {
+              mute.value = !mute.value;
+            }}
+          >
+            {!mute.value ? <SoundFilled /> : <NotificationFilled />}
+          </div>
+        </div>
+      );
+
+      const mainTrack = new VideoItem();
 
       const content = () => (
         <div id="tracks" class="relative h-full overflow-scroll">
           <TimeLine />
 
-          <div class="track-list absolute w-full h-full mt-4" style={`height: calc(100% - 1rem);`}>
+          <div
+            class="track-list absolute w-full h-full mt-2.5"
+            style={`height: calc(100% - 1rem);`}
+          >
             <TrackList class="video-list h-10 min-h-0 max-h-40 py-10"></TrackList>
 
-            <TrackList class="main-track h-16">
-              <div class="text-lg w-full h-full rounded-md flex items-center justify-center">
-                <div
-                  class="rounded-md flex items-center justify-center w-14 h-14"
-                  style="border: 5px solid #313135;background-color: #464649"
-                  onClick={() => {
-                    mute.value = !mute.value;
-                  }}
-                >
-                  {!mute.value ? <SoundFilled /> : <NotificationFilled />}
-                </div>
-              </div>
+            <TrackList class="main-track h-16" list={[mainTrack]}>
+              {mainTrackHead()}
             </TrackList>
 
             <TrackList class="audio-list"></TrackList>

@@ -213,13 +213,13 @@ export class TrackItem extends Base {
   }
 }
 
-export abstract class TrackItemMedia extends TrackItem {
+export abstract class MediaItem extends TrackItem {
   refer: { from: number; to: number } | null = null;
   path = '';
   muted = false;
 }
 
-export class TrackItemVideo extends TrackItemMedia {
+export class VideoItem extends MediaItem {
   position = -1;
   videoId = '';
 
@@ -228,7 +228,7 @@ export class TrackItemVideo extends TrackItemMedia {
   } // todo;
 }
 
-export class TrackItemAudio extends TrackItemMedia {
+export class AudioItem extends MediaItem {
   position = -1;
   audioId = '';
 

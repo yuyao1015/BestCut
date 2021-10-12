@@ -137,8 +137,17 @@
         preview.removeEventListener('fullscreenchange', fullScreen);
       });
 
-      const canvas = () => <canvas id="preview-canvas" class="bg-black mx-auto" />;
-      const content = () => <div class="h-full flex items-center">{canvas()}</div>;
+      const canvas = () => (
+        <canvas id="preview-canvas" class="bg-black absolute left-1/2 transform -translate-x-1/2" />
+      );
+      const content = () => (
+        <div class="h-full flex items-center relative">
+          <div class="absolute h-20 w-20 left-1/2 transform -translate-x-1/2 z-10 flex items-center justify-center">
+            Text
+          </div>
+          {canvas()}
+        </div>
+      );
 
       const footer = () => (
         <div

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 
 import { store } from '@/store';
 import { MP4Player } from '@/logic/mp4';
-import { getDurationString, clipDuration } from '@/utils/player';
+import { getDurationString, clipDurationString } from '@/utils/player';
 
 interface PlayerState {
   player: MP4Player;
@@ -76,7 +76,7 @@ export const usePlayerStore = defineStore({
             };
             break;
           }
-          duration = clipDuration(getDurationString(this.refs.total, this.fps));
+          duration = clipDurationString(getDurationString(this.refs.total, this.fps));
         };
       });
     },

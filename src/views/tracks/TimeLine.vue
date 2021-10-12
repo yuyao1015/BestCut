@@ -1,6 +1,6 @@
 <template>
-  <div class="absolute h-4 w-full">
-    <canvas id="timeline" class="scale h-full w-full" />
+  <div class="absolute h-2.5 w-full">
+    <canvas id="timeline" class="scale h-full w-full" :style="`padding-left: ${lmin}px;`" />
   </div>
   <div
     v-if="hover"
@@ -9,7 +9,7 @@
   />
 
   <div ref="locator" class="timeline-locator absolute h-full z-10" :style="`left: ${locatorX}px`">
-    <div class="timeline-locator-head"></div>
+    <div :class="['timeline-locator-head', isDragging ? 'bg-white' : '']"></div>
     <div class="timeline-locator-body">
       <div class="h-full w-px bg-white top-0" />
     </div>
@@ -17,8 +17,15 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent, ref, onMounted, onUnmounted } from 'vue';
+  import { defineComponent, ref, onMounted, onUnmounted, computed } from 'vue';
+
   import { trackHeadWidth as lmin } from '@/settings/componentSetting';
+
+  import { usePlayerStore } from '@/store/player';
+  import { on, off } from '@/utils/dom';
+  import { clipDurationString, durationString2Sec } from '@/utils/player';
+  import { MouseCtl } from '@/logic/mouse';
+  // import { setDPI } from '@/utils';
 
   export default defineComponent({
     name: 'TimeLine',
@@ -30,57 +37,121 @@
     },
 
     setup() {
-      const hover = ref(true);
-      const hoverX = ref(0);
+      const hover = ref(false);
+      const hoverX = ref(lmin);
       const locatorX = ref(lmin);
       const locator = ref<HTMLElement | null>(null);
 
       let ctx: CanvasRenderingContext2D | null = null;
+      let tracks: HTMLElement | null = null;
+      let m: MouseCtl | null = null;
 
-      const onTimeline = (e: MouseEvent) => {
-        const tracks = document.getElementById('tracks') as HTMLElement;
-        const left = tracks.getBoundingClientRect().left || 0;
-        const x = e.pageX - left - scrollX;
+      const playerStore = usePlayerStore();
+      const duration = computed(() => {
+        return playerStore.total ? playerStore.total : durationString2Sec('30:00');
+      });
+      duration.value;
+
+      const onMouse = (e: MouseEvent) => {
+        const left = tracks?.getBoundingClientRect().left || 0;
+        let x = e.pageX - left - scrollX;
+        x = Math.max(lmin, x);
         if (e.type === 'mousedown') {
-          locatorX.value = Math.max(lmin, x);
+          locatorX.value = x;
         } else if (e.type === 'mousemove') {
-          hoverX.value = Math.max(lmin, x);
+          hoverX.value = x;
+          if (hoverX.value === locatorX.value) hover.value = false;
         }
+      };
+
+      const events = ['mousemove', 'mousedown'];
+      const onTimeline = () => {
+        events.forEach((event) => on(window, event, onMouse));
+        hover.value = true;
+      };
+      const offTimeline = () => {
+        events.forEach((event) => off(window, event, onMouse));
+        hover.value = false;
       };
 
       const initCanvas = () => {
         const canvas = document.getElementById('timeline') as HTMLCanvasElement;
         ctx = canvas.getContext('2d');
+        const { clientHeight, clientWidth } = canvas;
+        canvas.width = clientWidth;
+        canvas.height = clientHeight;
+
+        drawTimeline();
       };
       const drawTimeline = () => {
-        //
+        if (!ctx) return;
+        let drawLen = 0;
+        let count = 0;
+        const { width, height } = ctx.canvas;
+        const step = 30;
+
+        ctx.lineWidth = 1;
+        ctx.fillStyle = '#676767';
+        while (drawLen <= width) {
+          ctx.beginPath();
+          let y = height / 2;
+          ctx.strokeStyle = '#444';
+          if (count % 10 === 0) {
+            y = height;
+            ctx.strokeStyle = '#777';
+            const durationText = clipDurationString('00:00');
+            ctx.fillText(durationText, drawLen + 2, y - 1);
+          }
+          ctx.moveTo(drawLen, 0);
+          ctx.lineTo(drawLen, y);
+          ctx.stroke();
+          drawLen += step;
+          count++;
+        }
+        ctx.restore();
       };
 
-      const events = ['mousemove', 'mousedown'];
+      const isDragging = ref(false);
+      const dragLocator = () => {
+        if (!locator.value) return;
+
+        m = new MouseCtl(locator.value);
+        m.moveCallback = function () {
+          const dx = this.x - this.lastX;
+          const x = Math.max(lmin, locatorX.value + dx);
+          locatorX.value = x;
+          isDragging.value = true;
+          hover.value = false;
+        };
+        m.upCallback = function () {
+          isDragging.value = false;
+          if (hoverX.value === locatorX.value) hover.value = false;
+        };
+      };
+
       onMounted(() => {
-        const tracks = document.getElementById('tracks') as HTMLElement;
-        events.forEach((event) => {
-          tracks.addEventListener(event, (e: any) => onTimeline(e));
-        });
+        tracks = document.getElementById('tracks') as HTMLElement;
+        if (!tracks) return;
+        on(tracks, 'mouseover', onTimeline);
+        on(tracks, 'mouseleave', offTimeline);
 
-        // TODO: drag
-        // locator.value && locator.value.addEventListener('mousedown', () => {});
-
+        dragLocator();
         initCanvas();
-        drawTimeline();
       });
 
       onUnmounted(() => {
-        const tracks = document.getElementById('tracks') as HTMLElement;
-        events.forEach((event) => {
-          tracks.removeEventListener(event, onTimeline);
-        });
+        if (!tracks) return;
+        off(tracks, 'mouseover', onTimeline);
+        off(tracks, 'mouseout', offTimeline);
+        m && m.stopAllListeners('self');
       });
       return {
+        lmin,
         locator,
         locatorX,
         hover,
         hoverX,
+        isDragging,
       };
     },
   });

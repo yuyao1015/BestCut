@@ -1,10 +1,10 @@
 <template>
-  <div class="flex">
-    <div class="track-head h-full" :style="`width: ${trackHeadWidth}px;`">
+  <div class="flex w-full">
+    <div class="track-head h-full" :style="`flex:0 0 ${trackHeadWidth}px;`">
       <slot></slot>
     </div>
-    <div class="list w-full h-full">
-      <div v-for="(track, idx) in list" :key="idx"></div>
+    <div class="list w-full h-full flex flex-col justify-center">
+      <div class="" v-for="(track, idx) in list" :key="idx">{{ track }}</div>
     </div>
   </div>
 </template>
@@ -19,10 +19,6 @@
       //
     },
     props: {
-      // width: {
-      //   type: Number,
-      //   default: 110,
-      // },
       list: {
         type: Array,
         default: () => [],
