@@ -1,4 +1,6 @@
 <script lang="tsx">
+  import type { AudioTrackItem, VideoTrackItem } from '#/track';
+
   import { defineComponent, ref, h } from 'vue';
 
   import { Tooltip, Slider } from 'ant-design-vue';
@@ -18,9 +20,9 @@
 
   import SectionBox from '@/layouts/SectionBox.vue';
   import TimeLine from './TimeLine.vue';
-  import TrackList from './TrackList.vue';
+  import TrackContainer from './TrackContainer.vue';
 
-  import { VideoItem } from '@/logic/data';
+  // import { VideoTrack } from '@/logic/data';
 
   import { useI18n } from '@/hooks/useI18n';
 
@@ -219,23 +221,42 @@
         </div>
       );
 
-      const mainTrack = new VideoItem();
+      const mainTrack: VideoTrackItem = {
+        id: '',
+        type: 'video',
+        trackName: 'bbb.mp4',
+        duration: '00:10:34:17',
+        cover: ['cover'],
+      };
+
+      const audioTrack: AudioTrackItem = {
+        id: '',
+        type: 'audio',
+        trackName: 'bbb.aac',
+        duration: '00:10:34:17',
+        wave: 'wave',
+      };
 
       const content = () => (
-        <div id="tracks" class="relative h-full overflow-scroll">
+        <div id="tracks" class="relative h-full">
           <TimeLine />
 
           <div
-            class="track-list absolute w-full h-full mt-2.5"
-            style={`height: calc(100% - 1rem);`}
+            class="tracks-wrapper absolute w-full h-full mt-2.5"
+            style={`height: calc(100% - 0.625rem);`}
           >
-            <TrackList class="video-list h-10 min-h-0 max-h-40 py-10"></TrackList>
+            <div class="w-full h-full overflow-y-scroll py-10">
+              <TrackContainer class="video-container" list={[[mainTrack, mainTrack, mainTrack]]} />
 
-            <TrackList class="main-track h-16" list={[mainTrack]}>
-              {mainTrackHead()}
-            </TrackList>
+              <TrackContainer class="main-track h-16" list={[[mainTrack]]}>
+                {mainTrackHead()}
+              </TrackContainer>
 
-            <TrackList class="audio-list"></TrackList>
+              <TrackContainer
+                class="audio-container"
+                list={[[audioTrack, audioTrack, audioTrack]]}
+              />
+            </div>
           </div>
         </div>
       );
