@@ -1,3 +1,5 @@
+import { any } from 'vue-types';
+
 export {};
 declare global {
   interface ViteEnv {
@@ -30,12 +32,27 @@ declare global {
     VideoFrame: VideoFrame;
   }
 
+  type FirstArgument<T> = T extends (arg1: infer A, ...args: any[]) => any ? A : never;
+  type SecondArgument<T> = T extends (arg1: any, arg2: infer A, ...args: any[]) => any ? A : never;
+  type ThirdArgument<T> = T extends (arg1: any, arg2: any, arg3: infer A, ...args: any[]) => any
+    ? A
+    : never;
+  type Not<T> = [T] extends [true] ? false : true;
+  type Equal<T1, T2> = T1 extends T2 ? (T2 extends T1 ? true : false) : false;
+  type IsNotAny<T> = 0 extends 1 & T ? false : true;
+  type IsTypeEqual<T1, T2> = IsNotAny<T1> extends false
+    ? false
+    : IsNotAny<T2> extends false
+    ? false
+    : [T1] extends [T2]
+    ? [T2] extends [T1]
+      ? true
+      : false
+    : false;
+  type ArrayElement<T> = T extends (infer I)[] ? I : never;
+
   type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
   type XOR<T, U> = T | U extends Record<string, unknown>
     ? (Without<T, U> & U) | (Without<U, T> & T)
     : T | U;
-
-  type Id = { id: string; url?: string };
-  type Canvas = { canvas: HTMLCanvasElement; url?: string };
-  type MP4PlayerOption = XOR<Id, Canvas>;
 }

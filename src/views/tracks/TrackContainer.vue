@@ -1,12 +1,10 @@
 <template>
-  <div class="flex w-full mb-2">
+  <div class="flex w-full">
     <div class="track-container-head h-full" :style="`flex:0 0 ${trackHeadWidth}px;`">
       <slot></slot>
     </div>
     <div class="list w-full h-full flex flex-col justify-center">
-      <div class="" v-for="(tracks, idx) in list" :key="idx">
-        <TrackList :tracks="tracks" :main="isMain" />
-      </div>
+      <TrackList v-for="(tracks, idx) in list" :key="idx" :tracks="tracks" :main="isMain" />
     </div>
   </div>
 </template>

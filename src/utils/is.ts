@@ -8,7 +8,7 @@ export function isDef<T>(val?: T): val is T {
   return typeof val !== 'undefined';
 }
 
-export function isObject(val: any): val is Record<any, any> {
+export function isObject(val: any): val is Record<string, any> {
   return val !== null && is(val, 'Object');
 }
 

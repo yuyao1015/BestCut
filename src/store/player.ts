@@ -1,3 +1,5 @@
+import type { MP4PlayerOption } from '#/player';
+
 import { defineStore } from 'pinia';
 
 import { store } from '@/store';

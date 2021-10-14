@@ -4,7 +4,8 @@ type Item = {
   trackName: string;
   boxSize: string;
   duration: string;
-  icon?: () => [];
+  icon?: any;
+  sticker?: string;
 };
 
 export interface AudioTrackItem extends Partial<Item> {

@@ -6,12 +6,12 @@
     v-if="hover"
     class="timeline-hover absolute h-full w-px bg-yellow-500 top-0 z-10"
     :style="`left: ${hoverX}px`"
-  />
+  ></div>
 
   <div ref="locator" class="timeline-locator absolute h-full z-10" :style="`left: ${locatorX}px`">
     <div :class="['timeline-locator-head', isDragging ? 'bg-white' : '']"></div>
     <div class="timeline-locator-body">
-      <div class="h-full w-px bg-white top-0" />
+      <div class="h-full w-px bg-white top-0"></div>
     </div>
   </div>
 </template>
@@ -44,7 +44,7 @@
 
       let ctx: CanvasRenderingContext2D | null = null;
       let tracks: HTMLElement | null = null;
-      let m: MouseCtl | null = null;
+      let mLocator: MouseCtl | null = null;
 
       const playerStore = usePlayerStore();
       const duration = computed(() => {
@@ -65,6 +65,7 @@
       };
 
       const events = ['mousemove', 'mousedown'];
+      // const events = ['mousedown'];
       const onTimeline = () => {
         events.forEach((event) => on(window, event, onMouse));
         hover.value = true;
@@ -115,15 +116,15 @@
       const dragLocator = () => {
         if (!locator.value) return;
 
-        m = new MouseCtl(locator.value);
-        m.moveCallback = function () {
+        mLocator = new MouseCtl(locator.value);
+        mLocator.moveCallback = function () {
           const dx = this.x - this.lastX;
           const x = Math.max(lmin, locatorX.value + dx);
           locatorX.value = x;
           isDragging.value = true;
           hover.value = false;
         };
-        m.upCallback = function () {
+        mLocator.upCallback = function () {
           isDragging.value = false;
           if (hoverX.value === locatorX.value) hover.value = false;
         };
@@ -143,7 +144,7 @@
         if (!tracks) return;
         off(tracks, 'mouseover', onTimeline);
         off(tracks, 'mouseout', offTimeline);
-        m && m.stopAllListeners('self');
+        mLocator && mLocator.stopAllListeners('self');
       });
       return {
         lmin,

@@ -1,4 +1,6 @@
+import type { MP4PlayerOption } from '#/player';
 import type { DowndloadCallback } from './downloader';
+
 import { reactive } from 'vue';
 
 import { getExtraData } from '@/utils/player';
