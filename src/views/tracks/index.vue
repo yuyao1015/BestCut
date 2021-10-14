@@ -251,9 +251,9 @@
         mute.value = !mute.value;
       };
       const mainTrackHead = () => (
-        <div class="text-lg w-full h-full rounded-md flex items-center justify-center">
+        <div class="text-lg w-full h-full rounded-xl flex items-center justify-center">
           <div
-            class="rounded-md flex items-center justify-center w-14 h-14"
+            class="rounded-xl flex items-center justify-center w-14 h-14"
             style="border: 5px solid #313135;background-color: #464649"
             onClick={onMute}
           >

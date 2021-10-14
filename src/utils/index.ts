@@ -33,13 +33,33 @@ export function createAsyncComponent(loader: any, options: Options = {}) {
   });
 }
 
-export function setDPI(canvas: HTMLCanvasElement, dpi: number) {
+export const throttleAndDebounce = (fn: (...args: any) => any, delay: number) => {
+  let timeout: ReturnType<typeof setTimeout>;
+  let called = false;
+  return (...args: any) => {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    if (!called) {
+      fn(...args);
+      called = true;
+      setTimeout(() => {
+        called = false;
+      }, delay);
+    } else {
+      timeout = setTimeout((...args: any) => fn(...args), delay);
+    }
+  };
+};
+
+export function setDPI(canvas: HTMLCanvasElement, scale: number) {
   // Set up CSS size.
   canvas.style.width = canvas.style.width || canvas.width + 'px';
   canvas.style.height = canvas.style.height || canvas.height + 'px';
 
   // Get size information.
-  const scaleFactor = dpi / 96;
+  // const scaleFactor = dpi / 96;
+  const scaleFactor = scale;
   const width = parseFloat(canvas.style.width);
   const height = parseFloat(canvas.style.height);
 
@@ -50,7 +70,8 @@ export function setDPI(canvas: HTMLCanvasElement, dpi: number) {
   backup.getContext('2d').drawImage(canvas, 0, 0);
 
   // Resize the canvas.
-  const ctx: any = canvas.getContext('2d');
+  const ctx: CanvasRenderingContext2D | null = canvas.getContext('2d');
+  if (!ctx) return;
   canvas.width = Math.ceil(width * scaleFactor);
   canvas.height = Math.ceil(height * scaleFactor);
 

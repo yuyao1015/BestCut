@@ -25,7 +25,10 @@
   import { on, off } from '@/utils/dom';
   import { clipDurationString, durationString2Sec } from '@/utils/player';
   import { MouseCtl } from '@/logic/mouse';
-  // import { setDPI } from '@/utils';
+  import { throttleAndDebounce } from '@/utils';
+  import { setDPI } from '@/utils';
+
+  const SCALE = 10;
 
   export default defineComponent({
     name: 'TimeLine',
@@ -52,26 +55,28 @@
       });
       duration.value;
 
-      const onMouse = (e: MouseEvent) => {
+      const onMouse = (e: PointerEvent) => {
+        if (!e) return;
         const left = tracks?.getBoundingClientRect().left || 0;
         let x = e.pageX - left - scrollX;
         x = Math.max(lmin, x);
-        if (e.type === 'mousedown') {
+        if (e.type === 'pointerdown') {
           locatorX.value = x;
-        } else if (e.type === 'mousemove') {
           hoverX.value = x;
-          if (hoverX.value === locatorX.value) hover.value = false;
+        } else if (e.type === 'pointermove') {
+          hoverX.value = x;
         }
+        if (hoverX.value === locatorX.value) hover.value = false;
       };
+      const throttleMouse = throttleAndDebounce(onMouse, 50);
 
-      const events = ['mousemove', 'mousedown'];
-      // const events = ['mousedown'];
+      const events = ['pointermove', 'pointerdown'];
       const onTimeline = () => {
-        events.forEach((event) => on(window, event, onMouse));
+        events.forEach((event) => on(window, event, throttleMouse));
         hover.value = true;
       };
       const offTimeline = () => {
-        events.forEach((event) => off(window, event, onMouse));
+        events.forEach((event) => off(window, event, throttleMouse));
         hover.value = false;
       };
 
@@ -81,6 +86,7 @@
         const { clientHeight, clientWidth } = canvas;
         canvas.width = clientWidth;
         canvas.height = clientHeight;
+        setDPI(canvas, SCALE);
 
         drawTimeline();
       };
@@ -89,22 +95,22 @@
         let drawLen = 0;
         let count = 0;
         const { width, height } = ctx.canvas;
-        const step = 30;
+        const step = 25;
 
         ctx.lineWidth = 1;
-        ctx.fillStyle = '#676767';
+        ctx.fillStyle = '#aaa';
         while (drawLen <= width) {
           ctx.beginPath();
           let y = height / 2;
-          ctx.strokeStyle = '#444';
+          ctx.strokeStyle = '#777';
           if (count % 10 === 0) {
             y = height;
-            ctx.strokeStyle = '#777';
+            ctx.strokeStyle = '#fff';
             const durationText = clipDurationString('00:00');
-            ctx.fillText(durationText, drawLen + 2, y - 1);
+            ctx.fillText(durationText, drawLen + 5, y / SCALE - 1);
           }
           ctx.moveTo(drawLen, 0);
-          ctx.lineTo(drawLen, y);
+          ctx.lineTo(drawLen, y / SCALE);
           ctx.stroke();
           drawLen += step;
           count++;
@@ -133,8 +139,8 @@
       onMounted(() => {
         tracks = document.getElementById('tracks') as HTMLElement;
         if (!tracks) return;
-        on(tracks, 'mouseover', onTimeline);
-        on(tracks, 'mouseleave', offTimeline);
+        on(tracks, 'pointerover', onTimeline);
+        on(tracks, 'pointerleave', offTimeline);
 
         dragLocator();
         initCanvas();
@@ -142,8 +148,8 @@
 
       onUnmounted(() => {
         if (!tracks) return;
-        off(tracks, 'mouseover', onTimeline);
-        off(tracks, 'mouseout', offTimeline);
+        off(tracks, 'pointerover', onTimeline);
+        off(tracks, 'pointerleave', offTimeline);
         mLocator && mLocator.stopAllListeners('self');
       });
       return {
