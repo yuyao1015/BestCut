@@ -76,6 +76,7 @@ function pad(number: number, length: number) {
 }
 
 export function getDurationString(duration: number, fps: number) {
+  if (!duration) return '';
   let neg;
   if (duration < 0) {
     neg = true;
@@ -97,7 +98,7 @@ export function getDurationString(duration: number, fps: number) {
   return `${neg ? '-' : ''}${p(h)}:${p(m)}:${p(s)}:${p(f)}`;
 }
 
-export function clipDuration(duration: string) {
+export function clipDurationString(duration: string) {
   const ret = '00:00';
   if (!duration) return ret;
 
@@ -114,4 +115,17 @@ export function clipDuration(duration: string) {
   }
 
   return `${arr[1]}:${arr[2]}`;
+}
+
+export function durationString2Sec(duration: string) {
+  let ret = 0;
+  if (!duration) return ret;
+  const arr = duration.split(':');
+  const n = arr.length;
+  if (n === 2) {
+    ret = +arr[0] * 60 + +arr[1];
+  } else if (n == 4) {
+    ret = +arr[0] * 3600 + +arr[1] * 60 + +arr[2];
+  }
+  return ret;
 }

@@ -1,5 +1,7 @@
 <script lang="tsx">
-  import { defineComponent, ref, h } from 'vue';
+  import type { AudioTrackItem, TrackItem, VideoTrackItem } from '#/track';
+
+  import { defineComponent, ref, h, onMounted } from 'vue';
 
   import { Tooltip, Slider } from 'ant-design-vue';
   import {
@@ -14,13 +16,17 @@
     ZoomOutOutlined,
     SoundFilled,
     NotificationFilled,
+    FireFilled,
   } from '@ant-design/icons-vue';
 
   import SectionBox from '@/layouts/SectionBox.vue';
   import TimeLine from './TimeLine.vue';
-  import TrackList from './TrackList.vue';
+  import TrackContainer from './TrackContainer.vue';
+
+  // import { VideoTrack } from '@/logic/data';
 
   import { useI18n } from '@/hooks/useI18n';
+  import { getStyle, setStyle } from '@/utils/dom';
 
   export default defineComponent({
     name: '',
@@ -122,7 +128,7 @@
         },
       ];
 
-      const percent = ref(15);
+      const percent = ref(0);
       const scaleChange = (value: number) => {
         percent.value = value;
       };
@@ -202,36 +208,116 @@
         </div>
       );
 
+      const mainTrack: VideoTrackItem = {
+        id: '',
+        type: 'video',
+        trackName: 'bbb.mp4',
+        duration: '00:10:34:17',
+        cover: ['cover'],
+      };
+
+      const audioTrack: AudioTrackItem = {
+        id: '',
+        type: 'audio',
+        trackName: 'bbb.aac',
+        duration: '00:10:34:17',
+        wave: 'wave',
+      };
+
+      const txtTrack: TrackItem = {
+        id: '',
+        type: 'text',
+        trackName: '默认文本',
+        duration: '03:00',
+      };
+      const spriteTrack: TrackItem = {
+        id: '',
+        type: 'sprite',
+        trackName: '渐渐放大',
+        duration: '03:00',
+        icon: FireFilled,
+      };
+      const stickerTrack: TrackItem = {
+        id: '',
+        type: 'sticker',
+        trackName: '',
+        duration: '03:00',
+        sticker: '123',
+      };
+
       const mute = ref(false);
-
-      const content = () => (
-        <div id="tracks" class="relative h-full overflow-scroll">
-          <TimeLine />
-
-          <div class="track-list absolute w-full h-full mt-4" style={`height: calc(100% - 1rem);`}>
-            <TrackList class="video-list h-10 min-h-0 max-h-40 py-10"></TrackList>
-
-            <TrackList class="main-track h-16">
-              <div class="text-lg w-full h-full rounded-md flex items-center justify-center">
-                <div
-                  class="rounded-md flex items-center justify-center w-14 h-14"
-                  style="border: 5px solid #313135;background-color: #464649"
-                  onClick={() => {
-                    mute.value = !mute.value;
-                  }}
-                >
-                  {!mute.value ? <SoundFilled /> : <NotificationFilled />}
-                </div>
-              </div>
-            </TrackList>
-
-            <TrackList class="audio-list"></TrackList>
+      const onMute = (e: MouseEvent) => {
+        e.stopPropagation();
+        mute.value = !mute.value;
+      };
+      const mainTrackHead = () => (
+        <div class="text-lg w-full h-full rounded-xl flex items-center justify-center">
+          <div
+            class="rounded-xl flex items-center justify-center w-14 h-14"
+            style="border: 5px solid #313135;background-color: #464649"
+            onClick={onMute}
+          >
+            {!mute.value ? <SoundFilled /> : <NotificationFilled />}
           </div>
         </div>
       );
-      // <TimeLine hoverX={hoverX.value} locatorX={locatorX.value} />
 
-      // sider={{ width: 110, class: 'border-r border-black' }}
+      // const list = [[]];
+      // const list = [[mainTrack, mainTrack]];
+      const list = [[txtTrack, spriteTrack, stickerTrack, mainTrack, mainTrack, mainTrack]];
+      const content = () => (
+        <div id="tracks" class="relative h-full">
+          <TimeLine />
+
+          <div
+            id="tracks-wrapper"
+            class="absolute w-full h-full mt-2.5 overflow-y-scroll py-10"
+            style={`height: calc(100% - 0.625rem);`}
+          >
+            <TrackContainer class="video-container overflow-y-auto" list={list} />
+
+            <TrackContainer
+              id="main-track"
+              class={['main-container flex items-center', isSticky.value ? 'sticky-track' : '']}
+              list={[[mainTrack]]}
+            >
+              {mainTrackHead()}
+            </TrackContainer>
+
+            <TrackContainer class="audio-container" list={[[audioTrack, audioTrack, audioTrack]]} />
+          </div>
+        </div>
+      );
+
+      const isSticky = ref(false);
+      const stickyTrack = () => {
+        const main = document.getElementById('main-track') as HTMLElement;
+        const tracks = document.getElementById('tracks') as HTMLElement;
+        const wrapper = document.getElementById('tracks-wrapper') as HTMLElement;
+        if (!tracks || !wrapper || !main) return;
+
+        const h = parseInt(getStyle(main, 'height'));
+        const height = parseInt(getStyle(tracks, 'height'));
+
+        const videoContainer = wrapper.children[0] as HTMLElement;
+        const margin = parseInt(getStyle(wrapper, 'marginTop'));
+        const pad = parseInt(getStyle(wrapper, 'paddingTop'));
+        const max = height - h - margin - pad;
+
+        setStyle(videoContainer, 'max-height', max + 'px');
+        if (wrapper.scrollTop === 0 && main.offsetTop - pad === max) {
+          isSticky.value = true;
+        } else isSticky.value = false;
+      };
+      const onStickyTrack = (e: WheelEvent) => {
+        stickyTrack();
+        e.stopPropagation();
+      };
+      onMounted(() => {
+        window.addEventListener('mousewheel', onStickyTrack, { passive: false });
+        stickyTrack();
+      });
+
       return () => <SectionBox title={title}>{{ header, content }}</SectionBox>;
     },
   });
@@ -286,5 +372,21 @@
     &-body {
       height: calc(100% - 15px);
     }
+  }
+
+  .sticky-track {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+    transition: 100ms all;
+  }
+
+  .sticky-track::after {
+    position: absolute;
+    content: '';
+    bottom: 7px;
+    left: 128px;
+    width: 50%;
+    height: 2px;
+    background-color: #3a7faf;
   }
 </style>

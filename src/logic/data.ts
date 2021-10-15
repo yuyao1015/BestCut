@@ -3,10 +3,13 @@
  */
 
 import type { PropEditInfo } from '#/viewItem';
+import type { TrackItem } from '#/track';
+
 import { PropComType } from '@/enums/viewItem';
+
 export abstract class Base {
-  private id: string;
-  private name: string;
+  public id: string;
+  public name: string;
 
   constructor(name = '未命名', id: string = uuid()) {
     this.id = id;
@@ -203,23 +206,25 @@ export abstract class Effect extends Base {
   abstract transit: (time: number, blob: any) => any;
 }
 
-export class TrackItem extends Base {
-  target: TrackItem | null = null;
-  postion = -1;
-  duration = 10000;
+export class Track extends Base implements TrackItem {
+  type = '';
+  trackName = '';
+  target: Track | null = null;
+  position = -1;
+  // duration = 10000;
 
   getProps() {
     return null;
   }
 }
 
-export abstract class TrackItemMedia extends TrackItem {
+export abstract class MediaTrack extends Track {
   refer: { from: number; to: number } | null = null;
   path = '';
   muted = false;
 }
 
-export class TrackItemVideo extends TrackItemMedia {
+export class VideoTrack extends MediaTrack {
   position = -1;
   videoId = '';
 
@@ -228,7 +233,7 @@ export class TrackItemVideo extends TrackItemMedia {
   } // todo;
 }
 
-export class TrackItemAudio extends TrackItemMedia {
+export class AudioTrack extends MediaTrack {
   position = -1;
   audioId = '';
 
@@ -237,6 +242,6 @@ export class TrackItemAudio extends TrackItemMedia {
   } // todo;
 }
 
-export class Track {
-  items: TrackItem[] = [];
-}
+// export class Track {
+//   items: Track[] = [];
+// }
