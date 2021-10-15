@@ -11,6 +11,7 @@ interface ResourceState {
   selectedLib: number;
   selectedFragment: number;
   resource?: ResourceItem;
+  resizeProportion: number;
 }
 
 export const useResourceStore = defineStore({
@@ -21,6 +22,7 @@ export const useResourceStore = defineStore({
     selectedLib: 0,
     selectedFragment: 0,
     resource: undefined,
+    resizeProportion: 1,
   }),
   getters: {
     resourceLibs(): ResourceLibItem[] {
@@ -80,6 +82,9 @@ export const useResourceStore = defineStore({
       );
       if (idx !== -1) this.currentFragment.list.splice(idx, 1);
       this.currentFragment.list.unshift(resource);
+    },
+    onPreviewCanvasSizeChange(resizeProportion: number) {
+      this.resizeProportion = resizeProportion;
     },
   },
 });

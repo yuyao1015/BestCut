@@ -9,10 +9,12 @@
   import { Slider } from 'ant-design-vue';
 
   import SectionBox from '@/layouts/SectionBox.vue';
+  import SpecialEffects from '@/components/SpecialEffects.vue';
   import { useI18n } from '@/hooks/useI18n';
 
   import { useResourceStore } from '@/store/resource';
   import { usePlayerStore } from '@/store/player';
+  import type { PixiCanvasProps } from '#/resource';
 
   export default defineComponent({
     name: 'Preview',
@@ -41,6 +43,17 @@
       });
 
       const active = ref(false);
+      const applicationOptions: PixiCanvasProps = {
+        width: 100,
+        height: 100,
+        backgroundColor: '0xffffff',
+        position: {
+          top: 100,
+          left: 100,
+          // right: 100,
+          // bottom: 100,
+        },
+      };
       const total = computed(() => {
         return active.value ? playerStore.total : '00:00:00:00';
       });
@@ -71,9 +84,9 @@
 
           playerStore.player.onPlaying = function () {
             const preview = document.getElementById('preview-box') as HTMLDivElement;
+            const { height, width } = getComputedStyle(preview);
             this.canvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
             this.ctx = this.canvas.getContext('2d');
-            const { height, width } = getComputedStyle(preview);
             if (this.canvas.width < parseInt(width) || this.canvas.height < parseInt(height)) {
               this.canvas.width = parseInt(width);
               this.canvas.height = parseInt(height);
@@ -137,8 +150,13 @@
         preview.removeEventListener('fullscreenchange', fullScreen);
       });
 
-      const canvas = () => <canvas id="preview-canvas" class="bg-black mx-auto" />;
-      const content = () => <div class="h-full flex items-center">{canvas()}</div>;
+      const canvas = () => <canvas id="preview-canvas" class="mx-auto bg-black" />;
+      const content = () => (
+        <div class="relative flex items-center h-full" id="canvasContent">
+          {canvas()}
+          <SpecialEffects applicationOptions={applicationOptions} />
+        </div>
+      );
 
       const footer = () => (
         <div
@@ -149,7 +167,7 @@
             'h-full w-full relative flex items-end',
           ]}
         >
-          <div class="h-full w-full flex items-center">
+          <div class="flex items-center w-full h-full">
             <div
               class={[
                 'absolute items-center',
@@ -194,7 +212,7 @@
                 <FullscreenExitOutlined class="cursor-pointer" onClick={clickFullScreen} />
               </div>
             ) : (
-              <div class="absolute w-15 right-2 flex items-center leading-7">
+              <div class="absolute flex items-center leading-7 w-15 right-2">
                 <button class="mr-2">原始</button>
                 <FullscreenOutlined class="cursor-pointer" onClick={clickFullScreen} />
               </div>
@@ -211,7 +229,7 @@
 
               <div class={['absolute bottom-10 h-10 w-full', panelVisiable.value ? '' : 'hidden']}>
                 <div
-                  class="absolute flex h-full w-1/3 left-1/2 transform -translate-x-1/2 px-1 rounded-md"
+                  class="absolute flex w-1/3 h-full px-1 transform -translate-x-1/2 rounded-md left-1/2"
                   style="background-color: rgba(84,84,84,.2)"
                 >
                   {footer()}

@@ -1,6 +1,6 @@
 <template>
   <Layout class="layout">
-    <LayoutHeader class="layout-header bg-black">
+    <LayoutHeader class="bg-black layout-header">
       <slot name="header">
         <div class="center">
           {{ t('common.header') }}
@@ -11,10 +11,10 @@
       </slot>
     </LayoutHeader>
 
-    <Layout class="layout-content bg-black px-2" :style="`height: ${95 - trackRatio}vh;`">
+    <Layout class="px-2 bg-black layout-content" :style="`height: ${95 - trackRatio}vh;`">
       <LayoutSider :width="resourceW">
         <slot name="resource">
-          <div class="center bg-blue-500 rounded-md">{{ t('common.resource') }}</div>
+          <div class="bg-blue-500 rounded-md center">{{ t('common.resource') }}</div>
         </slot>
       </LayoutSider>
 
@@ -22,14 +22,14 @@
 
       <LayoutContent class="bg-black">
         <slot name="preview">
-          <div class="center bg-green-500 rounded-md">{{ t('common.preview') }}</div>
+          <div class="bg-green-500 rounded-md center">{{ t('common.preview') }}</div>
         </slot>
       </LayoutContent>
 
       <Splitter class="splitter" vertical :value="splitterWidth" @width="onWidthChangeRight" />
       <LayoutSider :width="configW">
         <slot name="config">
-          <div class="center bg-red-500 rounded-md">{{ t('common.config') }}</div>
+          <div class="bg-red-500 rounded-md center">{{ t('common.config') }}</div>
         </slot>
       </LayoutSider>
     </Layout>
@@ -37,11 +37,11 @@
     <Splitter class="splitter" :value="splitterHeight" @height="onHeightChange" />
 
     <LayoutFooter
-      class="layout-footer bg-black px-2 pb-2 pt-0"
+      class="px-2 pt-0 pb-2 bg-black layout-footer"
       :style="`height: calc(${trackRatio}vh - ${splitterHeight}px)`"
     >
       <slot name="track">
-        <div class="center bg-purple-500 rounded-md">{{ t('common.track') }}</div>
+        <div class="bg-purple-500 rounded-md center">{{ t('common.track') }}</div>
       </slot>
     </LayoutFooter>
   </Layout>
@@ -56,6 +56,8 @@
   import { useI18n } from '@/hooks/useI18n';
   import { useLocale } from '@/locales/useLocale';
   import { localeList } from '@/locales/localeSetting';
+  import { useResourceStore } from '@/store/resource';
+  import _ from 'lodash';
 
   export default defineComponent({
     components: {
@@ -110,15 +112,17 @@
         let h = Math.floor(previewH * 0.7);
         while (w / ratio > h) w *= 0.99;
 
+        const resizeProportion = w / previewCanvas.width;
         previewCanvas.width = w;
         previewCanvas.height = Math.floor(w / ratio);
+        useResourceStore().onPreviewCanvasSizeChange(resizeProportion);
       };
-
+      const canvasSizeChangeDebounce = _.debounce(canvasSizeChange, 100);
       const onResize = () => {
         const { innerWidth: w } = window;
         resourceW.value = w * resourceRatio.value;
         configW.value = w * configRatio.value;
-        canvasSizeChange();
+        canvasSizeChangeDebounce();
       };
 
       onMounted(() => {
@@ -139,7 +143,7 @@
         const remain = w * (1 - previewRatio) - configW.value - 2 * splitterWidth.value;
         resourceW.value = remain > pre ? pre : remain;
         resourceRatio.value = resourceW.value / w;
-        canvasSizeChange();
+        canvasSizeChangeDebounce();
       };
 
       const onWidthChangeRight = (widthChange: any) => {
@@ -149,7 +153,7 @@
         const remain = w * (1 - previewRatio) - resourceW.value - 2 * splitterWidth.value;
         configW.value = remain > after ? after : remain;
         configRatio.value = configW.value / w;
-        canvasSizeChange();
+        canvasSizeChangeDebounce();
       };
 
       const onHeightChange = (heightChange: any) => {
@@ -160,7 +164,7 @@
         ratio = Math.min(ratio, 60);
         trackRatio.value = ratio;
 
-        canvasSizeChange();
+        canvasSizeChangeDebounce();
       };
 
       const { t } = useI18n();

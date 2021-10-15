@@ -50,3 +50,10 @@ export interface ResourceTabItem {
   icon?: VNode;
   libs: ResourceLibItem[];
 }
+
+export interface PixiCanvasProps {
+  backgroundColor: string;
+  width: number;
+  height: number;
+  position: { left?: number; top?: number; right?: number; bottom?: number };
+}
