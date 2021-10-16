@@ -103,7 +103,10 @@ export function clipDurationString(duration: string) {
   if (!duration) return ret;
 
   const arr = duration.split(':');
+  if (arr.length === 2) return duration;
   if (arr.length !== 4) return ret;
+
+  if (!+(arr[0] + arr[1] + arr[2]) && +arr[3]) return +arr[3] + 'f';
 
   if (+arr[3]) {
     const val = +arr[2] + 1;
@@ -114,7 +117,7 @@ export function clipDurationString(duration: string) {
     arr[1] = `${+arr[1] + val}`;
   }
 
-  return `${arr[1]}:${arr[2]}`;
+  return `${pad(+arr[1], 2)}:${pad(+arr[2], 2)}`;
 }
 
 export function durationString2Sec(duration: string) {

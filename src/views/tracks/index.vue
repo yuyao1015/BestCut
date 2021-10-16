@@ -1,5 +1,5 @@
 <script lang="tsx">
-  import type { AudioTrackItem, TrackItem, VideoTrackItem } from '#/track';
+  import type { ComponentPublicInstance } from 'vue';
 
   import { defineComponent, ref, h, onMounted } from 'vue';
 
@@ -16,20 +16,20 @@
     ZoomOutOutlined,
     SoundFilled,
     NotificationFilled,
-    FireFilled,
   } from '@ant-design/icons-vue';
 
   import SectionBox from '@/layouts/SectionBox.vue';
   import TimeLine from './TimeLine.vue';
   import TrackContainer from './TrackContainer.vue';
 
-  // import { VideoTrack } from '@/logic/data';
-
   import { useI18n } from '@/hooks/useI18n';
   import { getStyle, setStyle } from '@/utils/dom';
+  import useTimeLine from '@/hooks/useTimeLine';
+
+  import { mainTrack, audioTrack, list } from './data';
 
   export default defineComponent({
-    name: '',
+    name: 'Tracks',
     props: {
       prop: {
         type: Boolean,
@@ -40,6 +40,8 @@
     setup() {
       const { t } = useI18n();
       const title = t('components.tracks');
+
+      const active = ref(true);
 
       const mouse = () => (
         <div class="h-2/5 border-r border-gray-400">
@@ -52,9 +54,6 @@
           </div>
         </div>
       );
-
-      const active = ref(false);
-
       const left = [
         {
           component: mouse,
@@ -128,9 +127,13 @@
         },
       ];
 
+      const { calcUnit, drawTimeline, initTimeLine } = useTimeLine();
+
       const percent = ref(0);
       const scaleChange = (value: number) => {
         percent.value = value;
+        calcUnit(percent);
+        drawTimeline();
       };
       const progress = (prop: { disabled: boolean }) => (
         <div class="w-1/3">
@@ -159,11 +162,16 @@
           placement: 'bottomRight',
         },
         {
-          component: () => ZoomInOutlined,
+          component: () => ZoomOutOutlined,
           tip: '时间线缩小',
           active: active.value,
           show: true,
           placement: 'bottomRight',
+          onClick: () => {
+            percent.value = Math.max(0, percent.value - 1);
+            calcUnit(percent);
+            drawTimeline();
+          },
         },
         {
           component: progress,
@@ -173,11 +181,16 @@
           placement: '',
         },
         {
-          component: () => ZoomOutOutlined,
+          component: () => ZoomInOutlined,
           tip: '时间线放大',
           active: active.value,
           show: true,
           placement: 'bottomLeft',
+          onClick: () => {
+            percent.value = Math.min(100, percent.value + 1);
+            calcUnit(percent);
+            drawTimeline();
+          },
         },
       ];
 
@@ -190,6 +203,7 @@
               tab.show ? 'block' : 'hidden',
               tab.active ? '' : 'opacity-50',
             ],
+            onClick: tab.onClick ? tab.onClick : () => {},
           });
 
           return tab.tip ? (
@@ -208,43 +222,6 @@
         </div>
       );
 
-      const mainTrack: VideoTrackItem = {
-        id: '',
-        type: 'video',
-        trackName: 'bbb.mp4',
-        duration: '00:10:34:17',
-        cover: ['cover'],
-      };
-
-      const audioTrack: AudioTrackItem = {
-        id: '',
-        type: 'audio',
-        trackName: 'bbb.aac',
-        duration: '00:10:34:17',
-        wave: 'wave',
-      };
-
-      const txtTrack: TrackItem = {
-        id: '',
-        type: 'text',
-        trackName: '默认文本',
-        duration: '03:00',
-      };
-      const spriteTrack: TrackItem = {
-        id: '',
-        type: 'sprite',
-        trackName: '渐渐放大',
-        duration: '03:00',
-        icon: FireFilled,
-      };
-      const stickerTrack: TrackItem = {
-        id: '',
-        type: 'sticker',
-        trackName: '',
-        duration: '03:00',
-        sticker: '123',
-      };
-
       const mute = ref(false);
       const onMute = (e: MouseEvent) => {
         e.stopPropagation();
@@ -262,22 +239,19 @@
         </div>
       );
 
-      // const list = [[]];
-      // const list = [[mainTrack, mainTrack]];
-      const list = [[txtTrack, spriteTrack, stickerTrack, mainTrack, mainTrack, mainTrack]];
       const content = () => (
-        <div id="tracks" class="relative h-full">
+        <div id="tracks-wrapper" ref={tracksWrapperRef} class="relative h-full">
           <TimeLine />
 
           <div
-            id="tracks-wrapper"
+            ref={tracksRef}
             class="absolute w-full h-full mt-2.5 overflow-y-scroll py-10"
             style={`height: calc(100% - 0.625rem);`}
           >
             <TrackContainer class="video-container overflow-y-auto" list={list} />
 
             <TrackContainer
-              id="main-track"
+              ref={mainTrackRef}
               class={['main-container flex items-center', isSticky.value ? 'sticky-track' : '']}
               list={[[mainTrack]]}
             >
@@ -290,22 +264,25 @@
       );
 
       const isSticky = ref(false);
+      const mainTrackRef = ref<ComponentPublicInstance | null>(null);
+      const tracksWrapperRef = ref<ComponentPublicInstance | null>(null);
+      const tracksRef = ref<ComponentPublicInstance | null>(null);
       const stickyTrack = () => {
-        const main = document.getElementById('main-track') as HTMLElement;
-        const tracks = document.getElementById('tracks') as HTMLElement;
-        const wrapper = document.getElementById('tracks-wrapper') as HTMLElement;
+        const main = mainTrackRef.value?.$el;
+        const tracks = tracksRef.value?.$el;
+        const wrapper = tracksWrapperRef.value?.$el;
         if (!tracks || !wrapper || !main) return;
 
         const h = parseInt(getStyle(main, 'height'));
-        const height = parseInt(getStyle(tracks, 'height'));
+        const height = parseInt(getStyle(wrapper, 'height'));
 
-        const videoContainer = wrapper.children[0] as HTMLElement;
-        const margin = parseInt(getStyle(wrapper, 'marginTop'));
-        const pad = parseInt(getStyle(wrapper, 'paddingTop'));
+        const videoContainer = tracks.children[0] as HTMLElement;
+        const margin = parseInt(getStyle(tracks, 'marginTop'));
+        const pad = parseInt(getStyle(tracks, 'paddingTop'));
         const max = height - h - margin - pad;
 
         setStyle(videoContainer, 'max-height', max + 'px');
-        if (wrapper.scrollTop === 0 && main.offsetTop - pad === max) {
+        if (tracks.scrollTop === 0 && main.offsetTop - pad === max) {
           isSticky.value = true;
         } else isSticky.value = false;
       };
@@ -313,9 +290,13 @@
         stickyTrack();
         e.stopPropagation();
       };
+
       onMounted(() => {
         window.addEventListener('mousewheel', onStickyTrack, { passive: false });
         stickyTrack();
+
+        calcUnit(percent);
+        initTimeLine();
       });
 
       return () => <SectionBox title={title}>{{ header, content }}</SectionBox>;

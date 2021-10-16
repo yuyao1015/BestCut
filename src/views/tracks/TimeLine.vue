@@ -23,12 +23,9 @@
 
   import { usePlayerStore } from '@/store/player';
   import { on, off } from '@/utils/dom';
-  import { clipDurationString, durationString2Sec } from '@/utils/player';
+  import { durationString2Sec } from '@/utils/player';
   import { MouseCtl } from '@/logic/mouse';
   import { throttleAndDebounce } from '@/utils';
-  import { setDPI } from '@/utils';
-
-  const SCALE = 10;
 
   export default defineComponent({
     name: 'TimeLine',
@@ -45,7 +42,6 @@
       const locatorX = ref(lmin);
       const locator = ref<HTMLElement | null>(null);
 
-      let ctx: CanvasRenderingContext2D | null = null;
       let tracks: HTMLElement | null = null;
       let mLocator: MouseCtl | null = null;
 
@@ -55,6 +51,7 @@
       });
       duration.value;
 
+      // TODO: conflict between pointermove & scroll
       const onMouse = (e: PointerEvent) => {
         if (!e) return;
         const left = tracks?.getBoundingClientRect().left || 0;
@@ -80,44 +77,6 @@
         hover.value = false;
       };
 
-      const initCanvas = () => {
-        const canvas = document.getElementById('timeline') as HTMLCanvasElement;
-        ctx = canvas.getContext('2d');
-        const { clientHeight, clientWidth } = canvas;
-        canvas.width = clientWidth;
-        canvas.height = clientHeight;
-        setDPI(canvas, SCALE);
-
-        drawTimeline();
-      };
-      const drawTimeline = () => {
-        if (!ctx) return;
-        let drawLen = 0;
-        let count = 0;
-        const { width, height } = ctx.canvas;
-        const step = 25;
-
-        ctx.lineWidth = 1;
-        ctx.fillStyle = '#aaa';
-        while (drawLen <= width) {
-          ctx.beginPath();
-          let y = height / 2;
-          ctx.strokeStyle = '#777';
-          if (count % 10 === 0) {
-            y = height;
-            ctx.strokeStyle = '#fff';
-            const durationText = clipDurationString('00:00');
-            ctx.fillText(durationText, drawLen + 5, y / SCALE - 1);
-          }
-          ctx.moveTo(drawLen, 0);
-          ctx.lineTo(drawLen, y / SCALE);
-          ctx.stroke();
-          drawLen += step;
-          count++;
-        }
-        ctx.restore();
-      };
-
       const isDragging = ref(false);
       const dragLocator = () => {
         if (!locator.value) return;
@@ -137,13 +96,12 @@
       };
 
       onMounted(() => {
-        tracks = document.getElementById('tracks') as HTMLElement;
+        tracks = document.getElementById('tracks-wrapper') as HTMLElement;
         if (!tracks) return;
         on(tracks, 'pointerover', onTimeline);
         on(tracks, 'pointerleave', offTimeline);
 
         dragLocator();
-        initCanvas();
       });
 
       onUnmounted(() => {
