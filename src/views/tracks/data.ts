@@ -6,8 +6,12 @@ export const mainTrack: VideoTrackItem = {
   id: '',
   type: 'video',
   trackName: 'bbb.mp4',
+  src: '/media/bbb.mp4',
   duration: '00:10:34:17',
   cover: ['cover'],
+  width: 200,
+  offset: 20,
+  marginLeft: 200,
 };
 
 export const audioTrack: AudioTrackItem = {
@@ -16,6 +20,9 @@ export const audioTrack: AudioTrackItem = {
   trackName: 'bbb.aac',
   duration: '00:10:34:17',
   wave: 'wave',
+  width: 200,
+  offset: 20,
+  marginLeft: 200,
 };
 
 export const txtTrack: TrackItem = {
@@ -23,6 +30,8 @@ export const txtTrack: TrackItem = {
   type: 'text',
   trackName: '默认文本',
   duration: '03:00',
+  width: 50,
+  offset: 10,
 };
 export const spriteTrack: TrackItem = {
   id: '',
@@ -30,6 +39,8 @@ export const spriteTrack: TrackItem = {
   trackName: '渐渐放大',
   duration: '03:00',
   icon: FireFilled,
+  width: 50,
+  offset: 15,
 };
 export const stickerTrack: TrackItem = {
   id: '',
@@ -37,8 +48,19 @@ export const stickerTrack: TrackItem = {
   trackName: '',
   duration: '03:00',
   sticker: '123',
+  width: 50,
+  offset: 5,
 };
 
 // export const list = [[]];
 // export const list = [[mainTrack, mainTrack]];
-export const list = [[txtTrack, spriteTrack, stickerTrack, mainTrack, mainTrack, mainTrack]];
+export const list = [
+  [txtTrack],
+  [spriteTrack],
+  [stickerTrack],
+  [mainTrack],
+  [mainTrack],
+  [mainTrack],
+];
+
+// export const list = [[mainTrack, mainTrack, mainTrack]];

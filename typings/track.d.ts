@@ -4,8 +4,11 @@ type Item = {
   trackName: string;
   boxSize: string;
   duration: string;
-  icon?: any;
-  sticker?: string;
+  icon: any;
+  sticker: string;
+  width: number;
+  offset: number;
+  marginLeft: number;
 };
 
 export interface AudioTrackItem extends Partial<Item> {
@@ -17,6 +20,7 @@ export interface AudioTrackItem extends Partial<Item> {
 export interface VideoTrackItem extends Partial<Item> {
   id: string;
   type: string;
+  src?: string;
   audio?: AudioTrackItem;
   cover?: string[];
 }

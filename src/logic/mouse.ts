@@ -7,6 +7,8 @@ type SupportedEvents = string;
 // | 'mouseover'
 // | 'mouseout';
 
+type MouseCallback = (e: MouseEvent) => void;
+
 const px2n = (px: string) => +px.slice(0, px.length - 2);
 export class MouseCtl {
   x = 0;
@@ -29,39 +31,45 @@ export class MouseCtl {
   constructor(element: HTMLElement) {
     this.element = (element === undefined ? document : element) as HTMLElement;
     this.addEventListener(['mousedown'], 'self');
+
+    this.zoomInCallback = () => {};
+    this.zoomOutCallback = () => {};
+    this.moveOverCallback = () => {};
+    this.moveOutCallback = () => {};
+
+    this.downCallback = () => {
+      this.addEventListener(['mousemove', 'mouseup'], '');
+    };
+    this.upCallback = () => {
+      this.removeEventListener(['mousemove', 'mouseup'], '');
+      this.dragging = false;
+    };
+
+    this.moveCallback = () => {
+      // // global move
+      // const left = e.clientX - this.lastX;
+      // const top = e.clientY - this.lastY;
+      // this.element.style.left = `${left}px`;
+      // this.element.style.top = `${top}px`;
+
+      const dx = this.x - this.lastX;
+      const dy = this.y - this.lastY;
+      const style = getComputedStyle(this.element);
+      const { top, left, position } = style;
+
+      if (position === 'static') 'position required';
+      this.element.style.left = `${px2n(left) + dx}px`;
+      this.element.style.top = `${px2n(top) + dy}px`;
+    };
   }
-  public moveCallback(e: MouseEvent) {
-    e;
-    // // global move
-    // const left = e.clientX - this.lastX;
-    // const top = e.clientY - this.lastY;
-    // this.element.style.left = `${left}px`;
-    // this.element.style.top = `${top}px`;
 
-    const dx = this.x - this.lastX;
-    const dy = this.y - this.lastY;
-    const style = getComputedStyle(this.element);
-    const { top, left, position } = style;
-
-    if (position === 'static') 'position required';
-    this.element.style.left = `${px2n(left) + dx}px`;
-    this.element.style.top = `${px2n(top) + dy}px`;
-  }
-
-  public zoomInCallback(e: MouseEvent) {}
-  public zoomOutCallback(e: MouseEvent) {}
-
-  public moveOverCallback(e: MouseEvent) {}
-  public moveOutCallback(e: MouseEvent) {}
-
-  public downCallback(e: MouseEvent) {
-    this.addEventListener(['mousemove', 'mouseup'], '');
-  }
-  public upCallback(e: MouseEvent) {
-    e;
-    this.removeEventListener(['mousemove', 'mouseup'], '');
-    this.dragging = false;
-  }
+  public moveCallback: MouseCallback;
+  public zoomInCallback: MouseCallback;
+  public zoomOutCallback: MouseCallback;
+  public moveOverCallback: MouseCallback;
+  public moveOutCallback: MouseCallback;
+  public downCallback: MouseCallback;
+  public upCallback: MouseCallback;
 
   eventCallback = (e: any) => this.registerEvent(e);
   registerEvent(e: MouseEvent | WheelEvent) {

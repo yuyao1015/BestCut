@@ -1,9 +1,9 @@
-import { TrackItem, TrackItemAudio, TrackItemVideo } from './data';
+import type { TrackItem, VideoTrackItem, AudioTrackItem } from '#/track';
 
 export class TimeLine {
-  mainTrack: TrackItemVideo[] = [];
+  mainTrack: VideoTrackItem[] = [];
   viewTrack: TrackItem[][] = [];
-  audioTrack: TrackItemAudio[][] = [];
+  audioTrack: AudioTrackItem[][] = [];
 
   remove(id: string) {
     //   TODO:

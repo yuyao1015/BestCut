@@ -46,7 +46,7 @@
       );
 
       const attachment = (track: TrackItem) => (
-        <div class={'track-item-head'}>
+        <div class={'track-item-head w-full'}>
           {track.icon && (() => h(track.icon, { class: 'track-item-title' }))()}
           {track.sticker && (() => <img class="track-item-title" src={track.sticker} />)()}
           {track.type !== 'sticker' &&
@@ -63,14 +63,15 @@
       };
 
       return () => (
-        <div class="track-list">
+        <div class="track-list flex w-full">
           {tracks.value.map((track: TrackItem) => (
             <div
               class={[
-                'track-item w-1/3 rounded-sm overflow-hidden my-2 text-xs',
+                'track-item rounded-sm overflow-hidden my-2 text-xs mr-px',
                 `track-item-${track.type}`,
                 track.active ? 'border-white border-t border-b border-l-2 border-r-2' : '',
               ]}
+              style={`flex:0 0 ${track.width}px; margin-left: ${track.marginLeft}px`}
             >
               {trackMap[track.type as keyof typeof trackMap](track)}
             </div>
@@ -129,7 +130,11 @@
     }
   }
 
-  .track-item:last-child {
+  .track-list:last-child {
     margin-bottom: 0;
+  }
+
+  .track-item:last-child {
+    margin-right: 0;
   }
 </style>

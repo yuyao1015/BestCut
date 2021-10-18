@@ -1,7 +1,8 @@
 <script lang="tsx">
   import type { ComponentPublicInstance } from 'vue';
+  import type { TrackItem } from '#/track';
 
-  import { defineComponent, ref, h, onMounted } from 'vue';
+  import { defineComponent, ref, h, onMounted, watch, reactive } from 'vue';
 
   import { Tooltip, Slider } from 'ant-design-vue';
   import {
@@ -23,10 +24,20 @@
   import TrackContainer from './TrackContainer.vue';
 
   import { useI18n } from '@/hooks/useI18n';
-  import { getStyle, setStyle } from '@/utils/dom';
   import useTimeLine from '@/hooks/useTimeLine';
+  import { getStyle, setStyle } from '@/utils/dom';
 
   import { mainTrack, audioTrack, list } from './data';
+  import { forEachValue } from '@/utils';
+  import { isArray } from '@/utils/is';
+
+  type TrackState = {
+    video: TrackItem[][];
+    main: TrackItem[];
+    audio: TrackItem[][];
+  };
+
+  type TrackStateItem = TrackItem[] | TrackItem[][];
 
   export default defineComponent({
     name: 'Tracks',
@@ -127,13 +138,49 @@
         },
       ];
 
-      const { calcUnit, drawTimeline, initTimeLine } = useTimeLine();
+      const tracks = reactive<TrackState>({
+        video: list,
+        main: [mainTrack],
+        audio: [[audioTrack], [audioTrack, audioTrack, audioTrack]],
+      });
+
+      const wrapperWidth = ref(0);
+      const footerRef = ref<ComponentPublicInstance | null>(null);
+
+      const updateTrackWidth = () => {
+        let trackWidth = 0;
+        const updateWidth = (key: string, track: TrackStateItem | TrackItem, left: number) => {
+          if (!isArray(track)) {
+            const { width, marginLeft } = calcTrackWidth(track);
+            track.width = width;
+            track.marginLeft = marginLeft;
+            if (key === 'main') track.marginLeft = 0;
+            trackWidth = Math.max(trackWidth, left);
+            left = width + marginLeft + left;
+          } else track.forEach((item) => (left += updateWidth(key, item, left)));
+          return left;
+        };
+
+        forEachValue<TrackStateItem>(tracks, (key: string, val: TrackStateItem) => {
+          updateWidth(key, val, 0);
+        });
+
+        const footer = footerRef.value?.$el || footerRef.value;
+        const rawW = parseInt(getStyle(footer, 'width'));
+        const w = trackWidth * 1.2 + 128;
+        wrapperWidth.value = rawW > w ? rawW : w;
+      };
 
       const percent = ref(0);
+      const { useUnit, initTimeLine, calcTrackWidth } = useTimeLine(600, 30);
+      useUnit(percent);
+      updateTrackWidth();
+      watch(percent, () => {
+        updateTrackWidth();
+      });
+
       const scaleChange = (value: number) => {
         percent.value = value;
-        calcUnit(percent);
-        drawTimeline();
       };
       const progress = (prop: { disabled: boolean }) => (
         <div class="w-1/3">
@@ -169,8 +216,6 @@
           placement: 'bottomRight',
           onClick: () => {
             percent.value = Math.max(0, percent.value - 1);
-            calcUnit(percent);
-            drawTimeline();
           },
         },
         {
@@ -188,8 +233,6 @@
           placement: 'bottomLeft',
           onClick: () => {
             percent.value = Math.min(100, percent.value + 1);
-            calcUnit(percent);
-            drawTimeline();
           },
         },
       ];
@@ -240,7 +283,12 @@
       );
 
       const content = () => (
-        <div id="tracks-wrapper" ref={tracksWrapperRef} class="relative h-full">
+        <div
+          id="tracks-wrapper"
+          ref={tracksWrapperRef}
+          class="relative h-full"
+          style={`width: ${wrapperWidth.value}px`}
+        >
           <TimeLine />
 
           <div
@@ -248,17 +296,17 @@
             class="absolute w-full h-full mt-2.5 overflow-y-scroll py-10"
             style={`height: calc(100% - 0.625rem);`}
           >
-            <TrackContainer class="video-container overflow-y-auto" list={list} />
+            <TrackContainer class="video-container overflow-y-auto" list={tracks.video} />
 
             <TrackContainer
               ref={mainTrackRef}
               class={['main-container flex items-center', isSticky.value ? 'sticky-track' : '']}
-              list={[[mainTrack]]}
+              list={[tracks.main]}
             >
               {mainTrackHead()}
             </TrackContainer>
 
-            <TrackContainer class="audio-container" list={[[audioTrack, audioTrack, audioTrack]]} />
+            <TrackContainer class="audio-container" list={tracks.audio} />
           </div>
         </div>
       );
@@ -268,21 +316,22 @@
       const tracksWrapperRef = ref<ComponentPublicInstance | null>(null);
       const tracksRef = ref<ComponentPublicInstance | null>(null);
       const stickyTrack = () => {
-        const main = mainTrackRef.value?.$el;
-        const tracks = tracksRef.value?.$el;
-        const wrapper = tracksWrapperRef.value?.$el;
-        if (!tracks || !wrapper || !main) return;
+        const main = mainTrackRef.value?.$el || mainTrackRef.value;
+        const track = tracksRef.value?.$el || tracksRef.value;
+        // const wrapper = tracksWrapperRef.value?.$el || tracksWrapperRef.value;
+        const wrapper = document.getElementById('tracks-wrapper') as HTMLElement;
+        if (!track || !wrapper || !main) return;
 
         const h = parseInt(getStyle(main, 'height'));
         const height = parseInt(getStyle(wrapper, 'height'));
 
-        const videoContainer = tracks.children[0] as HTMLElement;
-        const margin = parseInt(getStyle(tracks, 'marginTop'));
-        const pad = parseInt(getStyle(tracks, 'paddingTop'));
+        const videoContainer = track.children[0] as HTMLElement;
+        const margin = parseInt(getStyle(track, 'marginTop'));
+        const pad = parseInt(getStyle(track, 'paddingTop'));
         const max = height - h - margin - pad;
 
         setStyle(videoContainer, 'max-height', max + 'px');
-        if (tracks.scrollTop === 0 && main.offsetTop - pad === max) {
+        if (track.scrollTop === 0 && main.offsetTop - pad === max) {
           isSticky.value = true;
         } else isSticky.value = false;
       };
@@ -295,11 +344,14 @@
         window.addEventListener('mousewheel', onStickyTrack, { passive: false });
         stickyTrack();
 
-        calcUnit(percent);
         initTimeLine();
       });
 
-      return () => <SectionBox title={title}>{{ header, content }}</SectionBox>;
+      return () => (
+        <SectionBox ref={footerRef} title={title}>
+          {{ header, content }}
+        </SectionBox>
+      );
     },
   });
 </script>

@@ -80,3 +80,7 @@ export function setDPI(canvas: HTMLCanvasElement, scale: number) {
   ctx.drawImage(backup, 0, 0);
   ctx.setTransform(scaleFactor, 0, 0, scaleFactor, 0, 0);
 }
+
+export function forEachValue<T>(obj: Record<string, T>, fn: (key: string, val: T) => void) {
+  return Object.keys(obj).forEach((key) => fn(key, obj[key]));
+}

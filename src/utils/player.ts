@@ -76,7 +76,7 @@ function pad(number: number, length: number) {
 }
 
 export function getDurationString(duration: number, fps: number) {
-  if (!duration) return '';
+  if (!duration) return '00:00:00:00';
   let neg;
   if (duration < 0) {
     neg = true;

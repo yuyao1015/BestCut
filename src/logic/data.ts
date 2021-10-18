@@ -3,9 +3,11 @@
  */
 
 import type { PropEditInfo } from '#/viewItem';
-import type { TrackItem } from '#/track';
+import type { TrackItem, VideoTrackItem, AudioTrackItem } from '#/track';
 
 import { PropComType } from '@/enums/viewItem';
+
+import { v4 as uuid } from 'uuid';
 
 export abstract class Base {
   public id: string;
@@ -33,10 +35,6 @@ export abstract class Base {
   }
 
   abstract getProps(): any;
-}
-
-function uuid() {
-  return 'todo';
 }
 
 export abstract class ViewItemBorder extends Base {}
@@ -211,7 +209,8 @@ export class Track extends Base implements TrackItem {
   trackName = '';
   target: Track | null = null;
   position = -1;
-  // duration = 10000;
+  duration = '';
+  active = false;
 
   getProps() {
     return null;
@@ -224,18 +223,43 @@ export abstract class MediaTrack extends Track {
   muted = false;
 }
 
-export class VideoTrack extends MediaTrack {
+export class VideoTrack extends MediaTrack implements VideoTrackItem {
   position = -1;
-  videoId = '';
+  type = 'video';
+  audio?: AudioTrackItem;
+  cover?: string[];
+  src?: string;
+  constructor(opts: {
+    name: string;
+    src: string;
+    duration: string;
+    audio?: AudioTrackItem;
+    cover?: string[];
+  }) {
+    super();
+    this.trackName = opts.name;
+    this.duration = opts.duration;
+    this.audio = opts.audio;
+    this.cover = opts.cover;
+    this.src = opts.src;
+  }
 
   getProps() {
     return null;
   } // todo;
 }
 
-export class AudioTrack extends MediaTrack {
+export class AudioTrack extends MediaTrack implements AudioTrackItem {
   position = -1;
-  audioId = '';
+  type = 'audio';
+  wave?: string;
+
+  constructor(opts: { name: string; duration: string; wave?: string }) {
+    super();
+    this.trackName = opts.name;
+    this.duration = opts.duration;
+    this.wave = opts.wave;
+  }
 
   getProps() {
     return null;

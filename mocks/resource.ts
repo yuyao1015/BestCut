@@ -41,8 +41,8 @@ const resourceMsg = (url: string, response: () => ResourceFragment[]) => ({
 const localLib = resourceMsg('/media/local', () => [
   {
     usable: true,
-    // list: [...video(2), ...audio(1), ...picture(1)],
-    list: [],
+    list: [...video(2), ...audio(1), ...picture(1)],
+    // list: [],
   },
 ]);
 

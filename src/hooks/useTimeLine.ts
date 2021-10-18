@@ -1,14 +1,17 @@
+import type { TrackItem } from '#/track';
 import type { Ref } from 'vue';
 
+import { watch } from 'vue';
+
 import { setDPI } from '@/utils';
-import { clipDurationString, getDurationString } from '@/utils/player';
+import { clipDurationString, getDurationString, durationString2Sec } from '@/utils/player';
 
 const SCALE = 5;
 
-export default () => {
-  let step = 15;
+export default (duration: number, fps: number) => {
+  let step = 15; // px
   let gap = 10;
-  let unit = 30;
+  let unit = 30; // s
   let ctx: CanvasRenderingContext2D | null = null;
 
   function getScaleUnit(duration: number, fps: number) {
@@ -52,6 +55,7 @@ export default () => {
     canvas.height = clientHeight;
     setDPI(canvas, SCALE);
 
+    calcUnit(0);
     drawTimeline();
   };
 
@@ -72,9 +76,14 @@ export default () => {
         y = height;
         ctx.strokeStyle = '#fff';
 
-        const s = clipDurationString(getDurationString(unit * count, 30));
+        let d = unit * count;
+        if (unit <= 0.1 || gap < 10) {
+          const newD = (unit * count) % 1;
+          d = newD ? newD : d;
+        }
 
-        const durationText = s;
+        const ds = getDurationString(d, fps);
+        const durationText = clipDurationString(ds);
         ctx.fillText(durationText, drawLen + 5, y / SCALE - 1);
       }
       ctx.moveTo(drawLen, 0);
@@ -86,11 +95,7 @@ export default () => {
     ctx.restore();
   };
 
-  const calcUnit = (percent: Ref<number>) => {
-    const fps = 30;
-    const duration = 1000;
-
-    const x = percent.value;
+  const calcUnit = (x: number) => {
     let alpha = duration;
     const f = (x: number) => 1 - Math.sqrt(x / 100);
 
@@ -105,8 +110,27 @@ export default () => {
       if (newUnit > 0.1) step = 15;
       unit = newUnit;
     }
-    // console.log(unit, d.toFixed(2));
   };
 
-  return { initTimeLine, drawTimeline, calcUnit };
+  const useUnit = (percent: Ref<number>) => {
+    watch(percent, (val: number) => {
+      calcUnit(val);
+      drawTimeline();
+    });
+  };
+
+  const calcTrackWidth = (track: TrackItem) => {
+    let w;
+    if (!track.duration) {
+      w = track.width ? track.width : 50;
+    } else {
+      const s = durationString2Sec(track.duration) / unit;
+      w = (s - 1) * step;
+    }
+    const ml = track.offset ? track.offset * step : 0;
+
+    return { width: w, marginLeft: ml };
+  };
+
+  return { initTimeLine, useUnit, calcTrackWidth };
 };
