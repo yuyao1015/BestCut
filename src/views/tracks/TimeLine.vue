@@ -1,4 +1,5 @@
 <template>
+  <!-- TODO: fixed canvas width -->
   <div class="absolute h-2.5 w-full">
     <canvas id="timeline" class="scale h-full w-full" :style="`padding-left: ${lmin}px;`" />
   </div>

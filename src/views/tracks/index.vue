@@ -2,7 +2,7 @@
   import type { ComponentPublicInstance } from 'vue';
   import type { TrackItem } from '#/track';
 
-  import { defineComponent, ref, h, onMounted, watch, reactive } from 'vue';
+  import { defineComponent, ref, h, onMounted, watch, reactive, nextTick } from 'vue';
 
   import { Tooltip, Slider } from 'ant-design-vue';
   import {
@@ -146,35 +146,43 @@
 
       const wrapperWidth = ref(0);
       const footerRef = ref<ComponentPublicInstance | null>(null);
-
       const updateTrackWidth = () => {
         let trackWidth = 0;
-        const updateWidth = (key: string, track: TrackStateItem | TrackItem, left: number) => {
+        const updateWidth = (key: string, track: TrackStateItem | TrackItem) => {
+          let left = 0;
           if (!isArray(track)) {
             const { width, marginLeft } = calcTrackWidth(track);
             track.width = width;
             track.marginLeft = marginLeft;
+            left = width + marginLeft;
             if (key === 'main') track.marginLeft = 0;
-            trackWidth = Math.max(trackWidth, left);
-            left = width + marginLeft + left;
-          } else track.forEach((item) => (left += updateWidth(key, item, left)));
+          } else {
+            track.forEach((item, idx) => {
+              left += updateWidth(key, item);
+              if (idx === track.length - 1) {
+                trackWidth = Math.max(trackWidth, left);
+                left = 0;
+              }
+            });
+          }
           return left;
         };
 
         forEachValue<TrackStateItem>(tracks, (key: string, val: TrackStateItem) => {
-          updateWidth(key, val, 0);
+          updateWidth(key, val);
         });
-
         const footer = footerRef.value?.$el || footerRef.value;
+        if (!footer) return;
+
         const rawW = parseInt(getStyle(footer, 'width'));
-        const w = trackWidth * 1.2 + 128;
+        const w = trackWidth + 128 + 100;
         wrapperWidth.value = rawW > w ? rawW : w;
       };
 
       const percent = ref(0);
       const { useUnit, initTimeLine, calcTrackWidth } = useTimeLine(600, 30);
       useUnit(percent);
-      updateTrackWidth();
+
       watch(percent, () => {
         updateTrackWidth();
       });
@@ -344,7 +352,8 @@
         window.addEventListener('mousewheel', onStickyTrack, { passive: false });
         stickyTrack();
 
-        initTimeLine();
+        updateTrackWidth();
+        nextTick(() => initTimeLine());
       });
 
       return () => (

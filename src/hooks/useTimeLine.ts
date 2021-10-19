@@ -7,6 +7,7 @@ import { setDPI } from '@/utils';
 import { clipDurationString, getDurationString, durationString2Sec } from '@/utils/player';
 
 const SCALE = 5;
+// const SCALE = 1;
 
 export default (duration: number, fps: number) => {
   let step = 15; // px
