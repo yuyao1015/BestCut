@@ -230,14 +230,14 @@ export class VideoTrack extends MediaTrack implements VideoTrackItem {
   cover?: string[];
   src?: string;
   constructor(opts: {
-    name: string;
+    trackName: string;
     src: string;
     duration: string;
     audio?: AudioTrackItem;
     cover?: string[];
   }) {
     super();
-    this.trackName = opts.name;
+    this.trackName = opts.trackName;
     this.duration = opts.duration;
     this.audio = opts.audio;
     this.cover = opts.cover;
@@ -254,9 +254,9 @@ export class AudioTrack extends MediaTrack implements AudioTrackItem {
   type = 'audio';
   wave?: string;
 
-  constructor(opts: { name: string; duration: string; wave?: string }) {
+  constructor(opts: { trackName: string; duration: string; wave?: string }) {
     super();
-    this.trackName = opts.name;
+    this.trackName = opts.trackName;
     this.duration = opts.duration;
     this.wave = opts.wave;
   }

@@ -27,7 +27,7 @@
   import useTimeLine from '@/hooks/useTimeLine';
   import { getStyle, setStyle } from '@/utils/dom';
 
-  import { mainTrack, audioTrack, list } from './data';
+  import { mainTrack, audioList, list } from './data';
   import { forEachValue } from '@/utils';
   import { isArray } from '@/utils/is';
 
@@ -140,8 +140,8 @@
 
       const tracks = reactive<TrackState>({
         video: list,
-        main: [mainTrack],
-        audio: [[audioTrack], [audioTrack, audioTrack, audioTrack]],
+        main: [mainTrack()],
+        audio: audioList,
       });
 
       const wrapperWidth = ref(0);

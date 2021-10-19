@@ -68,7 +68,8 @@
       };
       const throttleMouse = throttleAndDebounce(onMouse, 50);
 
-      const events = ['pointermove', 'pointerdown'];
+      // const events = ['pointermove', 'pointerdown'];
+      const events: any = [];
       const onTimeline = () => {
         events.forEach((event) => on(window, event, throttleMouse));
         hover.value = true;

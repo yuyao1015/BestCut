@@ -9,6 +9,8 @@ type Item = {
   width: number;
   offset: number;
   marginLeft: number;
+  start: number;
+  end: number;
 };
 
 export interface AudioTrackItem extends Partial<Item> {

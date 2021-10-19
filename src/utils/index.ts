@@ -84,3 +84,32 @@ export function setDPI(canvas: HTMLCanvasElement, scale: number) {
 export function forEachValue<T>(obj: Record<string, T>, fn: (key: string, val: T) => void) {
   return Object.keys(obj).forEach((key) => fn(key, obj[key]));
 }
+
+export function find<T>(list: T[], f: (item: T) => boolean) {
+  return list.filter(f)[0];
+}
+
+export function deepCopy<T>(obj: T, cache: { original: any; copy: any }[] = []): T {
+  // just return if obj is immutable value
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  // if obj is hit, it is in circular structure
+  const hit = find(cache, (c) => c.original === obj);
+  if (hit) return hit.copy;
+
+  const copy = (Array.isArray(obj) ? {} : []) as T;
+  // put the copy into cache at first
+  // because we want to refer it in recursive deepCopy
+  cache.push({
+    original: obj,
+    copy,
+  });
+
+  (Object.keys(obj) as (keyof T)[]).forEach((key) => {
+    copy[key] = deepCopy<T[typeof key]>(obj[key], cache);
+  });
+
+  return copy;
+}
