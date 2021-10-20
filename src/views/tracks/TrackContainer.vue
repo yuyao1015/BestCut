@@ -1,74 +1,8 @@
-<template>
-  <div class="flex w-full">
-    <div class="track-container-head h-full" :style="`flex:0 0 ${trackHeadWidth}px;`">
-      <slot></slot>
-    </div>
-    <div class="list w-full h-full flex flex-col justify-center">
-      <div
-        v-for="(tracks, i) in list"
-        :key="i"
-        :class="['track-list flex w-full my-2', isListActive(tracks) ? 'track-list-active' : '']"
-      >
-        <div
-          v-for="(track, j) in tracks"
-          :key="j"
-          :class="[
-            'track-item rounded-sm overflow-hidden text-xs mr-px relative px-1',
-            `track-item-${track.type}`,
-            track.active ? 'border-white border' : '',
-          ]"
-          :style="`flex:0 0 ${track.width}px; margin-left: ${track.marginLeft}px`"
-          @click="onTrackActive(track)"
-          v-click-outside="() => onClickOutside(track)"
-          draggable
-        >
-          <div class="h-full w-full">
-            <div v-if="!['video', 'audio'].includes(track.type)" class="track-item-head w-full">
-              <component v-if="track.icon" :is="track.icon" class="track-item-title"></component>
-
-              <img v-if="track.sticker" :src="track.sticker" alt="" class="track-item-title" />
-
-              <div v-if="track.type !== 'sticker'" class="track-item-title">
-                {{ track.trackName }}
-              </div>
-            </div>
-
-            <div v-else class="track-item-head">
-              <span v-for="(title, k) in getTrackHead(track)" :key="k" class="track-item-title">
-                {{ title }}
-              </span>
-            </div>
-
-            <div v-if="track.type === 'video'" class="h-10">cover</div>
-            <div v-if="track.type === 'video'" class="h-5">foot wave</div>
-
-            <div v-if="track.type === 'audio'" class="h-8">{{ track.wave }}</div>
-          </div>
-
-          <!-- scale duration at border  -->
-          <div v-if="track.active" class="absolute w-full h-full top-0 left-0">
-            <div
-              ref="trackLeftRef"
-              class="track-scale track-scale-left -left-0"
-              @click="onTrackLeft(track)"
-            >
-              <MoreOutlined class="absolute -left-1" />
-            </div>
-            <div ref="trackRightRef" class="track-scale track-scale-right right-0">
-              <MoreOutlined class="absolute -right-1" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script lang="ts">
-  import type { TrackItem } from '#/track';
+<script lang="tsx">
+  import type { AudioTrackItem, TrackItem, VideoTrackItem } from '#/track';
   import type { ComponentPublicInstance } from 'vue';
 
-  import { computed, defineComponent, PropType, ref, onMounted } from 'vue';
+  import { computed, h, defineComponent, PropType, ref } from 'vue';
   import { MoreOutlined } from '@ant-design/icons-vue';
 
   import { ClickOutside } from '@/directives';
@@ -78,9 +12,6 @@
 
   export default defineComponent({
     name: '',
-    components: {
-      MoreOutlined,
-    },
     directives: {
       ClickOutside,
     },
@@ -91,7 +22,8 @@
       },
     },
     emits: [],
-    setup(_, { slots }) {
+    setup(props, { slots }) {
+      const list = computed(() => props.list);
       const isMain = computed(() => {
         return Boolean(slots.default);
       });
@@ -122,6 +54,7 @@
       const onTrackLeft = (track: TrackItem) => {
         const left = (trackLeftRef.value?.$el || trackLeftRef.value) as HTMLElement;
         const ml = new MouseCtl(left);
+
         ml.moveCallback = function () {
           // const dx = this.x - this.lastX;
           if (track.marginLeft) track.marginLeft;
@@ -138,19 +71,102 @@
         };
       };
 
-      onMounted(() => {});
+      const video = (track: VideoTrackItem) => (
+        <div class="h-full w-full">
+          <div class="track-item-head">
+            {getTrackHead(track).map((title) => (
+              <span class="track-item-title">{title}</span>
+            ))}
+          </div>
+          <div class="h-10">cover</div>
+          <div class="h-5">foot wave</div>
+        </div>
+      );
 
-      return {
-        trackHeadWidth,
-        trackLeftRef,
-        trackRightRef,
-        isListActive,
-        getTrackHead,
-        onTrackActive,
-        onClickOutside,
-        onTrackLeft,
-        onTrackRight,
+      const audio = (track: AudioTrackItem) => (
+        <div class="h-full w-full">
+          <div class="track-item-head">
+            {getTrackHead(track).map((title) => (
+              <span class="track-item-title">{title}</span>
+            ))}
+          </div>
+          <div class="h-8">{track.wave}</div>
+        </div>
+      );
+
+      const attachment = (track: TrackItem) => (
+        <div class={'track-item-head w-full'}>
+          {track.icon && (() => h(track.icon, { class: 'track-item-title' }))()}
+          {track.sticker && (() => <img class="track-item-title" src={track.sticker} />)()}
+          {track.type !== 'sticker' &&
+            (() => h('div', { class: 'track-item-title' }, track.trackName))()}
+        </div>
+      );
+
+      const trackMap = {
+        video,
+        audio,
+        sticker: attachment,
+        text: attachment,
+        sprite: attachment,
       };
+
+      const trackBorder = (track: TrackItem) =>
+        track.active ? (
+          <div class="absolute w-full h-full top-0 left-0">
+            <div
+              ref={trackLeftRef}
+              onClick={() => onTrackLeft(track)}
+              class="track-scale track-scale-left -left-0"
+            >
+              <MoreOutlined class="absolute -left-1" />
+            </div>
+            <div
+              ref={trackRightRef}
+              onClick={() => onTrackRight(track)}
+              class="track-scale  track-scale-right right-0"
+            >
+              <MoreOutlined class="absolute -right-1" />
+            </div>
+          </div>
+        ) : (
+          ''
+        );
+
+      const trackList = (tracks: TrackItem[]) => (
+        <div
+          class={['track-list flex w-full my-2', isListActive(tracks) ? 'track-list-active' : '']}
+        >
+          {tracks.map((track: TrackItem) => (
+            <div
+              draggable
+              class={[
+                'track-item rounded-sm overflow-hidden text-xs mr-px relative px-1',
+                `track-item-${track.type}`,
+                track.active ? 'border-white border' : '',
+              ]}
+              style={`flex:0 0 ${track.width}px; margin-left: ${track.marginLeft}px`}
+              onClick={() => onTrackActive(track)}
+              v-clickOutside={() => onClickOutside(track)}
+            >
+              {trackMap[track.type as keyof typeof trackMap](track)}
+
+              {trackBorder(track)}
+            </div>
+          ))}
+        </div>
+      );
+
+      return () => (
+        <div class="flex w-full">
+          <div class="track-container-head h-full" style={`flex:0 0 ${trackHeadWidth}px;`}>
+            {slots.default ? slots.default() : ''}
+          </div>
+          <div class="list w-full h-full flex flex-col justify-center">
+            {list.value.map((tracks) => trackList(tracks))}
+          </div>
+        </div>
+      );
     },
   });
 </script>
