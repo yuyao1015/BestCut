@@ -10,7 +10,9 @@ export const mainTrack = (): VideoTrackItem => ({
   duration: '00:10:34:17',
   cover: ['cover'],
   width: 200,
-  offset: 20,
+  offset: 600,
+  left: 0,
+  right: 0,
   marginLeft: 200,
 });
 
@@ -21,7 +23,9 @@ export const audioTrack = (): AudioTrackItem => ({
   duration: '00:10:34:17',
   wave: 'wave',
   width: 200,
-  offset: 20,
+  offset: 600,
+  left: 0,
+  right: 0,
   marginLeft: 200,
 });
 
@@ -31,7 +35,10 @@ export const txtTrack = (): TrackItem => ({
   trackName: '默认文本',
   duration: '03:00',
   width: 50,
-  offset: 10,
+  offset: 300,
+  left: 0,
+  right: 0,
+  marginLeft: 200,
 });
 
 export const spriteTrack = (): TrackItem => ({
@@ -41,7 +48,10 @@ export const spriteTrack = (): TrackItem => ({
   duration: '03:00',
   icon: FireFilled,
   width: 50,
-  offset: 15,
+  offset: 450,
+  left: 0,
+  right: 0,
+  marginLeft: 200,
 });
 export const stickerTrack = (): TrackItem => ({
   id: '',
@@ -50,7 +60,10 @@ export const stickerTrack = (): TrackItem => ({
   duration: '03:00',
   sticker: '123',
   width: 50,
-  offset: 5,
+  offset: 150,
+  left: 0,
+  right: 0,
+  marginLeft: 200,
 });
 
 // export const list = [[]];

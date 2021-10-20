@@ -1,32 +1,41 @@
 <template>
   <!-- TODO: fixed canvas width -->
-  <div class="absolute h-2.5 w-full">
-    <canvas id="timeline" class="scale h-full w-full" :style="`padding-left: ${lmin}px;`" />
-  </div>
-  <div
-    v-if="hover"
-    class="timeline-hover absolute h-full w-px bg-yellow-500 top-0 z-10"
-    :style="`left: ${hoverX}px`"
-  ></div>
-
-  <div ref="locator" class="timeline-locator absolute h-full z-10" :style="`left: ${locatorX}px`">
-    <div :class="['timeline-locator-head', isDragging ? 'bg-white' : '']"></div>
-    <div class="timeline-locator-body">
-      <div class="h-full w-px bg-white top-0"></div>
+  <div ref="timelineRef" @pointerover="onTimeline" @pointerleave="offTimeline">
+    <!-- <div ref="timelineRef"> -->
+    <div class="absolute h-2.5 w-full">
+      <canvas id="timeline" class="scale h-full w-full" :style="`padding-left: ${lmin}px;`" />
     </div>
+    <div
+      v-show="hover"
+      class="timeline-hover absolute h-full w-px bg-yellow-500 top-0 z-10"
+      :style="`left: ${hoverX}px`"
+    ></div>
+
+    <div
+      ref="locator"
+      class="timeline-locator absolute h-full w-px z-10"
+      :style="`left: ${locatorX}px`"
+    >
+      <div :class="['timeline-locator-head', isDragging ? 'bg-white' : '']"></div>
+      <div class="timeline-locator-body">
+        <div class="h-full w-px bg-white top-0"></div>
+      </div>
+    </div>
+
+    <slot></slot>
   </div>
 </template>
 
 <script lang="ts">
-  import { defineComponent, ref, onMounted, onUnmounted, computed } from 'vue';
+  import type { ComponentPublicInstance } from 'vue';
+  import { defineComponent, ref, onMounted, onUnmounted } from 'vue';
 
   import { trackHeadWidth as lmin } from '@/settings/componentSetting';
 
-  import { usePlayerStore } from '@/store/player';
   import { on, off } from '@/utils/dom';
-  import { durationString2Sec } from '@/utils/player';
   import { MouseCtl } from '@/logic/mouse';
-  import { throttleAndDebounce } from '@/utils';
+
+  import _ from 'lodash';
 
   export default defineComponent({
     name: 'TimeLine',
@@ -43,19 +52,14 @@
       const locatorX = ref(lmin);
       const locator = ref<HTMLElement | null>(null);
 
-      let tracks: HTMLElement | null = null;
+      const timelineRef = ref<ComponentPublicInstance | null>(null);
       let mLocator: MouseCtl | null = null;
 
-      const playerStore = usePlayerStore();
-      const duration = computed(() => {
-        return playerStore.total ? playerStore.total : durationString2Sec('30:00');
-      });
-      duration.value;
-
-      // TODO: conflict between pointermove & scroll
+      // TODO: conflict between pointermove & vertical scroll
       const onMouse = (e: PointerEvent) => {
-        if (!e) return;
-        const left = tracks?.getBoundingClientRect().left || 0;
+        const timeline = timelineRef.value?.$el || timelineRef.value;
+        if (!e || !timeline) return;
+        const left = timeline.getBoundingClientRect().left || 0;
         let x = e.pageX - left - scrollX;
         x = Math.max(lmin, x);
         if (e.type === 'pointerdown') {
@@ -66,15 +70,16 @@
         }
         if (hoverX.value === locatorX.value) hover.value = false;
       };
-      const throttleMouse = throttleAndDebounce(onMouse, 50);
 
-      const events = ['pointermove', 'pointerdown'];
+      const events: string[] = ['pointermove', 'pointerdown'];
       const onTimeline = () => {
-        events.forEach((event) => on(window, event, throttleMouse));
+        console.log('over');
+        events.forEach((event) => on(window, event, onMouse));
         hover.value = true;
       };
       const offTimeline = () => {
-        events.forEach((event) => off(window, event, throttleMouse));
+        console.log('leave');
+        events.forEach((event) => off(window, event, onMouse));
         hover.value = false;
       };
 
@@ -97,20 +102,13 @@
       };
 
       onMounted(() => {
-        tracks = document.getElementById('tracks-wrapper') as HTMLElement;
-        if (!tracks) return;
-        on(tracks, 'pointerover', onTimeline);
-        on(tracks, 'pointerleave', offTimeline);
-
         dragLocator();
       });
 
       onUnmounted(() => {
-        if (!tracks) return;
-        off(tracks, 'pointerover', onTimeline);
-        off(tracks, 'pointerleave', offTimeline);
         mLocator && mLocator.stopAllListeners('self');
       });
+
       return {
         lmin,
         locator,
@@ -118,6 +116,9 @@
         hover,
         hoverX,
         isDragging,
+        timelineRef,
+        onTimeline,
+        offTimeline,
       };
     },
   });

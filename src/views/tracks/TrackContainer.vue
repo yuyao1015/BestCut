@@ -11,7 +11,7 @@
   import { trackHeadWidth } from '@/settings/componentSetting';
 
   export default defineComponent({
-    name: '',
+    name: 'TrackContainer',
     directives: {
       ClickOutside,
     },
@@ -19,6 +19,10 @@
       list: {
         type: Array as PropType<TrackItem[][]>,
         default: () => [],
+      },
+      calcWidth: {
+        type: Function,
+        default: () => {},
       },
     },
     emits: [],
@@ -30,45 +34,8 @@
 
       const getTrackHead = (track: TrackItem) => {
         const head = [track.trackName, track.duration];
-        if (isMain && track.type === 'video') head.unshift('已静音');
+        if (isMain.value && track.type === 'video') head.unshift('已静音');
         return head;
-      };
-
-      const isListActive = (tracks: TrackItem[]) => {
-        let active = false;
-        tracks.forEach((track) => {
-          if (track.active) active = true;
-        });
-        return active;
-      };
-      const onTrackActive = (track: TrackItem) => {
-        track.active = true;
-      };
-      const onClickOutside = (track: TrackItem) => {
-        track.active = false;
-      };
-
-      const trackLeftRef = ref<ComponentPublicInstance | null>(null);
-      const trackRightRef = ref<ComponentPublicInstance | null>(null);
-
-      const onTrackLeft = (track: TrackItem) => {
-        const left = (trackLeftRef.value?.$el || trackLeftRef.value) as HTMLElement;
-        const ml = new MouseCtl(left);
-
-        ml.moveCallback = function () {
-          // const dx = this.x - this.lastX;
-          if (track.marginLeft) track.marginLeft;
-        };
-      };
-
-      const onTrackRight = (track: TrackItem) => {
-        const right = (trackRightRef.value?.$el || trackLeftRef.value) as HTMLElement;
-        const mr = new MouseCtl(right);
-
-        mr.moveCallback = function () {
-          // const dx = this.x - this.lastX;
-          track;
-        };
       };
 
       const video = (track: VideoTrackItem) => (
@@ -111,19 +78,72 @@
         sprite: attachment,
       };
 
+      /*
+        border
+      */
+      const trackLeftRef = ref<ComponentPublicInstance | null>(null);
+      const trackRightRef = ref<ComponentPublicInstance | null>(null);
+      let ml: MouseCtl | null = null;
+      let mr: MouseCtl | null = null;
+      const onTrackLeft = (e: MouseEvent, track: TrackItem) => {
+        e.stopPropagation();
+        const left = (trackLeftRef.value?.$el || trackLeftRef.value) as HTMLElement;
+        ml = new MouseCtl(left);
+        const { marginLeft } = track;
+
+        ml.moveCallback = function () {
+          let dx = this.x - this.lastX;
+          if (dx < 0 && ['video', 'audio'].includes(track.type)) {
+            dx = dx < marginLeft - track.marginLeft ? marginLeft - track.marginLeft : dx;
+          }
+          dx = track.width - dx < 20 ? 0 : dx;
+          track.left += dx; // TODO:
+          track.marginLeft += dx;
+          track.width -= dx;
+        };
+      };
+
+      const onTrackRight = (e: MouseEvent, track: TrackItem) => {
+        e.stopPropagation();
+        const right = (trackRightRef.value?.$el || trackRightRef.value) as HTMLElement;
+        mr = new MouseCtl(right);
+        const { width } = track;
+        mr.moveCallback = function () {
+          let dx = this.x - this.lastX;
+          if (dx > 0 && ['video', 'audio'].includes(track.type)) {
+            dx = dx > width - track.width ? width - track.width : dx;
+          }
+          dx = track.width - dx < 20 ? 0 : dx;
+          console.log(dx, track.width);
+          track.right += dx; //
+          track.width += dx;
+        };
+      };
+
+      const offTrackLeft = (e: MouseEvent) => {
+        e.stopPropagation();
+        if (ml) ml.moveCallback = () => {};
+      };
+      const offTrackRight = (e: MouseEvent) => {
+        e.stopPropagation();
+        if (mr) mr.moveCallback = () => {};
+      };
+
       const trackBorder = (track: TrackItem) =>
         track.active ? (
           <div class="absolute w-full h-full top-0 left-0">
             <div
               ref={trackLeftRef}
-              onClick={() => onTrackLeft(track)}
+              onPointerover={(e: MouseEvent) => onTrackLeft(e, track)}
+              onPointerleave={(e: MouseEvent) => offTrackLeft(e)}
               class="track-scale track-scale-left -left-0"
             >
               <MoreOutlined class="absolute -left-1" />
             </div>
             <div
               ref={trackRightRef}
-              onClick={() => onTrackRight(track)}
+              onPointerover={(e: MouseEvent) => onTrackRight(e, track)}
+              onPointerleave={(e: MouseEvent) => offTrackRight(e)}
               class="track-scale  track-scale-right right-0"
             >
               <MoreOutlined class="absolute -right-1" />
@@ -133,20 +153,37 @@
           ''
         );
 
+      /*
+        list
+      */
+      const isListActive = (tracks: TrackItem[]) => {
+        let active = false;
+        tracks.forEach((track) => {
+          if (track.active) active = true;
+        });
+        return active;
+      };
+      const onTrackActive = (e: MouseEvent, track: TrackItem) => {
+        e.stopPropagation();
+        track.active = true;
+      };
+      const onClickOutside = (track: TrackItem) => {
+        track.active = false;
+      };
+
       const trackList = (tracks: TrackItem[]) => (
         <div
           class={['track-list flex w-full my-2', isListActive(tracks) ? 'track-list-active' : '']}
         >
           {tracks.map((track: TrackItem) => (
             <div
-              draggable
               class={[
                 'track-item rounded-sm overflow-hidden text-xs mr-px relative px-1',
                 `track-item-${track.type}`,
                 track.active ? 'border-white border' : '',
               ]}
               style={`flex:0 0 ${track.width}px; margin-left: ${track.marginLeft}px`}
-              onClick={() => onTrackActive(track)}
+              onClick={(e: MouseEvent) => onTrackActive(e, track)}
               v-clickOutside={() => onClickOutside(track)}
             >
               {trackMap[track.type as keyof typeof trackMap](track)}
@@ -209,6 +246,8 @@
       margin: 0 0.25rem;
       border-radius: 0.125rem;
       background-color: rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+      overflow: hidden;
     }
 
     &-head {
@@ -246,6 +285,14 @@
 
     &-right {
       cursor: ew-resize;
+    }
+  }
+</style>
+
+<style lang="less">
+  .video-container {
+    .track-list:first-child {
+      margin-top: 2.5rem;
     }
   }
 </style>

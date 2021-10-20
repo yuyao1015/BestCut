@@ -128,7 +128,7 @@ export default (duration: number, fps: number) => {
       const s = durationString2Sec(track.duration) / unit;
       w = (s - 1) * step;
     }
-    const ml = track.offset ? track.offset * step : 0;
+    const ml = track.offset ? (track.offset / unit) * step : 0;
 
     return { width: w, marginLeft: ml };
   };
