@@ -25,11 +25,13 @@ declare global {
   type EncodedVideoChunk = any;
   type VideoDecoder = any;
   type VideoFrame = any;
+  type VideoEncoder = any;
   interface Window {
     MP4Box: MP4Box;
     EncodedVideoChunk: EncodedVideoChunk;
     VideoDecoder: VideoDecoder;
     VideoFrame: VideoFrame;
+    VideoEncoder: VideoEncoder;
   }
 
   type FirstArgument<T> = T extends (arg1: infer A, ...args: any[]) => any ? A : never;

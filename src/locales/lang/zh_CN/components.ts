@@ -3,6 +3,7 @@ export default {
   resource: '资源库',
   config: '配置面板',
   tracks: '音视频轨道',
+  export: '导出',
 
   player: '播放器',
   video: '视频',

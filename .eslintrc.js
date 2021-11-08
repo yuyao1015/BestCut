@@ -34,15 +34,19 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-this-alias': 'off',
     '@typescript-eslint/no-empty-function': 'off',
+
     'import/prefer-default-export': 'off',
     'import/extensions': 'off',
     'import/no-extraneous-dependencies': 'off',
+
     'no-unneeded-ternary': 'off',
     'no-param-reassign': 'off',
     'no-console': 'off',
     'no-bitwise': 'off',
     'no-return-assign': 'off',
     'no-restricted-syntax': 'off',
+    'no-constant-condition': 'off',
+
     'max-classes-per-file': 'off',
     'class-methods-use-this': 'off',
   },

@@ -81,11 +81,13 @@
       /*
         border
       */
+      const canDrag = ref(true);
       const trackLeftRef = ref<ComponentPublicInstance | null>(null);
       const trackRightRef = ref<ComponentPublicInstance | null>(null);
       let ml: MouseCtl | null = null;
       let mr: MouseCtl | null = null;
       const onTrackLeft = (e: MouseEvent, track: TrackItem) => {
+        canDrag.value = false;
         e.stopPropagation();
         const left = (trackLeftRef.value?.$el || trackLeftRef.value) as HTMLElement;
         ml = new MouseCtl(left);
@@ -97,13 +99,14 @@
             dx = dx < marginLeft - track.marginLeft ? marginLeft - track.marginLeft : dx;
           }
           dx = track.width - dx < 20 ? 0 : dx;
-          track.left += dx; // TODO:
+          track.start += dx; // TODO: map
           track.marginLeft += dx;
           track.width -= dx;
         };
       };
 
       const onTrackRight = (e: MouseEvent, track: TrackItem) => {
+        canDrag.value = false;
         e.stopPropagation();
         const right = (trackRightRef.value?.$el || trackRightRef.value) as HTMLElement;
         mr = new MouseCtl(right);
@@ -114,17 +117,19 @@
             dx = dx > width - track.width ? width - track.width : dx;
           }
           dx = track.width - dx < 20 ? 0 : dx;
-          console.log(dx, track.width);
-          track.right += dx; //
+
+          track.end += dx; //
           track.width += dx;
         };
       };
 
       const offTrackLeft = (e: MouseEvent) => {
+        canDrag.value = true;
         e.stopPropagation();
         if (ml) ml.moveCallback = () => {};
       };
       const offTrackRight = (e: MouseEvent) => {
+        canDrag.value = true;
         e.stopPropagation();
         if (mr) mr.moveCallback = () => {};
       };
@@ -177,6 +182,7 @@
         >
           {tracks.map((track: TrackItem) => (
             <div
+              draggable={canDrag.value}
               class={[
                 'track-item rounded-sm overflow-hidden text-xs mr-px relative px-1',
                 `track-item-${track.type}`,

@@ -82,6 +82,9 @@ export const usePlayerStore = defineStore({
         };
       });
     },
+    export() {
+      this.player.remux();
+    },
   },
 });
 

@@ -108,6 +108,7 @@
       });
 
       const wrapperWidth = ref(0);
+      const { useUnit, initTimeLine, calcTrackWidth } = useTimeLine(600, 30);
       const footerRef = ref<ComponentPublicInstance | null>(null);
       const updateTrackWidth = () => {
         let trackWidth = 0;
@@ -142,8 +143,7 @@
         wrapperWidth.value = rawW > w ? rawW : w;
       };
 
-      const percent = ref(50);
-      const { useUnit, initTimeLine, calcTrackWidth } = useTimeLine(600, 30);
+      const percent = ref(0);
       useUnit(percent);
       watch(percent, () => {
         updateTrackWidth();

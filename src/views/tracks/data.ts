@@ -11,8 +11,8 @@ export const mainTrack = (): VideoTrackItem => ({
   cover: ['cover'],
   width: 200,
   offset: 600,
-  left: 0,
-  right: 0,
+  start: 0,
+  end: 0,
   marginLeft: 200,
 });
 
@@ -24,8 +24,8 @@ export const audioTrack = (): AudioTrackItem => ({
   wave: 'wave',
   width: 200,
   offset: 600,
-  left: 0,
-  right: 0,
+  start: 0,
+  end: 0,
   marginLeft: 200,
 });
 
@@ -36,8 +36,8 @@ export const txtTrack = (): TrackItem => ({
   duration: '03:00',
   width: 50,
   offset: 300,
-  left: 0,
-  right: 0,
+  start: 0,
+  end: 0,
   marginLeft: 200,
 });
 
@@ -49,8 +49,8 @@ export const spriteTrack = (): TrackItem => ({
   icon: FireFilled,
   width: 50,
   offset: 450,
-  left: 0,
-  right: 0,
+  start: 0,
+  end: 0,
   marginLeft: 200,
 });
 export const stickerTrack = (): TrackItem => ({
@@ -61,8 +61,8 @@ export const stickerTrack = (): TrackItem => ({
   sticker: '123',
   width: 50,
   offset: 150,
-  left: 0,
-  right: 0,
+  start: 0,
+  end: 0,
   marginLeft: 200,
 });
 

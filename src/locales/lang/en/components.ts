@@ -3,6 +3,7 @@ export default {
   resource: 'Resource Libarary',
   config: 'Config Panel',
   tracks: 'Audio/Video tracks',
+  export: 'Export',
 
   player: 'Player',
   video: 'Video',

@@ -11,8 +11,8 @@ type ItemOptional = {
 type ItemRequired = {
   width: number;
   offset: number; // second
-  left: number;
-  right: number;
+  start: number;
+  end: number;
   marginLeft: number; // pixel
 };
 

@@ -57,7 +57,7 @@
   import { useLocale } from '@/locales/useLocale';
   import { localeList } from '@/locales/localeSetting';
   import { useResourceStore } from '@/store/resource';
-  import _ from 'lodash';
+  import _ from 'lodash-es';
 
   export default defineComponent({
     components: {

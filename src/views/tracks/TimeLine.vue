@@ -35,8 +35,6 @@
   import { on, off } from '@/utils/dom';
   import { MouseCtl } from '@/logic/mouse';
 
-  import _ from 'lodash';
-
   export default defineComponent({
     name: 'TimeLine',
     props: {

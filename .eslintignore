@@ -17,3 +17,4 @@ Dockerfile
 *rc.js
 **/.config.js
 **/rc.js
+!.eslintrc.js

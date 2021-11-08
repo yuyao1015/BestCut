@@ -78,6 +78,7 @@ class MP4Source {
         codedHeight: this.videoTrack.track_height,
         codedWidth: this.videoTrack.track_width,
         description: extraData,
+        videoDuration: (info.duration / info.timescale) * 1000,
       },
     };
     return Promise.resolve(config);
@@ -114,6 +115,7 @@ export class MP4Player {
   rawRatio = 0;
 
   decoder: VideoDecoder;
+  encoder: VideoEncoder;
   source?: MP4Source;
 
   samples: any;
@@ -136,10 +138,10 @@ export class MP4Player {
     this.ctx = this.canvas.getContext('2d');
 
     this.url = opts.url;
-    opts.url && this.setSource(opts.url);
+    opts.url && this.demux(opts.url);
   }
 
-  setSource(url: string) {
+  demux(url: string) {
     this.decoder = new window.VideoDecoder({
       output: this.onFrame(),
       error: (e: any) => console.error(e),
@@ -171,8 +173,8 @@ export class MP4Player {
       this.refs.total = movie_duration / movie_timescale;
       if (this.refs.paused) this.pause();
 
-      this.display();
       this.onPlayStart();
+      this.display();
     });
   }
 
@@ -342,5 +344,99 @@ export class MP4Player {
       data: sample.data,
     };
     return new window.EncodedVideoChunk(options);
+  }
+
+  onChunk(file: any, track: any, totalFrames: number) {
+    let chunkCount = 0;
+    let startTime = 0;
+    return (chunk: any, config: any) => {
+      const ab = new ArrayBuffer(chunk.byteLength);
+      chunk.copyTo(ab);
+      //
+      const sampleOptions = {
+        dts: chunk.timestamp * 1000,
+        cts: chunk.timestamp * 1000,
+        is_sync: chunk.type === 'key',
+      };
+
+      const now = performance.now();
+      let fpsAvg = '';
+      if (chunkCount++) {
+        const elapsed = now - startTime;
+        fpsAvg = ' (' + ((1000.0 * chunkCount) / elapsed).toFixed(0) + ' fps)';
+        file.addSample(track, ab, sampleOptions);
+      } else startTime = now;
+
+      let div = document.getElementById('encoder');
+      if (!div) {
+        div = document.createElement('div');
+        div.id = 'encoder';
+        div.style.position = 'fixed';
+        // div.style.display = 'none';
+        div.style.bottom = '0';
+        div.style.left = '0';
+        div.style.color = 'white';
+        document.body.appendChild(div);
+      }
+      div.innerHTML = fpsAvg;
+
+      console.log(chunkCount, totalFrames);
+      if (chunkCount === totalFrames - 2) {
+        this.encoder.close();
+        file.save('test.mp4');
+        console.log('completed !');
+      }
+    };
+  }
+
+  remux() {
+    if (!this.url) return;
+    const decoder = new window.VideoDecoder({
+      output: (frame: VideoFrame) => {
+        if (this.encoder) this.encoder.encode(frame);
+        frame.close();
+      },
+      error: (e: any) => console.error(e),
+    });
+
+    const source = new MP4Source(this.url);
+    source.getConfig().then((config: any) => {
+      const { videoCfg } = config;
+      decoder.configure(videoCfg);
+      const { codedHeight: height, codedWidth: width, codec, videoDuration } = videoCfg;
+
+      const samples = source?.getSamples('video');
+      if (!samples?.length) return;
+      source?.start('video');
+
+      const file = new window.MP4Box.createFile();
+      const track = file.addTrack({
+        timescale: 1000000,
+        // timescale: samples[0].timescale,
+        width,
+        height,
+        nb_samples: samples.length,
+      });
+
+      this.encoder = new window.VideoEncoder({
+        output: this.onChunk(file, track, samples.length),
+        error: (e: any) => console.error(e),
+      });
+
+      this.encoder.configure({
+        // codec: 'avc1.42001E',
+        codec,
+        width,
+        height,
+        hardwareAcceleration: 'prefer-hardware',
+        framerate: Math.ceil(1000 / (videoDuration / samples.length)),
+        avc: { format: 'avc' },
+      });
+
+      for (const sample of samples) {
+        const chunk = this.getChunk(sample);
+        decoder.decode(chunk);
+      }
+    });
   }
 }
