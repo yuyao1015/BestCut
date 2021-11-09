@@ -2,7 +2,7 @@
   import type { AudioTrackItem, TrackItem, VideoTrackItem } from '#/track';
   import type { ComponentPublicInstance } from 'vue';
 
-  import { computed, h, defineComponent, PropType, ref } from 'vue';
+  import { computed, h, defineComponent, PropType, ref, reactive, watch } from 'vue';
   import { MoreOutlined } from '@ant-design/icons-vue';
 
   import { ClickOutside } from '@/directives';
@@ -16,7 +16,7 @@
       ClickOutside,
     },
     props: {
-      list: {
+      lists: {
         type: Array as PropType<TrackItem[][]>,
         default: () => [],
       },
@@ -27,7 +27,7 @@
     },
     emits: [],
     setup(props, { slots }) {
-      const list = computed(() => props.list);
+      const lists = computed(() => props.lists);
       const isMain = computed(() => {
         return Boolean(slots.default);
       });
@@ -76,6 +76,7 @@
         sticker: attachment,
         text: attachment,
         sprite: attachment,
+        filter: attachment,
       };
 
       /*
@@ -87,8 +88,8 @@
       let ml: MouseCtl | null = null;
       let mr: MouseCtl | null = null;
       const onTrackLeft = (e: MouseEvent, track: TrackItem) => {
-        canDrag.value = false;
         e.stopPropagation();
+        canDrag.value = false;
         const left = (trackLeftRef.value?.$el || trackLeftRef.value) as HTMLElement;
         ml = new MouseCtl(left);
         const { marginLeft } = track;
@@ -103,11 +104,15 @@
           track.marginLeft += dx;
           track.width -= dx;
         };
+
+        ml.upCallback = function () {
+          canDrag.value = true;
+        };
       };
 
       const onTrackRight = (e: MouseEvent, track: TrackItem) => {
-        canDrag.value = false;
         e.stopPropagation();
+        canDrag.value = false;
         const right = (trackRightRef.value?.$el || trackRightRef.value) as HTMLElement;
         mr = new MouseCtl(right);
         const { width } = track;
@@ -121,16 +126,20 @@
           track.end += dx; //
           track.width += dx;
         };
+
+        mr.upCallback = function () {
+          canDrag.value = true;
+        };
       };
 
       const offTrackLeft = (e: MouseEvent) => {
-        canDrag.value = true;
         e.stopPropagation();
+        canDrag.value = true;
         if (ml) ml.moveCallback = () => {};
       };
       const offTrackRight = (e: MouseEvent) => {
-        canDrag.value = true;
         e.stopPropagation();
+        canDrag.value = true;
         if (mr) mr.moveCallback = () => {};
       };
 
@@ -143,7 +152,7 @@
               onPointerleave={(e: MouseEvent) => offTrackLeft(e)}
               class="track-scale track-scale-left -left-0"
             >
-              <MoreOutlined class="absolute -left-1" />
+              <MoreOutlined class="absolute -left-1 w-2" />
             </div>
             <div
               ref={trackRightRef}
@@ -159,8 +168,28 @@
         );
 
       /*
-        list
+        lists
       */
+      const trackListsRef = ref<ComponentPublicInstance | null>(null);
+      let mtrak: MouseCtl | null = null;
+      const activeTrak = ref<null | TrackItem>(null);
+      const draggedIdxs = reactive({ i: -1, j: -1 });
+      watch(draggedIdxs, (idxs: { i: number; j: number }) => {
+        const { i, j } = idxs;
+        if (i === -1 || j === -1) return;
+        if (activeTrak.value) activeTrak.value.active = false;
+        activeTrak.value = lists.value[i][j];
+        activeTrak.value.active = true;
+      });
+
+      const shadowDx = ref(0);
+      const shadowLeft = computed(() => {
+        const { i, j } = draggedIdxs;
+        const currentlist = lists.value[i];
+        let l = currentlist.slice(0, j).reduce((l, trak) => (l += trak.width + trak.marginLeft), 0);
+        return l + currentlist[j].marginLeft;
+      });
+
       const isListActive = (tracks: TrackItem[]) => {
         let active = false;
         tracks.forEach((track) => {
@@ -168,35 +197,91 @@
         });
         return active;
       };
-      const onTrackActive = (e: MouseEvent, track: TrackItem) => {
+
+      const onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
         e.stopPropagation();
-        track.active = true;
+        draggedIdxs.i = i;
+        draggedIdxs.j = j;
+
+        const trakList = (trackListsRef.value?.$el || trackListsRef.value) as HTMLElement;
+        const trak = trakList.children[i].children[j] as HTMLElement;
+        mtrak = new MouseCtl(trak);
+        mtrak.moveCallback = function () {
+          if (!canDrag.value) return;
+
+          let dx = this.x - this.lastX;
+          let dy = this.y - this.lastY;
+          const style = getComputedStyle(this.element);
+          const left = parseInt(style.left) + dx;
+
+          shadowDx.value = left;
+          this.element.style.left = `${left}px`;
+          this.element.style.top = `${parseInt(style.top) + dy}px`;
+          this.element.style.zIndex = '10';
+        };
+
+        mtrak.upCallback = function () {
+          const { i, j } = draggedIdxs;
+          if (i === -1 || j === -1) return;
+
+          const l = track.marginLeft;
+          let r = 1920 - track.width;
+          const nextTrak = lists.value[i][j + 1];
+          if (nextTrak) r = nextTrak.marginLeft;
+
+          let dx = parseInt(this.element.style.left);
+          dx = Number.isNaN(dx) ? 0 : dx;
+          dx = dx < 0 ? (dx < -l ? -l : dx) : dx > r ? r : dx;
+
+          track.marginLeft = l + dx;
+          if (nextTrak) nextTrak.marginLeft -= dx;
+
+          shadowDx.value = 0;
+          this.element.style.left = '0';
+          this.element.style.top = '0';
+          this.element.style.zIndex = '0';
+          draggedIdxs.i = -1;
+          draggedIdxs.j = -1;
+        };
       };
       const onClickOutside = (track: TrackItem) => {
         track.active = false;
       };
 
-      const trackList = (tracks: TrackItem[]) => (
+      const trackList = (tracks: TrackItem[], i: number) => (
         <div
-          class={['track-list flex w-full my-2', isListActive(tracks) ? 'track-list-active' : '']}
+          class={[
+            'track-list relative flex w-full my-2',
+            isListActive(tracks) ? 'track-list-active' : '',
+          ]}
         >
-          {tracks.map((track: TrackItem) => (
-            <div
-              draggable={canDrag.value}
-              class={[
-                'track-item rounded-sm overflow-hidden text-xs mr-px relative px-1',
-                `track-item-${track.type}`,
-                track.active ? 'border-white border' : '',
-              ]}
-              style={`flex:0 0 ${track.width}px; margin-left: ${track.marginLeft}px`}
-              onClick={(e: MouseEvent) => onTrackActive(e, track)}
-              v-clickOutside={() => onClickOutside(track)}
-            >
-              {trackMap[track.type as keyof typeof trackMap](track)}
+          {tracks.map((track: TrackItem, j: number) => {
+            return (
+              <div
+                class={[
+                  'track-item rounded-sm overflow-hidden text-xs mr-px relative px-1',
+                  `track-item-${track.type}`,
+                  track.active ? 'border-white border' : '',
+                ]}
+                style={`flex:0 0 ${track.width}px; margin-left: ${track.marginLeft}px;`}
+                onPointerdown={(e: MouseEvent) => onTrackDown(e, track, i, j)}
+                v-clickOutside={() => onClickOutside(track)}
+              >
+                {trackMap[track.type as keyof typeof trackMap](track)}
 
-              {trackBorder(track)}
-            </div>
-          ))}
+                {trackBorder(track)}
+              </div>
+            );
+          })}
+          {draggedIdxs.i === i ? (
+            <div
+              class="shadow absolute rounded-sm m-px px-1 bg-gray-100 opacity-5 h-full"
+              style={`width: ${Number(activeTrak.value?.width)}px;
+              top:0; left: ${shadowLeft.value + shadowDx.value}px;`}
+            ></div>
+          ) : (
+            ''
+          )}
         </div>
       );
 
@@ -205,8 +290,8 @@
           <div class="track-container-head h-full" style={`flex:0 0 ${trackHeadWidth}px;`}>
             {slots.default ? slots.default() : ''}
           </div>
-          <div class="list w-full h-full flex flex-col justify-center">
-            {list.value.map((tracks) => trackList(tracks))}
+          <div ref={trackListsRef} class="list w-full h-full flex flex-col justify-center">
+            {lists.value.map((tracks, i) => trackList(tracks, i))}
           </div>
         </div>
       );
@@ -242,6 +327,10 @@
 
     &-sticker {
       background-color: #cc9641;
+    }
+
+    &-filter {
+      background-color: #464186;
     }
 
     &-title {

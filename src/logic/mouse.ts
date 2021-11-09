@@ -36,14 +36,8 @@ export class MouseCtl {
     this.zoomOutCallback = () => {};
     this.moveOverCallback = () => {};
     this.moveOutCallback = () => {};
-
-    this.downCallback = () => {
-      this.addEventListener(['mousemove', 'mouseup'], '');
-    };
-    this.upCallback = () => {
-      this.removeEventListener(['mousemove', 'mouseup'], '');
-      this.dragging = false;
-    };
+    this.downCallback = () => {};
+    this.upCallback = () => {};
 
     this.moveCallback = () => {
       // // global move
@@ -83,9 +77,12 @@ export class MouseCtl {
     if (t === 'mousedown') {
       this.buttonRaw |= this.buttonOnMasks[e.buttons - 1];
       this.downCallback(e);
+      this.addEventListener(['mousemove', 'mouseup'], '');
     } else if (t === 'mouseup') {
       this.buttonRaw &= this.buttonOffMasks[e.buttons - 1];
       this.upCallback(e);
+      this.removeEventListener(['mousemove', 'mouseup'], '');
+      this.dragging = false;
     } else if (t === 'mousemove') {
       this.updateMove(e);
     } else if (t === 'mouseover') {

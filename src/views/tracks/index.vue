@@ -23,12 +23,12 @@
             class="absolute w-full mt-2.5 overflow-y-scroll pb-10"
             :style="`height: calc(100% - 0.625rem);`"
           >
-            <TrackContainer class="video-container overflow-y-auto" :list="tracks.video" />
+            <TrackContainer class="video-container overflow-y-auto" :lists="trackLists.video" />
 
             <TrackContainer
               ref="mainTrackRef"
               :class="['main-container flex items-center', isSticky ? 'sticky-track' : '']"
-              :list="[tracks.main]"
+              :lists="[trackLists.main]"
             >
               <div class="text-lg w-full h-full rounded-xl flex items-center justify-center">
                 <div
@@ -42,7 +42,7 @@
               </div>
             </TrackContainer>
 
-            <TrackContainer class="audio-container" :list="tracks.audio" />
+            <TrackContainer class="audio-container" :lists="trackLists.audio" />
           </div>
         </div>
       </div>
@@ -69,7 +69,7 @@
   import useTimeLine from '@/hooks/useTimeLine';
   import { getStyle, setStyle } from '@/utils/dom';
 
-  import { mainTrack, audioList, list } from './data';
+  import { mainList, audioList, videoList } from './data';
   import { forEachValue } from '@/utils';
 
   type TrackState = {
@@ -101,9 +101,9 @@
       const { t } = useI18n();
       const title = t('components.tracks');
 
-      const tracks = reactive<TrackState>({
-        video: list,
-        main: [mainTrack()],
+      const trackLists = reactive<TrackState>({
+        video: videoList,
+        main: [mainList(), mainList()],
         audio: audioList,
       });
 
@@ -132,7 +132,7 @@
           return left;
         };
 
-        forEachValue<TrackStateItem>(tracks, (key: string, val: TrackStateItem) => {
+        forEachValue<TrackStateItem>(trackLists, (key: string, val: TrackStateItem) => {
           updateWidth(key, val);
         });
         const footer = footerRef.value?.$el || footerRef.value;
@@ -207,7 +207,7 @@
         isMute,
         isSticky,
         percent,
-        tracks,
+        trackLists,
 
         footerRef,
         tracksWrapperRef,

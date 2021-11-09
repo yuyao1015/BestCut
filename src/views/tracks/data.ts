@@ -1,8 +1,8 @@
 import type { AudioTrackItem, TrackItem, VideoTrackItem } from '#/track';
 
-import { FireFilled } from '@ant-design/icons-vue';
+import { FireFilled, FilterOutlined } from '@ant-design/icons-vue';
 
-export const mainTrack = (): VideoTrackItem => ({
+export const mainList = (): VideoTrackItem => ({
   id: '',
   type: 'video',
   trackName: 'bbb.mp4',
@@ -29,16 +29,16 @@ export const audioTrack = (): AudioTrackItem => ({
   marginLeft: 200,
 });
 
-export const txtTrack = (): TrackItem => ({
+export const txtTrack = (width = 50, left = 200): TrackItem => ({
   id: '',
   type: 'text',
   trackName: '默认文本',
   duration: '03:00',
-  width: 50,
+  width: width,
   offset: 300,
   start: 0,
   end: 0,
-  marginLeft: 200,
+  marginLeft: left,
 });
 
 export const spriteTrack = (): TrackItem => ({
@@ -66,15 +66,30 @@ export const stickerTrack = (): TrackItem => ({
   marginLeft: 200,
 });
 
+export const filterTrack = (): TrackItem => ({
+  id: '',
+  type: 'filter',
+  trackName: '原生',
+  duration: '03:00',
+  icon: FilterOutlined,
+  width: 50,
+  offset: 150,
+  start: 0,
+  end: 0,
+  marginLeft: 200,
+});
+
 // export const list = [[]];
 // export const list = [[mainTrack(), mainTrack()]];
-export const list = [
-  [txtTrack()],
+export const videoList = [
+  [filterTrack()],
+  [txtTrack(), txtTrack(), txtTrack(), txtTrack()],
+  [spriteTrack()],
   [spriteTrack()],
   [stickerTrack()],
-  [mainTrack()],
-  [mainTrack()],
-  [mainTrack()],
+  [mainList()],
+  [mainList()],
+  [mainList()],
 ];
 
 // export const list = [[mainTrack(), mainTrack(), mainTrack()]];
