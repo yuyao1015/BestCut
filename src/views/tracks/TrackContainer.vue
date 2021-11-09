@@ -9,6 +9,9 @@
   import { MouseCtl } from '@/logic/mouse';
 
   import { trackHeadWidth } from '@/settings/componentSetting';
+  import { swap } from '@/utils';
+
+  const offset = 20;
 
   export default defineComponent({
     name: 'TrackContainer',
@@ -170,21 +173,25 @@
       /*
         lists
       */
+
+      const mtraks: (MouseCtl | null)[][] = new Array(lists.value.length).fill([]).map((arr, i) => {
+        return arr.concat(...new Array(lists.value[i].length).fill(null));
+      });
+
       const trackListsRef = ref<ComponentPublicInstance | null>(null);
-      let mtrak: MouseCtl | null = null;
       const activeTrak = ref<null | TrackItem>(null);
-      const draggedIdxs = reactive({ i: -1, j: -1 });
-      watch(draggedIdxs, (idxs: { i: number; j: number }) => {
+      const activeIdxs = reactive({ i: -1, j: -1 });
+      watch(activeIdxs, (idxs: { i: number; j: number }) => {
         const { i, j } = idxs;
         if (i === -1 || j === -1) return;
         if (activeTrak.value) activeTrak.value.active = false;
         activeTrak.value = lists.value[i][j];
-        activeTrak.value.active = true;
+        if (activeTrak.value) activeTrak.value.active = true;
       });
 
       const shadowDx = ref(0);
       const shadowLeft = computed(() => {
-        const { i, j } = draggedIdxs;
+        const { i, j } = activeIdxs;
         const currentlist = lists.value[i];
         let l = currentlist.slice(0, j).reduce((l, trak) => (l += trak.width + trak.marginLeft), 0);
         return l + currentlist[j].marginLeft;
@@ -200,12 +207,84 @@
 
       const onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
         e.stopPropagation();
-        draggedIdxs.i = i;
-        draggedIdxs.j = j;
+        activeIdxs.i = i;
+        activeIdxs.j = j;
 
         const trakList = (trackListsRef.value?.$el || trackListsRef.value) as HTMLElement;
         const trak = trakList.children[i].children[j] as HTMLElement;
-        mtrak = new MouseCtl(trak);
+
+        let mtrak = mtraks[i][j];
+        if (!mtrak) mtraks[i][j] = mtrak = new MouseCtl(trak);
+
+        const currentlist = lists.value[i];
+
+        const searchIdx = (list: TrackItem[], dx: number, idx: number) => {
+          if (dx > 0) {
+            while (list[idx + 1] && dx > offset) {
+              dx -= list[idx + 1].width;
+              dx = dx > 0 ? dx : 0;
+              idx++;
+            }
+          }
+          if (dx < 0) {
+            while (list[idx - 1] && dx < -list[idx - 1].width / 2) {
+              dx += list[idx - 1].width;
+              dx = dx < 0 ? dx : 0;
+              idx--;
+            }
+          }
+          return idx;
+        };
+
+        const swapMainTrack = (list: TrackItem[], dx: number, j: number) => {
+          if (!isMain.value || list[j] !== track) return;
+
+          // index in dragging
+          const idx = searchIdx(list, dx, j);
+
+          if (dx > 0) {
+            for (let k = j + 1; k < list.length; k++) {
+              if (k < idx + 1) {
+                list[k].marginLeft = -list[j].width;
+                if (k === idx) list[k].marginRight = list[j].width;
+                shadowDx.value += list[k].width;
+              } else {
+                list[k].marginLeft = 0;
+                list[k].marginRight = 0;
+              }
+            }
+          }
+
+          if (dx < 0) {
+            for (let k = j - 1; k >= 0; k--) {
+              if (k > idx - 1) {
+                list[k].marginRight = -list[j].width;
+                if (k === idx) list[k].marginLeft = list[j].width;
+                shadowDx.value -= list[k].width;
+                shadowDx.value -= list[j].width;
+              } else {
+                list[k].marginLeft = 0;
+                list[k].marginRight = 0;
+              }
+            }
+          }
+        };
+
+        const updateMainOrder = (list: TrackItem[], dx: number, j: number) => {
+          if (!isMain.value || list[j] !== track) return;
+
+          for (const trak of list) {
+            trak.marginRight = 0;
+            trak.marginLeft = 0;
+          }
+
+          const idx = searchIdx(list, dx, j);
+          const sign = dx > 0 ? 1 : 0;
+          list.splice(idx + sign, 0, list[j]);
+          list.splice(j + 1 - sign, 1);
+          0 && swap<TrackItem>(currentlist, idx, j);
+        };
+
         mtrak.moveCallback = function () {
           if (!canDrag.value) return;
 
@@ -213,17 +292,16 @@
           let dy = this.y - this.lastY;
           const style = getComputedStyle(this.element);
           const left = parseInt(style.left) + dx;
+          shadowDx.value = isMain.value ? 0 : left;
 
-          shadowDx.value = left;
+          swapMainTrack(currentlist, left, j);
+
           this.element.style.left = `${left}px`;
           this.element.style.top = `${parseInt(style.top) + dy}px`;
           this.element.style.zIndex = '10';
         };
 
         mtrak.upCallback = function () {
-          const { i, j } = draggedIdxs;
-          if (i === -1 || j === -1) return;
-
           const l = track.marginLeft;
           let r = 1920 - track.width;
           const nextTrak = lists.value[i][j + 1];
@@ -231,19 +309,24 @@
 
           let dx = parseInt(this.element.style.left);
           dx = Number.isNaN(dx) ? 0 : dx;
+
+          updateMainOrder(currentlist, dx, j);
+
           dx = dx < 0 ? (dx < -l ? -l : dx) : dx > r ? r : dx;
+          dx = isMain.value ? 0 : dx;
 
           track.marginLeft = l + dx;
           if (nextTrak) nextTrak.marginLeft -= dx;
 
           shadowDx.value = 0;
-          this.element.style.left = '0';
-          this.element.style.top = '0';
-          this.element.style.zIndex = '0';
-          draggedIdxs.i = -1;
-          draggedIdxs.j = -1;
+          this.element.style.left = '0px';
+          this.element.style.top = '';
+          this.element.style.zIndex = '';
+          activeIdxs.i = -1;
+          activeIdxs.j = -1;
         };
       };
+
       const onClickOutside = (track: TrackItem) => {
         track.active = false;
       };
@@ -263,7 +346,10 @@
                   `track-item-${track.type}`,
                   track.active ? 'border-white border' : '',
                 ]}
-                style={`flex:0 0 ${track.width}px; margin-left: ${track.marginLeft}px;`}
+                style={`flex:0 0 ${track.width}px;
+                margin-left: ${track.marginLeft}px;
+                margin-right: ${track.marginRight}px;
+                `}
                 onPointerdown={(e: MouseEvent) => onTrackDown(e, track, i, j)}
                 v-clickOutside={() => onClickOutside(track)}
               >
@@ -273,9 +359,9 @@
               </div>
             );
           })}
-          {draggedIdxs.i === i ? (
+          {activeIdxs.i === i ? (
             <div
-              class="shadow absolute rounded-sm m-px px-1 bg-gray-100 opacity-5 h-full"
+              class="shadow absolute rounded-sm m-px px-1 bg-gray-300 opacity-10 h-full"
               style={`width: ${Number(activeTrak.value?.width)}px;
               top:0; left: ${shadowLeft.value + shadowDx.value}px;`}
             ></div>

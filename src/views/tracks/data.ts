@@ -2,18 +2,19 @@ import type { AudioTrackItem, TrackItem, VideoTrackItem } from '#/track';
 
 import { FireFilled, FilterOutlined } from '@ant-design/icons-vue';
 
-export const mainList = (): VideoTrackItem => ({
+export const mainList = (name = 'bbb', duration = '00:10:34:17'): VideoTrackItem => ({
   id: '',
   type: 'video',
-  trackName: 'bbb.mp4',
+  trackName: `${name}.mp4`,
   src: '/media/bbb.mp4',
-  duration: '00:10:34:17',
+  duration,
   cover: ['cover'],
   width: 200,
   offset: 600,
   start: 0,
   end: 0,
   marginLeft: 200,
+  marginRight: 0,
 });
 
 export const audioTrack = (): AudioTrackItem => ({
@@ -27,6 +28,7 @@ export const audioTrack = (): AudioTrackItem => ({
   start: 0,
   end: 0,
   marginLeft: 200,
+  marginRight: 0,
 });
 
 export const txtTrack = (width = 50, left = 200): TrackItem => ({
@@ -39,6 +41,7 @@ export const txtTrack = (width = 50, left = 200): TrackItem => ({
   start: 0,
   end: 0,
   marginLeft: left,
+  marginRight: 0,
 });
 
 export const spriteTrack = (): TrackItem => ({
@@ -52,6 +55,7 @@ export const spriteTrack = (): TrackItem => ({
   start: 0,
   end: 0,
   marginLeft: 200,
+  marginRight: 0,
 });
 export const stickerTrack = (): TrackItem => ({
   id: '',
@@ -64,6 +68,7 @@ export const stickerTrack = (): TrackItem => ({
   start: 0,
   end: 0,
   marginLeft: 200,
+  marginRight: 0,
 });
 
 export const filterTrack = (): TrackItem => ({
@@ -77,6 +82,7 @@ export const filterTrack = (): TrackItem => ({
   start: 0,
   end: 0,
   marginLeft: 200,
+  marginRight: 0,
 });
 
 // export const list = [[]];

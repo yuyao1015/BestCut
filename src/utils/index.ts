@@ -113,3 +113,9 @@ export function deepCopy<T>(obj: T, cache: { original: any; copy: any }[] = []):
 
   return copy;
 }
+
+export function swap<T>(arr: T[], i: number, j: number): void {
+  const tmp = arr[i];
+  arr[i] = arr[j];
+  arr[j] = tmp;
+}

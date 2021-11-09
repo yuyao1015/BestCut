@@ -6,19 +6,22 @@
         size === '' ? 'h-20 w-36' : 'h-14 w-28',
         resource.active ? 'active-border' : '',
       ]"
-      ref="resourceItem"
+      ref="resourceRef"
       @click="play"
       v-click-outside:[exclude]="onClickOutside"
+      draggable="true"
+      @dragstart="dragstart"
+      @dragenter="dragenter"
     >
       <div
         v-if="resource.active"
         class="timeline-locator absolute rounded-md h-full w-px bg-yellow-500 top-0 z-10"
         :style="{ left: `${ratio}%` }"
-      />
+      ></div>
 
       <div class="resource-content overflow-hidden absolute h-full w-full">
         <div v-if="resource.type === 'audio'" class="h-full flex items-center">
-          <img class="rounded-md h-5/6 w-2/5 ml-2 mr-1" :src="resource.cover" />
+          <img class="rounded-md h-5/6 w-2/5 ml-2 mr-1" draggable="false" :src="resource.cover" />
           <div class="text-xs flex flex-col justify-between h-5/6">
             <div>
               <div style="color: #999">{{ resource.album }}</div>
@@ -29,7 +32,7 @@
             </div>
           </div>
         </div>
-        <img v-else class="h-full w-full rounded-md" :src="resource.cover" />
+        <img v-else class="h-full w-full rounded-md" draggable="false" :src="resource.cover" />
       </div>
 
       <!-- tl referenced -->
@@ -160,15 +163,15 @@
       );
 
       const isLoading = ref(false);
-      const resourceItem = ref<HTMLElement>();
+      const resourceRef = ref<HTMLElement | null>(null);
       const play = (e: MouseEvent) => {
         resourceStore.setResource(props.resource);
         if (usable.value) {
           const id = 'preview-canvas';
           if (playerStore.playing && playerStore.player.id === id) {
-            if (!resourceItem.value) return;
-            const left = resourceItem.value?.getBoundingClientRect().left || 0;
-            const width = parseInt(getComputedStyle(resourceItem.value).width);
+            if (!resourceRef.value) return;
+            const left = resourceRef.value?.getBoundingClientRect().left || 0;
+            const width = parseInt(getComputedStyle(resourceRef.value).width);
             const w = e.pageX - left - scrollX;
             const ratio = w / width;
             playerStore.jumpTo(ratio);
@@ -207,9 +210,22 @@
           exclude.value = [preview, ...Array.from(splitters)];
         }
       });
+
+      // TODO: second mp4 don't work
       const onClickOutside = () => {
         if (active.value) playerStore.player.stop();
         if (resourceStore.resource) resourceStore.setResource(undefined);
+      };
+
+      const dragstart = (e: DragEvent) => {
+        // e.dataTransfer?.setData('resource', JSON.stringfy(props.resource));
+        console.log(e.target);
+        // const tracks = document.getElementById('tracks-wrapper') as HTMLElement;
+      };
+      const dragenter = (e: DragEvent) => {
+        if ((e.target as HTMLElement).id == 'tracks-wrapper') {
+          console.log(e.target);
+        }
       };
 
       return {
@@ -218,10 +234,12 @@
         ratio,
         active,
         exclude,
-        resourceItem,
+        resourceRef,
         play,
         onClickOutside,
         onChecked,
+        dragstart,
+        dragenter,
       };
     },
   });

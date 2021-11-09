@@ -16,7 +16,7 @@
         <div
           ref="tracksWrapperRef"
           id="tracks-wrapper"
-          class="tracks-wrapper absolute h-full w-full"
+          class="tracks-wrapper absolute h-full w-full select-none"
         >
           <div
             ref="tracksRef"
@@ -103,7 +103,16 @@
 
       const trackLists = reactive<TrackState>({
         video: videoList,
-        main: [mainList(), mainList()],
+        main: [
+          mainList('aaa', '00:05:30:20'),
+          mainList('bbb'),
+          mainList('ccc', '00:05:30:20'),
+          mainList('ddd'),
+          mainList('eee', '00:05:30:20'),
+          mainList('fff'),
+          mainList('ggg', '00:05:30:20'),
+          mainList('hhh'),
+        ],
         audio: audioList,
       });
 

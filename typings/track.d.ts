@@ -14,6 +14,7 @@ type ItemRequired = {
   start: number;
   end: number;
   marginLeft: number; // pixel
+  marginRight: number; // pixel
 };
 
 type Item = Partial<ItemOptional> & ItemRequired;
