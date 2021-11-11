@@ -119,3 +119,9 @@ export function swap<T>(arr: T[], i: number, j: number): void {
   arr[i] = arr[j];
   arr[j] = tmp;
 }
+
+export function getShapedArrary<T>(lists: T[][], value: any) {
+  return new Array(lists.length).fill([]).map((arr, i) => {
+    return arr.concat(...new Array(lists[i].length).fill(value));
+  });
+}

@@ -26,7 +26,7 @@
     </template>
 
     <template #config>
-      <SectionBox :title="t('components.config')"></SectionBox>
+      <ConfigPanel />
     </template>
 
     <template #track>
@@ -46,6 +46,7 @@
   import Preview from '@/views/preview/index.vue';
   import ResourceBox from '@/views/resource/index.vue';
   import Tracks from '@/views/tracks/index.vue';
+  import ConfigPanel from '@/views/config-panel/index.vue';
 
   import { useI18n } from '@/hooks/useI18n';
 
@@ -59,6 +60,7 @@
       Preview,
       ResourceBox,
       Tracks,
+      ConfigPanel,
       ExportOutlined,
     },
     emits: [],

@@ -29,6 +29,7 @@
               ref="mainTrackRef"
               :class="['main-container flex items-center', isSticky ? 'sticky-track' : '']"
               :lists="[trackLists.main]"
+              :isMute="isMute"
             >
               <div class="text-lg w-full h-full rounded-xl flex items-center justify-center">
                 <div
@@ -36,8 +37,8 @@
                   :style="'border: 5px solid #313135; background-color: #464649'"
                   @click="onMute"
                 >
-                  <SoundFilled v-if="isMute" />
-                  <NotificationFilled v-else />
+                  <AudioMutedOutlined v-if="isMute" />
+                  <SoundFilled v-else />
                 </div>
               </div>
             </TrackContainer>
@@ -56,7 +57,7 @@
 
   import { defineComponent, ref, onMounted, watch, reactive, nextTick } from 'vue';
 
-  import { SoundFilled, NotificationFilled } from '@ant-design/icons-vue';
+  import { SoundFilled, AudioMutedOutlined } from '@ant-design/icons-vue';
 
   import SectionBox from '@/layouts/SectionBox.vue';
   import TrackContainer from './TrackContainer.vue';
@@ -88,7 +89,7 @@
       TimeLine,
       TrackContainer,
       SoundFilled,
-      NotificationFilled,
+      AudioMutedOutlined,
     },
     props: {
       prop: {

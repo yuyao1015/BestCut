@@ -9,7 +9,6 @@ type SupportedEvents = string;
 
 type MouseCallback = (e: MouseEvent) => void;
 
-const px2n = (px: string) => +px.slice(0, px.length - 2);
 export class MouseCtl {
   x = 0;
   y = 0;
@@ -52,8 +51,8 @@ export class MouseCtl {
       const { top, left, position } = style;
 
       if (position === 'static') 'position required';
-      this.element.style.left = `${px2n(left) + dx}px`;
-      this.element.style.top = `${px2n(top) + dy}px`;
+      this.element.style.left = `${parseInt(left) + dx}px`;
+      this.element.style.top = `${parseInt(top) + dy}px`;
     };
   }
 
@@ -75,6 +74,7 @@ export class MouseCtl {
     this.shift = e.shiftKey;
     this.ctrl = e.ctrlKey;
     if (t === 'mousedown') {
+      console.log('down');
       this.buttonRaw |= this.buttonOnMasks[e.buttons - 1];
       this.downCallback(e);
       this.addEventListener(['mousemove', 'mouseup'], '');

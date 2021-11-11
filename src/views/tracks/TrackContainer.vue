@@ -9,7 +9,7 @@
   import { MouseCtl } from '@/logic/mouse';
 
   import { trackHeadWidth } from '@/settings/componentSetting';
-  import { swap } from '@/utils';
+  import { getShapedArrary, swap } from '@/utils';
 
   const offset = 20;
 
@@ -23,9 +23,9 @@
         type: Array as PropType<TrackItem[][]>,
         default: () => [],
       },
-      calcWidth: {
-        type: Function,
-        default: () => {},
+      isMute: {
+        type: Boolean,
+        default: false,
       },
     },
     emits: [],
@@ -36,17 +36,17 @@
       });
 
       const getTrackHead = (track: TrackItem) => {
-        const head = [track.trackName, track.duration];
-        if (isMain.value && track.type === 'video') head.unshift('已静音');
-        return head;
+        return [track.trackName, track.duration];
       };
 
       const video = (track: VideoTrackItem) => (
         <div class="h-full w-full">
           <div class="track-item-head">
-            {getTrackHead(track).map((title) => (
-              <span class="track-item-title">{title}</span>
-            ))}
+            {(props.isMute ? ['已静音', ...getTrackHead(track)] : getTrackHead(track)).map(
+              (title) => (
+                <span class="track-item-title">{title}</span>
+              )
+            )}
           </div>
           <div class="h-10">cover</div>
           <div class="h-5">foot wave</div>
@@ -88,13 +88,15 @@
       const canDrag = ref(true);
       const trackLeftRef = ref<ComponentPublicInstance | null>(null);
       const trackRightRef = ref<ComponentPublicInstance | null>(null);
-      let ml: MouseCtl | null = null;
-      let mr: MouseCtl | null = null;
-      const onTrackLeft = (e: MouseEvent, track: TrackItem) => {
+      const mls: (MouseCtl | null)[][] = getShapedArrary(lists.value, null);
+      const mrs: (MouseCtl | null)[][] = getShapedArrary(lists.value, null);
+      const onTrackLeft = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
         e.stopPropagation();
         canDrag.value = false;
+
         const left = (trackLeftRef.value?.$el || trackLeftRef.value) as HTMLElement;
-        ml = new MouseCtl(left);
+        let ml = mls[i][j];
+        if (!ml) mls[i][j] = ml = new MouseCtl(left);
         const { marginLeft } = track;
 
         ml.moveCallback = function () {
@@ -102,35 +104,38 @@
           if (dx < 0 && ['video', 'audio'].includes(track.type)) {
             dx = dx < marginLeft - track.marginLeft ? marginLeft - track.marginLeft : dx;
           }
-          dx = track.width - dx < 20 ? 0 : dx;
+          dx = track.width - dx < offset ? 0 : dx;
           track.start += dx; // TODO: map
           track.marginLeft += dx;
           track.width -= dx;
         };
 
-        ml.upCallback = function () {
+        ml.upCallback = () => {
           canDrag.value = true;
         };
       };
 
-      const onTrackRight = (e: MouseEvent, track: TrackItem) => {
+      const onTrackRight = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
         e.stopPropagation();
         canDrag.value = false;
+
         const right = (trackRightRef.value?.$el || trackRightRef.value) as HTMLElement;
-        mr = new MouseCtl(right);
+        let mr = mrs[i][j];
+        if (!mr) mrs[i][j] = mr = new MouseCtl(right);
+
         const { width } = track;
         mr.moveCallback = function () {
           let dx = this.x - this.lastX;
           if (dx > 0 && ['video', 'audio'].includes(track.type)) {
             dx = dx > width - track.width ? width - track.width : dx;
           }
-          dx = track.width - dx < 20 ? 0 : dx;
+          dx = track.width - dx < offset ? 0 : dx;
 
           track.end += dx; //
           track.width += dx;
         };
 
-        mr.upCallback = function () {
+        mr.upCallback = () => {
           canDrag.value = true;
         };
       };
@@ -138,29 +143,27 @@
       const offTrackLeft = (e: MouseEvent) => {
         e.stopPropagation();
         canDrag.value = true;
-        if (ml) ml.moveCallback = () => {};
       };
       const offTrackRight = (e: MouseEvent) => {
         e.stopPropagation();
         canDrag.value = true;
-        if (mr) mr.moveCallback = () => {};
       };
 
-      const trackBorder = (track: TrackItem) =>
+      const trackBorder = (track: TrackItem, i: number, j: number) =>
         track.active ? (
           <div class="absolute w-full h-full top-0 left-0">
             <div
               ref={trackLeftRef}
-              onPointerover={(e: MouseEvent) => onTrackLeft(e, track)}
-              onPointerleave={(e: MouseEvent) => offTrackLeft(e)}
+              onPointerdown={(e: MouseEvent) => onTrackLeft(e, track, i, j)}
+              onPointerup={(e: MouseEvent) => offTrackLeft(e)}
               class="track-scale track-scale-left -left-0"
             >
               <MoreOutlined class="absolute -left-1 w-2" />
             </div>
             <div
               ref={trackRightRef}
-              onPointerover={(e: MouseEvent) => onTrackRight(e, track)}
-              onPointerleave={(e: MouseEvent) => offTrackRight(e)}
+              onPointerdown={(e: MouseEvent) => onTrackRight(e, track, i, j)}
+              onPointerup={(e: MouseEvent) => offTrackRight(e)}
               class="track-scale  track-scale-right right-0"
             >
               <MoreOutlined class="absolute -right-1" />
@@ -173,11 +176,7 @@
       /*
         lists
       */
-
-      const mtraks: (MouseCtl | null)[][] = new Array(lists.value.length).fill([]).map((arr, i) => {
-        return arr.concat(...new Array(lists.value[i].length).fill(null));
-      });
-
+      const mtraks: (MouseCtl | null)[][] = getShapedArrary(lists.value, null);
       const trackListsRef = ref<ComponentPublicInstance | null>(null);
       const activeTrak = ref<null | TrackItem>(null);
       const activeIdxs = reactive({ i: -1, j: -1 });
@@ -194,7 +193,7 @@
         const { i, j } = activeIdxs;
         const currentlist = lists.value[i];
         let l = currentlist.slice(0, j).reduce((l, trak) => (l += trak.width + trak.marginLeft), 0);
-        return l + currentlist[j].marginLeft;
+        return Math.max(l + currentlist[j].marginLeft + shadowDx.value, 0);
       });
 
       const isListActive = (tracks: TrackItem[]) => {
@@ -218,7 +217,7 @@
 
         const currentlist = lists.value[i];
 
-        const searchIdx = (list: TrackItem[], dx: number, idx: number) => {
+        const searchMainIdx = (list: TrackItem[], dx: number, idx: number) => {
           if (dx > 0) {
             while (list[idx + 1] && dx > offset) {
               dx -= list[idx + 1].width;
@@ -237,10 +236,10 @@
         };
 
         const swapMainTrack = (list: TrackItem[], dx: number, j: number) => {
-          if (!isMain.value || list[j] !== track) return;
+          if (!isMain.value) return;
 
           // index in dragging
-          const idx = searchIdx(list, dx, j);
+          const idx = searchMainIdx(list, dx, j);
 
           if (dx > 0) {
             for (let k = j + 1; k < list.length; k++) {
@@ -271,14 +270,14 @@
         };
 
         const updateMainOrder = (list: TrackItem[], dx: number, j: number) => {
-          if (!isMain.value || list[j] !== track) return;
+          if (!isMain.value) return;
 
           for (const trak of list) {
             trak.marginRight = 0;
             trak.marginLeft = 0;
           }
 
-          const idx = searchIdx(list, dx, j);
+          const idx = searchMainIdx(list, dx, j);
           const sign = dx > 0 ? 1 : 0;
           list.splice(idx + sign, 0, list[j]);
           list.splice(j + 1 - sign, 1);
@@ -355,7 +354,7 @@
               >
                 {trackMap[track.type as keyof typeof trackMap](track)}
 
-                {trackBorder(track)}
+                {trackBorder(track, i, j)}
               </div>
             );
           })}
@@ -363,7 +362,7 @@
             <div
               class="shadow absolute rounded-sm m-px px-1 bg-gray-300 opacity-10 h-full"
               style={`width: ${Number(activeTrak.value?.width)}px;
-              top:0; left: ${shadowLeft.value + shadowDx.value}px;`}
+              top:0; left: ${shadowLeft.value}px;`}
             ></div>
           ) : (
             ''
