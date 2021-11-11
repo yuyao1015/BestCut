@@ -74,7 +74,6 @@ export class MouseCtl {
     this.shift = e.shiftKey;
     this.ctrl = e.ctrlKey;
     if (t === 'mousedown') {
-      console.log('down');
       this.buttonRaw |= this.buttonOnMasks[e.buttons - 1];
       this.downCallback(e);
       this.addEventListener(['mousemove', 'mouseup'], '');

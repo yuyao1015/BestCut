@@ -31,16 +31,16 @@ export const audioTrack = (): AudioTrackItem => ({
   marginRight: 0,
 });
 
-export const txtTrack = (width = 50, left = 200): TrackItem => ({
+export const txtTrack = (offset = 200, duration = '03:00'): TrackItem => ({
   id: '',
   type: 'text',
   trackName: '默认文本',
-  duration: '03:00',
-  width: width,
-  offset: 300,
+  duration,
+  width: 200,
+  offset,
   start: 0,
   end: 0,
-  marginLeft: left,
+  marginLeft: 200,
   marginRight: 0,
 });
 
@@ -89,7 +89,7 @@ export const filterTrack = (): TrackItem => ({
 // export const list = [[mainTrack(), mainTrack()]];
 export const videoList = [
   [filterTrack()],
-  [txtTrack(), txtTrack(), txtTrack(), txtTrack()],
+  [txtTrack(300, '02:00'), txtTrack(150, '03:00'), txtTrack(400, '04:00'), txtTrack(100, '01:30')],
   [spriteTrack()],
   [spriteTrack()],
   [stickerTrack()],

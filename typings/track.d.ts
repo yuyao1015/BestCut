@@ -9,10 +9,10 @@ type ItemOptional = {
 };
 
 type ItemRequired = {
-  width: number;
-  offset: number; // second
   start: number;
   end: number;
+  width: number; // pixel
+  offset: number; // second
   marginLeft: number; // pixel
   marginRight: number; // pixel
 };

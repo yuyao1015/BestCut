@@ -83,8 +83,8 @@
       };
 
       /*
-        border
-      */
+          border
+        */
       const canDrag = ref(true);
       const trackLeftRef = ref<ComponentPublicInstance | null>(null);
       const trackRightRef = ref<ComponentPublicInstance | null>(null);
@@ -174,8 +174,8 @@
         );
 
       /*
-        lists
-      */
+          lists
+        */
       const mtraks: (MouseCtl | null)[][] = getShapedArrary(lists.value, null);
       const trackListsRef = ref<ComponentPublicInstance | null>(null);
       const activeTrak = ref<null | TrackItem>(null);
@@ -236,8 +236,6 @@
         };
 
         const swapMainTrack = (list: TrackItem[], dx: number, j: number) => {
-          if (!isMain.value) return;
-
           // index in dragging
           const idx = searchMainIdx(list, dx, j);
 
@@ -270,8 +268,6 @@
         };
 
         const updateMainOrder = (list: TrackItem[], dx: number, j: number) => {
-          if (!isMain.value) return;
-
           for (const trak of list) {
             trak.marginRight = 0;
             trak.marginLeft = 0;
@@ -284,6 +280,55 @@
           0 && swap<TrackItem>(currentlist, idx, j);
         };
 
+        const searchIdx = (list: TrackItem[], dx: number, idx: number) => {
+          let overlap = false;
+          const { width } = list[idx];
+          if (dx > 0) {
+            while (list[idx + 1] && dx >= list[idx + 1].marginLeft + list[idx + 1].width + width) {
+              dx -= list[idx + 1].marginLeft + list[idx + 1].width;
+              dx = dx > 0 ? dx : 0;
+              idx++;
+            }
+            if (list[idx + 1] && dx > list[idx + 1].marginLeft) overlap = true;
+          }
+          if (dx < 0) {
+            while (list[idx - 1] && dx <= -list[idx - 1].width - list[idx].marginLeft - width) {
+              dx += list[idx - 1].width + list[idx].marginLeft;
+              dx = dx < 0 ? dx : 0;
+              idx--;
+            }
+            if (dx < -list[idx].marginLeft) overlap = true;
+          }
+
+          return { idx, overlap, clippedDx: dx };
+        };
+
+        const updateOrder = (list: TrackItem[], dx: number, j: number) => {
+          const { idx, overlap, clippedDx } = searchIdx(list, dx, j);
+          if (overlap) return;
+
+          // no swap
+          if (idx === j) {
+            list[j].marginLeft += clippedDx;
+            if (list[j + 1]) list[j + 1].marginLeft -= clippedDx;
+          } else {
+            if (list[j + 1]) list[j + 1].marginLeft += list[j].width + list[j].marginLeft;
+
+            if (dx > 0) {
+              list[j].marginLeft = clippedDx - list[j].width;
+              if (list[idx + 1]) list[idx + 1].marginLeft -= clippedDx;
+            }
+            if (dx < 0) {
+              list[j].marginLeft = list[idx].marginLeft + clippedDx;
+              list[idx].marginLeft -= list[j].marginLeft + list[j].width;
+            }
+          }
+
+          const sign = dx > 0 ? 1 : 0;
+          list.splice(idx + sign, 0, list[j]);
+          list.splice(j + 1 - sign, 1);
+        };
+
         mtrak.moveCallback = function () {
           if (!canDrag.value) return;
 
@@ -291,9 +336,14 @@
           let dy = this.y - this.lastY;
           const style = getComputedStyle(this.element);
           const left = parseInt(style.left) + dx;
-          shadowDx.value = isMain.value ? 0 : left;
+          shadowDx.value = 0;
 
-          swapMainTrack(currentlist, left, j);
+          if (isMain.value) {
+            swapMainTrack(currentlist, left, j);
+          } else {
+            shadowDx.value = left;
+            searchIdx(currentlist, left, j);
+          }
 
           this.element.style.left = `${left}px`;
           this.element.style.top = `${parseInt(style.top) + dy}px`;
@@ -309,13 +359,14 @@
           let dx = parseInt(this.element.style.left);
           dx = Number.isNaN(dx) ? 0 : dx;
 
-          updateMainOrder(currentlist, dx, j);
+          if (isMain.value) {
+            updateMainOrder(currentlist, dx, j);
+          } else {
+            updateOrder(currentlist, dx, j);
+          }
 
           dx = dx < 0 ? (dx < -l ? -l : dx) : dx > r ? r : dx;
           dx = isMain.value ? 0 : dx;
-
-          track.marginLeft = l + dx;
-          if (nextTrak) nextTrak.marginLeft -= dx;
 
           shadowDx.value = 0;
           this.element.style.left = '0px';
@@ -346,9 +397,9 @@
                   track.active ? 'border-white border' : '',
                 ]}
                 style={`flex:0 0 ${track.width}px;
-                margin-left: ${track.marginLeft}px;
-                margin-right: ${track.marginRight}px;
-                `}
+                  margin-left: ${track.marginLeft}px;
+                  margin-right: ${track.marginRight}px;
+                  `}
                 onPointerdown={(e: MouseEvent) => onTrackDown(e, track, i, j)}
                 v-clickOutside={() => onClickOutside(track)}
               >
@@ -362,7 +413,7 @@
             <div
               class="shadow absolute rounded-sm m-px px-1 bg-gray-300 opacity-10 h-full"
               style={`width: ${Number(activeTrak.value?.width)}px;
-              top:0; left: ${shadowLeft.value}px;`}
+                top:0; left: ${shadowLeft.value}px;`}
             ></div>
           ) : (
             ''

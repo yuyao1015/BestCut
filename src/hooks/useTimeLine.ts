@@ -126,7 +126,7 @@ export default (duration: number, fps: number) => {
       w = track.width ? track.width : 50;
     } else {
       const s = durationString2Sec(track.duration) / unit;
-      w = (s - 1) * step;
+      w = s * step;
     }
     const ml = track.offset ? (track.offset / unit) * step : 0;
 
