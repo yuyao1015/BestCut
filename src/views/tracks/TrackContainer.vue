@@ -1,6 +1,6 @@
 <script lang="tsx">
   import type { AudioTrackItem, TrackItem, VideoTrackItem } from '#/track';
-  import type { ComponentPublicInstance } from 'vue';
+  import { ComponentPublicInstance } from 'vue';
 
   import { computed, h, defineComponent, PropType, ref, watch } from 'vue';
   import { MoreOutlined } from '@ant-design/icons-vue';
@@ -316,9 +316,11 @@
         if (!isMain.value && list[j + 1])
           list[j + 1].marginLeft += list[j].marginLeft + list[j].width;
         list.splice(j, 1);
+        if (list.length === 0) lists.splice(i, 1);
       };
 
       const onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
+        console.log('==== onTrackDown');
         e.stopPropagation();
         draggedIdxs.value = { i, j };
         activeIdxs.value = { i, j };
@@ -329,12 +331,13 @@
         const trakLists = (trackListsRef.value?.$el || trackListsRef.value) as HTMLElement;
         const trak = trakLists.children[i].children[j] as HTMLElement;
 
+        // debugger;
+
         let mtrak = mtraks[i][j];
         if (!mtrak) mtraks[i][j] = mtrak = new MouseCtl(trak);
 
         const currentlist = lists.value[i];
 
-        let tid: any;
         mtrak.moveCallback = function () {
           if (!canDrag.value) return;
 
@@ -342,19 +345,16 @@
           let dy = this.y - this.lastY;
           const style = getComputedStyle(this.element);
           const left = parseInt(style.left) + dx;
+          shadowDx.value = 0;
 
           const sign = dy > 0 ? 1 : -1;
           if (sign * dy > track.width / 3) {
             console.log('vertical');
           }
 
-          if (tid) clearTimeout(tid);
           if (dx === 0 && dy === 0) {
-            tid = setTimeout(() => {
-              console.log('hover');
-            }, 300);
+            //
           }
-
           if (isMain.value) {
             swapMainTrack(currentlist, left, j);
           } else {
@@ -377,7 +377,6 @@
             updateOrder(currentlist, dx, j);
           }
 
-          if (tid) clearTimeout(tid);
           this.element.style.left = '0px';
           this.element.style.top = '';
           this.element.style.zIndex = '';
@@ -412,12 +411,31 @@
       const { onShortcut, offShortcut } = shortcutEvent();
 
       const onClickOutside = (track: TrackItem) => {
+        console.log('==== outside');
         if (track.active) {
           track.active = false;
+          activeIdxs.value = NO_SELECT;
           window.removeEventListener('keydown', onShortcut);
           window.removeEventListener('keyup', offShortcut);
         }
       };
+
+      const requestNewList = () => {
+        let tid: any;
+
+        return {
+          cancel: () => {
+            if (tid) clearTimeout(tid);
+          },
+          createNewList: () => {
+            tid = setTimeout(() => {
+              console.log('hover');
+            }, 300);
+          },
+        };
+      };
+      requestNewList();
+      const newListLineRowIdx = ref(1);
 
       const trackList = (tracks: TrackItem[], i: number) => (
         <div
@@ -439,7 +457,12 @@
                   margin-right: ${track.marginRight}px;
                   `}
                 onPointerdown={(e: MouseEvent) => onTrackDown(e, track, i, j)}
-                v-clickOutside={() => onClickOutside(track)}
+                // v-clickOutside={() => onClickOutside(track)}
+                v-clickOutside={
+                  activeIdxs.value.i === i && activeIdxs.value.j === j
+                    ? () => onClickOutside(track)
+                    : () => {}
+                }
               >
                 {trackMap[track.type as keyof typeof trackMap](track)}
 
@@ -457,6 +480,10 @@
           ) : (
             ''
           )}
+
+          {newListLineRowIdx.value === i ? (
+            <div class="new-list-line absolute w-full h-0.5 top-0 left-0"></div>
+          ) : null}
         </div>
       );
 
@@ -556,6 +583,12 @@
     &-right {
       cursor: ew-resize;
     }
+  }
+
+  .new-list-line {
+    background: #276161;
+    transform: translateY(-0.6rem);
+    z-index: 11;
   }
 </style>
 

@@ -1,7 +1,10 @@
 <template>
   <SectionBox :title="title">
     <template #content>
-      <div class="h-20 w-20 bg-red-200" v-click-outside="outside"></div>
+      <div class="h-20 w-20 relative">
+        <div class="new-list-line absolute w-full h-0.5 bottom-0 left-0"></div>
+        <div class="h-20 w-20 bg-red-200" v-click-outside="outside"></div>
+      </div>
     </template>
   </SectionBox>
 </template>
@@ -42,6 +45,9 @@
   });
 </script>
 
-<style>
-  /* 1 */
+<style scoped>
+  .new-list-line {
+    background: #276161;
+    transform: translateY(0.6rem);
+  }
 </style>
