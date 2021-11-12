@@ -114,40 +114,22 @@
         if (e.code === 'Space') {
           e.preventDefault();
           pauseResume();
-        } else if (e.code == 'ArrowLeft') {
+        } else if (e.code === 'ArrowLeft') {
           playerStore.prev();
-        } else if (e.code == 'ArrowRight') {
+        } else if (e.code === 'ArrowRight') {
           playerStore.next();
-        } else if (e.code == 'Escape') {
+        } else if (e.code === 'Escape') {
           clickFullScreen();
         }
       };
 
-      const panelVisiable = ref(false);
-      const showPanel = () => {
-        if (!isInFullScreen.value) return;
-        panelVisiable.value = true;
-        // setTimeout(() => {
-        //   panelVisiable.value = false;
-        // }, 3000);
-      };
-
-      const percent = computed(() => +playerStore.ratio);
-      const jumpTo = (value: number) => {
-        playerStore.jumpTo(value / 100);
-      };
-
-      onMounted(() => {
-        window.addEventListener('keydown', shortcut);
-        window.addEventListener('mousemove', showPanel);
-        const preview = document.getElementById('preview-box') as HTMLDivElement;
-        preview.addEventListener('fullscreenchange', fullScreen);
+      watch(active, (val: boolean) => {
+        if (val) window.addEventListener('keydown', shortcut);
+        else window.removeEventListener('keydown', shortcut);
       });
-      onUnmounted(() => {
-        window.removeEventListener('keydown', shortcut);
-        window.removeEventListener('mousemove', showPanel);
-        const preview = document.getElementById('preview-box') as HTMLDivElement;
-        preview.removeEventListener('fullscreenchange', fullScreen);
+      watch(isInFullScreen, (val: boolean) => {
+        if (val) window.addEventListener('mousemove', showPanel);
+        else window.removeEventListener('mousemove', showPanel);
       });
 
       const canvas = () => <canvas id="preview-canvas" class="mx-auto bg-black" />;
@@ -158,6 +140,13 @@
         </div>
       );
 
+      /*
+          footer panel
+        */
+      const percent = computed(() => +playerStore.ratio);
+      const jumpTo = (value: number) => {
+        playerStore.jumpTo(value / 100);
+      };
       const footer = () => (
         <div
           id="preview-panel"
@@ -221,6 +210,23 @@
         </div>
       );
 
+      onMounted(() => {
+        const preview = document.getElementById('preview-box') as HTMLDivElement;
+        preview.addEventListener('fullscreenchange', fullScreen);
+      });
+      onUnmounted(() => {
+        const preview = document.getElementById('preview-box') as HTMLDivElement;
+        preview.removeEventListener('fullscreenchange', fullScreen);
+      });
+
+      const panelVisiable = ref(false);
+      const showPanel = () => {
+        if (!isInFullScreen.value) return;
+        panelVisiable.value = true;
+        setTimeout(() => {
+          panelVisiable.value = false;
+        }, 3000);
+      };
       return () => (
         <div id="preview-box" class={'h-full w-full'}>
           {isInFullScreen.value ? (

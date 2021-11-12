@@ -211,7 +211,6 @@
         }
       });
 
-      // TODO: second mp4 don't work
       const onClickOutside = () => {
         if (active.value) playerStore.player.stop();
         if (resourceStore.resource) resourceStore.setResource(undefined);

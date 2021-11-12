@@ -55,7 +55,7 @@
   import type { ComponentPublicInstance } from 'vue';
   import type { TrackItem } from '#/track';
 
-  import { defineComponent, ref, onMounted, watch, reactive, nextTick } from 'vue';
+  import { defineComponent, ref, onMounted, onUnmounted, watch, reactive, nextTick } from 'vue';
 
   import { SoundFilled, AudioMutedOutlined } from '@ant-design/icons-vue';
 
@@ -192,7 +192,7 @@
         const max = height - h - margin - pad;
 
         const videoContainer = track.children[0] as HTMLElement;
-        setStyle(videoContainer, 'max-height', max + 'px');
+        // setStyle(videoContainer, 'max-height', max + 'px');
         if (track.scrollTop === 0 && main.offsetTop - pad === max) {
           isSticky.value = true;
         } else isSticky.value = false;
@@ -204,10 +204,14 @@
 
       onMounted(() => {
         window.addEventListener('mousewheel', onStickyTrack, { passive: false });
-        stickyTrack();
 
+        stickyTrack();
         updateTrackWidth();
         nextTick(() => initTimeLine());
+      });
+
+      onUnmounted(() => {
+        window.removeEventListener('mousewheel', onStickyTrack);
       });
 
       return {
