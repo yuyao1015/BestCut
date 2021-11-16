@@ -1,17 +1,19 @@
 <script lang="tsx">
   import type { AudioTrackItem, TrackItem, VideoTrackItem } from '#/track';
-  import { ComponentPublicInstance } from 'vue';
+  import type { PropType, ComponentPublicInstance } from 'vue';
 
-  import { computed, h, defineComponent, PropType, ref, watch } from 'vue';
-  import { MoreOutlined } from '@ant-design/icons-vue';
+  import { computed, h, defineComponent, ref, watch } from 'vue';
 
   import { ClickOutside } from '@/directives';
   import { MouseCtl } from '@/logic/mouse';
 
   import { trackHeadWidth } from '@/settings/componentSetting';
-  import { getShapedArrary, swap } from '@/utils';
+  import { getShapedArrary } from '@/utils';
 
-  const offset = 20;
+  import { searchMainIdx, updateMainOrder, updateOrder, searchColIdx, deleteTrack } from './track';
+
+  import TrackBorder from './TrackBorder.vue';
+
   const NO_SELECT = { i: -1, j: -1 };
 
   export default defineComponent({
@@ -41,7 +43,7 @@
       };
 
       const video = (track: VideoTrackItem) => (
-        <div class="h-full w-full">
+        <div class="video-track h-full w-full">
           <div class="track-item-head">
             {(props.isMute ? ['已静音', ...getTrackHead(track)] : getTrackHead(track)).map(
               (title) => (
@@ -55,7 +57,7 @@
       );
 
       const audio = (track: AudioTrackItem) => (
-        <div class="h-full w-full">
+        <div class="audio-track h-full w-full">
           <div class="track-item-head">
             {getTrackHead(track).map((title) => (
               <span class="track-item-title">{title}</span>
@@ -66,7 +68,7 @@
       );
 
       const attachment = (track: TrackItem) => (
-        <div class={'track-item-head w-full'}>
+        <div class={'attachment-track track-item-head w-full'}>
           {track.icon && (() => h(track.icon, { class: 'track-item-title' }))()}
           {track.sticker && (() => <img class="track-item-title" src={track.sticker} />)()}
           {track.type !== 'sticker' &&
@@ -83,139 +85,29 @@
         filter: attachment,
       };
 
-      /*
-          border
-        */
       const canDrag = ref(true);
-      const trackLeftRef = ref<ComponentPublicInstance | null>(null);
-      const trackRightRef = ref<ComponentPublicInstance | null>(null);
-      const mls: (MouseCtl | null)[][] = getShapedArrary(lists.value, null);
-      const mrs: (MouseCtl | null)[][] = getShapedArrary(lists.value, null);
-      const onTrackLeft = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
-        e.stopPropagation();
-        canDrag.value = false;
-
-        const left = (trackLeftRef.value?.$el || trackLeftRef.value) as HTMLElement;
-        let ml = mls[i][j];
-        if (!ml) mls[i][j] = ml = new MouseCtl(left);
-        const { marginLeft } = track;
-
-        ml.moveCallback = function () {
-          let dx = this.x - this.lastX;
-          if (dx < 0 && ['video', 'audio'].includes(track.type)) {
-            dx = dx < marginLeft - track.marginLeft ? marginLeft - track.marginLeft : dx;
-          }
-          dx = track.width - dx < offset ? 0 : dx;
-          track.start += dx; // TODO: map
-          track.marginLeft += dx;
-          track.width -= dx;
-        };
-
-        ml.upCallback = () => {
-          canDrag.value = true;
-        };
-      };
-
-      const onTrackRight = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
-        e.stopPropagation();
-        canDrag.value = false;
-
-        const right = (trackRightRef.value?.$el || trackRightRef.value) as HTMLElement;
-        let mr = mrs[i][j];
-        if (!mr) mrs[i][j] = mr = new MouseCtl(right);
-
-        const { width } = track;
-        mr.moveCallback = function () {
-          let dx = this.x - this.lastX;
-          if (dx > 0 && ['video', 'audio'].includes(track.type)) {
-            dx = dx > width - track.width ? width - track.width : dx;
-          }
-          dx = track.width - dx < offset ? 0 : dx;
-
-          track.end += dx; //
-          track.width += dx;
-        };
-
-        mr.upCallback = () => {
-          canDrag.value = true;
-        };
-      };
-
-      const offTrackLeft = (e: MouseEvent) => {
-        e.stopPropagation();
-        canDrag.value = true;
-      };
-      const offTrackRight = (e: MouseEvent) => {
-        e.stopPropagation();
-        canDrag.value = true;
-      };
-
-      const trackBorder = (track: TrackItem, i: number, j: number) => (
-        <div class="absolute w-full h-full top-0 left-0">
-          <div
-            ref={trackLeftRef}
-            onPointerdown={(e: MouseEvent) => onTrackLeft(e, track, i, j)}
-            onPointerup={(e: MouseEvent) => offTrackLeft(e)}
-            class="track-scale track-scale-left -left-0"
-          >
-            <MoreOutlined class="absolute -left-1 w-2" />
-          </div>
-          <div
-            ref={trackRightRef}
-            onPointerdown={(e: MouseEvent) => onTrackRight(e, track, i, j)}
-            onPointerup={(e: MouseEvent) => offTrackRight(e)}
-            class="track-scale  track-scale-right right-0"
-          >
-            <MoreOutlined class="absolute -right-1" />
-          </div>
-        </div>
-      );
-
-      /*
-          lists
-        */
       const mtraks: (MouseCtl | null)[][] = getShapedArrary(lists.value, null);
       const trackListsRef = ref<ComponentPublicInstance | null>(null);
-      const activeTrak = ref<null | TrackItem>(null);
       const draggedIdxs = ref(NO_SELECT);
-      watch(draggedIdxs, (idxs: { i: number; j: number }) => {
+      const activeIdxs = ref(NO_SELECT);
+      const activeTrak = ref<null | TrackItem>(null);
+      watch(activeIdxs, (idxs: { i: number; j: number }) => {
         const { i, j } = idxs;
         if (i === -1 || j === -1) return;
         if (activeTrak.value) activeTrak.value.active = false;
         activeTrak.value = lists.value[i][j];
         if (activeTrak.value) activeTrak.value.active = true;
       });
-      const activeIdxs = ref(NO_SELECT);
-      watch(activeIdxs, (idxs: { i: number; j: number }) => {
-        const { i, j } = idxs;
-        activeTrak.value = i === -1 || j === -1 ? null : lists.value[i][j];
-      });
 
       const shadowDx = ref(0);
+      const currentList = ref<TrackItem[]>([]);
       const shadowLeft = computed(() => {
-        const { i, j } = draggedIdxs.value;
-        const currentlist = lists.value[i];
-        let l = currentlist.slice(0, j).reduce((l, trak) => (l += trak.width + trak.marginLeft), 0);
-        return Math.max(l + currentlist[j].marginLeft + shadowDx.value, 0);
+        const { j } = draggedIdxs.value;
+        let l = currentList.value
+          .slice(0, j)
+          .reduce((l, trak) => (l += trak.width + trak.marginLeft), 0);
+        return Math.max(l + currentList.value[j].marginLeft + shadowDx.value, 0);
       });
-
-      const searchMainIdx = (list: TrackItem[], dx: number, idx: number) => {
-        if (dx > 0) {
-          while (list[idx + 1] && dx > offset) {
-            dx -= list[idx + 1].width;
-            dx = dx > 0 ? dx : 0;
-            idx++;
-          }
-        }
-        if (dx < 0) {
-          while (list[idx - 1] && dx < -list[idx - 1].width / 2) {
-            dx += list[idx - 1].width;
-            dx = dx < 0 ? dx : 0;
-            idx--;
-          }
-        }
-        return idx;
-      };
 
       const swapMainTrack = (list: TrackItem[], dx: number, j: number) => {
         // index in dragging
@@ -249,177 +141,7 @@
         }
       };
 
-      const updateMainOrder = (list: TrackItem[], dx: number, j: number) => {
-        for (const trak of list) {
-          trak.marginRight = 0;
-          trak.marginLeft = 0;
-        }
-
-        const idx = searchMainIdx(list, dx, j);
-        const sign = dx > 0 ? 1 : 0;
-        list.splice(idx + sign, 0, list[j]);
-        list.splice(j + 1 - sign, 1);
-        0 && swap<TrackItem>(list, idx, j);
-      };
-
-      const searchIdx = (list: TrackItem[], dx: number, idx: number) => {
-        let overlap = false;
-        const { width } = list[idx];
-        if (dx > 0) {
-          while (list[idx + 1] && dx >= list[idx + 1].marginLeft + list[idx + 1].width + width) {
-            dx -= list[idx + 1].marginLeft + list[idx + 1].width;
-            dx = dx > 0 ? dx : 0;
-            idx++;
-          }
-          if (list[idx + 1] && dx > list[idx + 1].marginLeft) overlap = true;
-        }
-        if (dx < 0) {
-          while (list[idx - 1] && dx <= -list[idx - 1].width - list[idx].marginLeft - width) {
-            dx += list[idx - 1].width + list[idx].marginLeft;
-            dx = dx < 0 ? dx : 0;
-            idx--;
-          }
-          if (dx < -list[idx].marginLeft) overlap = true;
-        }
-
-        return { idx, overlap, clippedDx: dx };
-      };
-
-      const updateOrder = (list: TrackItem[], dx: number, j: number) => {
-        const { idx, overlap, clippedDx } = searchIdx(list, dx, j);
-        if (overlap) return;
-
-        // no swap
-        if (idx === j) {
-          list[j].marginLeft += clippedDx;
-          if (list[j + 1]) list[j + 1].marginLeft -= clippedDx;
-        } else {
-          if (list[j + 1]) list[j + 1].marginLeft += list[j].width + list[j].marginLeft;
-
-          if (dx > 0) {
-            list[j].marginLeft = clippedDx - list[j].width;
-            if (list[idx + 1]) list[idx + 1].marginLeft -= clippedDx;
-          }
-          if (dx < 0) {
-            list[j].marginLeft = list[idx].marginLeft + clippedDx;
-            list[idx].marginLeft -= list[j].marginLeft + list[j].width;
-          }
-        }
-
-        const sign = dx > 0 ? 1 : 0;
-        list.splice(idx + sign, 0, list[j]);
-        list.splice(j + 1 - sign, 1);
-      };
-
-      const deleteTrack = (lists: TrackItem[][], i: number, j: number) => {
-        const list = lists[i];
-        if (!isMain.value && list[j + 1])
-          list[j + 1].marginLeft += list[j].marginLeft + list[j].width;
-        list.splice(j, 1);
-        if (list.length === 0) lists.splice(i, 1);
-      };
-
-      const onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
-        console.log('==== onTrackDown');
-        e.stopPropagation();
-        draggedIdxs.value = { i, j };
-        activeIdxs.value = { i, j };
-
-        window.addEventListener('keydown', onShortcut);
-        window.addEventListener('keyup', offShortcut);
-
-        const trakLists = (trackListsRef.value?.$el || trackListsRef.value) as HTMLElement;
-        const trak = trakLists.children[i].children[j] as HTMLElement;
-
-        // debugger;
-
-        let mtrak = mtraks[i][j];
-        if (!mtrak) mtraks[i][j] = mtrak = new MouseCtl(trak);
-
-        const currentlist = lists.value[i];
-
-        mtrak.moveCallback = function () {
-          if (!canDrag.value) return;
-
-          let dx = this.x - this.lastX;
-          let dy = this.y - this.lastY;
-          const style = getComputedStyle(this.element);
-          const left = parseInt(style.left) + dx;
-          shadowDx.value = 0;
-
-          const sign = dy > 0 ? 1 : -1;
-          if (sign * dy > track.width / 3) {
-            console.log('vertical');
-          }
-
-          if (dx === 0 && dy === 0) {
-            //
-          }
-          if (isMain.value) {
-            swapMainTrack(currentlist, left, j);
-          } else {
-            shadowDx.value = left;
-            searchIdx(currentlist, left, j);
-          }
-
-          this.element.style.left = `${left}px`;
-          this.element.style.top = `${parseInt(style.top) + dy}px`;
-          this.element.style.zIndex = '10';
-        };
-
-        mtrak.upCallback = function () {
-          let dx = parseInt(this.element.style.left);
-          dx = Number.isNaN(dx) ? 0 : dx;
-
-          if (isMain.value) {
-            updateMainOrder(currentlist, dx, j);
-          } else {
-            updateOrder(currentlist, dx, j);
-          }
-
-          this.element.style.left = '0px';
-          this.element.style.top = '';
-          this.element.style.zIndex = '';
-          shadowDx.value = 0;
-          draggedIdxs.value = NO_SELECT;
-        };
-      };
-
-      const shortcutEvent = () => {
-        let isCtrlPressing = false;
-        return {
-          onShortcut: (e: KeyboardEvent) => {
-            if (e.code === 'Space') {
-              e.preventDefault();
-            } else if (e.code === 'MetaLeft' || e.code === 'ControlLeft') {
-              isCtrlPressing = true;
-            } else if (e.code === 'Backspace') {
-              if (isCtrlPressing) {
-                const { i, j } = activeIdxs.value;
-                deleteTrack(lists.value, i, j);
-                (mtraks[i][j] as MouseCtl).moveCallback = () => {};
-                (mtraks[i][j] as MouseCtl).upCallback = () => {};
-                draggedIdxs.value = NO_SELECT;
-              }
-            }
-          },
-          offShortcut: () => {
-            isCtrlPressing = false;
-          },
-        };
-      };
-      const { onShortcut, offShortcut } = shortcutEvent();
-
-      const onClickOutside = (track: TrackItem) => {
-        console.log('==== outside');
-        if (track.active) {
-          track.active = false;
-          activeIdxs.value = NO_SELECT;
-          window.removeEventListener('keydown', onShortcut);
-          window.removeEventListener('keyup', offShortcut);
-        }
-      };
-
+      const newListLine = ref({ i: -1, top: true });
       const requestNewList = () => {
         let tid: any;
 
@@ -435,13 +157,146 @@
         };
       };
       requestNewList();
-      const newListLineRowIdx = ref(1);
+
+      const onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
+        e.stopPropagation();
+        activeIdxs.value = draggedIdxs.value = { i, j };
+
+        window.addEventListener('keydown', onShortcut);
+        window.addEventListener('keyup', offShortcut);
+
+        const trakLists = (trackListsRef.value?.$el || trackListsRef.value) as HTMLElement;
+        const trak = trakLists.children[i].children[j] as HTMLElement;
+
+        const style = getComputedStyle(trakLists.children[i]);
+        const my = parseInt(style.marginTop) + parseInt(style.marginBottom);
+
+        let mtrak = mtraks[i][j];
+        if (!mtrak) mtraks[i][j] = mtrak = new MouseCtl(trak);
+
+        const currentlist = (currentList.value = lists.value[i]);
+
+        // drag effect on view
+        mtrak.moveCallback = function () {
+          if (!canDrag.value) return;
+
+          let dx = this.x - this.lastX;
+          let dy = this.y - this.lastY;
+          const style = getComputedStyle(this.element);
+          const left = parseInt(style.left) + dx;
+          const top = parseInt(style.top) + dy;
+
+          const { idx, newListVisiable } = searchColIdx(lists.value, top, my, i);
+
+          draggedIdxs.value.i = idx;
+          if (newListVisiable) {
+            newListLine.value.i = idx;
+            newListLine.value.top = top <= 0;
+            draggedIdxs.value.i = -1;
+          } else {
+            newListLine.value.i = -1;
+            draggedIdxs.value.i = idx;
+          }
+
+          if (isMain.value && idx === i) {
+            swapMainTrack(currentlist, left, j);
+          } else {
+            shadowDx.value = left;
+          }
+
+          this.element.style.left = `${left}px`;
+          this.element.style.top = `${top}px`;
+          this.element.style.zIndex = '10';
+        };
+
+        // update change after dragging
+        mtrak.upCallback = function () {
+          let dx = parseInt(this.element.style.left);
+          let dy = parseInt(this.element.style.top);
+          dx = Number.isNaN(dx) ? 0 : dx;
+          dy = Number.isNaN(dy) ? 0 : dy;
+
+          const { idx } = searchColIdx(lists.value, dy, my, i);
+          const newListVisiable = newListLine.value.i !== -1;
+          const placeTop = newListLine.value.top;
+
+          const trak = Object.assign({}, track);
+          if (newListVisiable) {
+            trak.marginLeft = shadowLeft.value;
+            lists.value.splice(idx + 1 - +placeTop, 0, [trak]);
+            activeIdxs.value = { i: idx, j: 0 };
+            deleteTrack(lists.value, i + +placeTop, j, isMain.value);
+          } else {
+            // horizontal
+            if (idx === i) {
+              if (isMain.value) {
+                updateMainOrder(currentlist, dx, j);
+              } else {
+                updateOrder(currentlist, dx, j);
+              }
+              // vertical
+            } else {
+              const dstList = lists.value[idx];
+              dstList[0].marginLeft -= trak.width;
+              trak.marginLeft = 0;
+              dstList.unshift(trak);
+              const { idx: row } = updateOrder(dstList, shadowLeft.value, 0);
+              activeIdxs.value = { i: idx, j: row };
+              deleteTrack(lists.value, i, j, isMain.value);
+            }
+          }
+
+          this.element.style.left = '0px';
+          this.element.style.top = '';
+          this.element.style.zIndex = '';
+          shadowDx.value = 0;
+          newListLine.value.i = -1;
+          draggedIdxs.value = NO_SELECT;
+        };
+      };
+
+      const shortcutEvent = () => {
+        let isCtrlPressing = false;
+        return {
+          onShortcut: (e: KeyboardEvent) => {
+            if (e.code === 'Space') {
+              e.preventDefault();
+            } else if (e.code === 'MetaLeft' || e.code === 'ControlLeft') {
+              isCtrlPressing = true;
+            } else if (e.code === 'Backspace') {
+              if (isCtrlPressing) {
+                const { i, j } = activeIdxs.value;
+                deleteTrack(lists.value, i, j, isMain.value);
+                (mtraks[i][j] as MouseCtl).moveCallback = () => {};
+                (mtraks[i][j] as MouseCtl).upCallback = () => {};
+                activeIdxs.value = NO_SELECT;
+                draggedIdxs.value = NO_SELECT;
+              }
+            }
+          },
+          offShortcut: () => {
+            isCtrlPressing = false;
+          },
+        };
+      };
+      const { onShortcut, offShortcut } = shortcutEvent();
+
+      const onClickOutside = (track: TrackItem) => {
+        if (track.active) {
+          track.active = false;
+          activeIdxs.value = NO_SELECT;
+          window.removeEventListener('keydown', onShortcut);
+          window.removeEventListener('keyup', offShortcut);
+        }
+      };
 
       const trackList = (tracks: TrackItem[], i: number) => (
         <div
           class={[
             'track-list relative flex w-full my-2',
-            activeIdxs.value.i === i ? 'track-list-active' : '',
+            draggedIdxs.value.i === i || (draggedIdxs.value.i === -1 && activeIdxs.value.i === i)
+              ? 'track-list-active'
+              : '',
           ]}
         >
           {tracks.map((track: TrackItem, j: number) => {
@@ -453,20 +308,27 @@
                   track.active ? 'border-white border' : '',
                 ]}
                 style={`flex:0 0 ${track.width}px;
-                  margin-left: ${track.marginLeft}px;
-                  margin-right: ${track.marginRight}px;
-                  `}
+                    height: ${track.height}px;
+                    margin-left: ${track.marginLeft}px;
+                    margin-right: ${track.marginRight}px;
+                    `}
                 onPointerdown={(e: MouseEvent) => onTrackDown(e, track, i, j)}
-                // v-clickOutside={() => onClickOutside(track)}
-                v-clickOutside={
-                  activeIdxs.value.i === i && activeIdxs.value.j === j
-                    ? () => onClickOutside(track)
-                    : () => {}
-                }
+                v-clickOutside={() => onClickOutside(track)}
               >
                 {trackMap[track.type as keyof typeof trackMap](track)}
 
-                {track.active ? trackBorder(track, i, j) : ''}
+                {track.active
+                  ? h(TrackBorder, {
+                      track,
+                      i,
+                      j,
+                      lists: lists.value,
+                      canDrag: canDrag.value,
+                      'onUpdate:canDrag': (value: boolean) => {
+                        canDrag.value = value;
+                      },
+                    })
+                  : null}
               </div>
             );
           })}
@@ -475,14 +337,16 @@
             <div
               class="shadow absolute rounded-sm m-px px-1 bg-gray-300 opacity-10 h-full"
               style={`width: ${Number(activeTrak.value?.width)}px;
-                top:0; left: ${shadowLeft.value}px;`}
+                  top:0; left: ${shadowLeft.value}px;`}
             />
-          ) : (
-            ''
-          )}
+          ) : null}
 
-          {newListLineRowIdx.value === i ? (
-            <div class="new-list-line absolute w-full h-0.5 top-0 left-0"></div>
+          {newListLine.value.i === i ? (
+            <div
+              class="new-list-line absolute w-full h-0.5 left-0"
+              style={`transform: translateY(${newListLine.value.top ? '-' : ''}0.6rem);
+                    ${newListLine.value.top ? 'top' : 'bottom'}: 0;`}
+            ></div>
           ) : null}
         </div>
       );
@@ -490,7 +354,7 @@
       return () => (
         <div class="flex w-full">
           <div class="track-container-head h-full" style={`flex:0 0 ${trackHeadWidth}px;`}>
-            {slots.default ? slots.default() : ''}
+            {slots.default ? slots.default() : null}
           </div>
           <div ref={trackListsRef} class="list w-full h-full flex flex-col justify-center">
             {lists.value.map((tracks, i) => trackList(tracks, i))}
@@ -587,8 +451,6 @@
 
   .new-list-line {
     background: #276161;
-    transform: translateY(-0.6rem);
-    z-index: 11;
   }
 </style>
 

@@ -12,6 +12,7 @@ type ItemRequired = {
   start: number;
   end: number;
   width: number; // pixel
+  height: number; // pixel
   offset: number; // second
   marginLeft: number; // pixel
   marginRight: number; // pixel

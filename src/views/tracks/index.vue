@@ -104,16 +104,7 @@
 
       const trackLists = reactive<TrackState>({
         video: videoList,
-        main: [
-          mainList('aaa', '00:05:30:20'),
-          mainList('bbb'),
-          mainList('ccc', '00:05:30:20'),
-          mainList('ddd'),
-          mainList('eee', '00:05:30:20'),
-          mainList('fff'),
-          mainList('ggg', '00:05:30:20'),
-          mainList('hhh'),
-        ],
+        main: mainList,
         audio: audioList,
       });
 
