@@ -32,6 +32,8 @@ declare global {
     VideoDecoder: VideoDecoder;
     VideoFrame: VideoFrame;
     VideoEncoder: VideoEncoder;
+
+    setTimeout: (callback: any, ms: number) => number;
   }
 
   type FirstArgument<T> = T extends (arg1: infer A, ...args: any[]) => any ? A : never;

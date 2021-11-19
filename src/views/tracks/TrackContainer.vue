@@ -10,7 +10,14 @@
   import { trackHeadWidth } from '@/settings/componentSetting';
   import { getShapedArrary } from '@/utils';
 
-  import { searchMainIdx, updateMainOrder, updateOrder, searchColIdx, deleteTrack } from './track';
+  import {
+    searchMainIdx,
+    updateMainOrder,
+    updateOrder,
+    searchRowIdx,
+    searchColIdx,
+    deleteTrack,
+  } from './track';
 
   import TrackBorder from './TrackBorder.vue';
 
@@ -143,20 +150,22 @@
 
       const newListLine = ref({ i: -1, top: true });
       const requestNewList = () => {
-        let tid: any;
+        let tid: number;
 
         return {
           cancel: () => {
             if (tid) clearTimeout(tid);
           },
-          createNewList: () => {
-            tid = setTimeout(() => {
-              console.log('hover');
-            }, 300);
+          createNewList: (i: number, placeTop: boolean) => {
+            if (tid) clearTimeout(tid);
+            tid = window.setTimeout(() => {
+              newListLine.value.i = i;
+              newListLine.value.top = placeTop;
+              draggedIdxs.value.i = -1;
+            }, 500);
           },
         };
       };
-      requestNewList();
 
       const onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
         e.stopPropagation();
@@ -176,6 +185,8 @@
 
         const currentlist = (currentList.value = lists.value[i]);
 
+        const newListRequestor = requestNewList();
+        const _track = Object.assign({}, track, { marginLeft: -track.width });
         // drag effect on view
         mtrak.moveCallback = function () {
           if (!canDrag.value) return;
@@ -186,9 +197,14 @@
           const left = parseInt(style.left) + dx;
           const top = parseInt(style.top) + dy;
 
-          const { idx, newListVisiable } = searchColIdx(lists.value, top, my, i);
+          const { idx, newListVisiable, canRequestNewList } = searchColIdx(lists.value, top, my, i);
 
-          draggedIdxs.value.i = idx;
+          if (dx === 0 && dy === 0 && canRequestNewList) {
+            newListRequestor.createNewList(idx, top <= 0);
+          } else {
+            draggedIdxs.value.i = idx;
+          }
+
           if (newListVisiable) {
             newListLine.value.i = idx;
             newListLine.value.top = top <= 0;
@@ -199,9 +215,18 @@
           }
 
           if (isMain.value && idx === i) {
+            shadowDx.value = 0;
             swapMainTrack(currentlist, left, j);
           } else {
             shadowDx.value = left;
+            if (idx !== i) {
+              const dummyList = lists.value[idx].map((track) => Object.assign({}, track));
+              dummyList.unshift(_track);
+              const { overlap } = searchRowIdx(dummyList, shadowLeft.value + _track.width, 0);
+              if (overlap) {
+                draggedIdxs.value.i = i;
+              } else draggedIdxs.value.i = idx;
+            }
           }
 
           this.element.style.left = `${left}px`;
@@ -220,12 +245,19 @@
           const newListVisiable = newListLine.value.i !== -1;
           const placeTop = newListLine.value.top;
 
-          const trak = Object.assign({}, track);
           if (newListVisiable) {
-            trak.marginLeft = shadowLeft.value;
-            lists.value.splice(idx + 1 - +placeTop, 0, [trak]);
-            activeIdxs.value = { i: idx, j: 0 };
-            deleteTrack(lists.value, i + +placeTop, j, isMain.value);
+            _track.marginLeft = shadowLeft.value;
+            const insertedIdx = idx + 1 - +placeTop;
+            const removedIdx = i + +placeTop;
+            lists.value.splice(insertedIdx, 0, [_track]);
+            activeIdxs.value = {
+              i:
+                insertedIdx > removedIdx && lists.value[removedIdx].length === 1
+                  ? insertedIdx - 1
+                  : insertedIdx,
+              j: 0,
+            };
+            deleteTrack(lists.value, removedIdx, j, isMain.value);
           } else {
             // horizontal
             if (idx === i) {
@@ -237,15 +269,26 @@
               // vertical
             } else {
               const dstList = lists.value[idx];
-              dstList[0].marginLeft -= trak.width;
-              trak.marginLeft = 0;
-              dstList.unshift(trak);
-              const { idx: row } = updateOrder(dstList, shadowLeft.value, 0);
-              activeIdxs.value = { i: idx, j: row };
-              deleteTrack(lists.value, i, j, isMain.value);
+              dstList.unshift(_track);
+              const { idx: _j, overlap } = searchRowIdx(
+                dstList,
+                shadowLeft.value + _track.width,
+                0
+              );
+              if (overlap) {
+                dstList.shift();
+              } else {
+                updateOrder(dstList, shadowLeft.value + _track.width, 0);
+                activeIdxs.value = {
+                  i: idx > i && currentlist.length === 1 ? idx - 1 : idx,
+                  j: _j,
+                };
+                deleteTrack(lists.value, i, j, isMain.value);
+              }
             }
           }
 
+          newListRequestor.cancel();
           this.element.style.left = '0px';
           this.element.style.top = '';
           this.element.style.zIndex = '';

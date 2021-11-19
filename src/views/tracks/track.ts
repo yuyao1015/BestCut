@@ -39,7 +39,8 @@ export const updateMainOrder = (list: TrackItem[], dx: number, j: number) => {
   0 && swap<TrackItem>(list, idx, j);
 };
 
-export const searchIdx = (list: TrackItem[], dx: number, idx: number) => {
+// non initial trak's marginLeft > 0
+export const searchRowIdx = (list: TrackItem[], dx: number, idx: number) => {
   let overlap = false;
   const { width } = list[idx];
   if (dx > 0) {
@@ -63,8 +64,8 @@ export const searchIdx = (list: TrackItem[], dx: number, idx: number) => {
 };
 
 export const updateOrder = (list: TrackItem[], dx: number, j: number) => {
-  const { idx, overlap, clippedDx } = searchIdx(list, dx, j);
-  if (overlap) return { idx };
+  const { idx, overlap, clippedDx } = searchRowIdx(list, dx, j);
+  if (overlap) return { idx, overlap };
 
   // no swap
   if (idx === j) {
@@ -85,13 +86,13 @@ export const updateOrder = (list: TrackItem[], dx: number, j: number) => {
     list.splice(idx + sign, 0, list[j]);
     list.splice(j + 1 - sign, 1);
   }
-  return { idx };
+  return { idx, overlap };
 };
 
 /* 
   col
 */
-
+// TODO: attachment track create new list boundary
 const isMedia = (type: string) => ['video', 'audio'].includes(type);
 
 export const searchColIdx = (lists: TrackItem[][], dy: number, my: number, idx: number) => {
@@ -119,7 +120,9 @@ export const searchColIdx = (lists: TrackItem[][], dy: number, my: number, idx: 
   )
     newListVisiable = true;
 
-  return { idx, newListVisiable };
+  const canRequestNewList = _dy > lists[idx][0].height / 3;
+
+  return { idx, newListVisiable, canRequestNewList };
 };
 
 export const deleteTrack = (lists: TrackItem[][], i: number, j: number, isMain: boolean) => {
