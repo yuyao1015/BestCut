@@ -91,6 +91,17 @@ export const filterTrack = (): TrackItem => ({
   marginRight: 0,
 });
 
+export const mainList = [
+  mainTrack('aaa', '00:05:30:20'),
+  mainTrack('bbb'),
+  mainTrack('ccc', '00:05:30:20'),
+  mainTrack('ddd'),
+  mainTrack('eee', '00:05:30:20'),
+  mainTrack('fff'),
+  mainTrack('ggg', '00:05:30:20'),
+  mainTrack('hhh'),
+];
+
 export const videoList = [
   [filterTrack()],
   [txtTrack(300, '02:00'), txtTrack(150, '03:00'), txtTrack(400, '04:00'), txtTrack(100, '01:30')],
@@ -102,14 +113,4 @@ export const videoList = [
   [mainTrack()],
 ];
 
-export const mainList = [
-  mainTrack('aaa', '00:05:30:20'),
-  mainTrack('bbb'),
-  mainTrack('ccc', '00:05:30:20'),
-  mainTrack('ddd'),
-  mainTrack('eee', '00:05:30:20'),
-  mainTrack('fff'),
-  mainTrack('ggg', '00:05:30:20'),
-  mainTrack('hhh'),
-];
 export const audioList = [[audioTrack()], [audioTrack(), audioTrack(), audioTrack()]];

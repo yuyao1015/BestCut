@@ -13,37 +13,17 @@
       >
         <TimeLine ref="timelineRef" class="timeline absolute w-full h-full"></TimeLine>
 
-        <div
-          ref="tracksWrapperRef"
-          id="tracks-wrapper"
-          class="tracks-wrapper absolute h-full w-full select-none"
-        >
+        <div id="tracks-wrapper" class="tracks-wrapper absolute h-full w-full select-none">
           <div
-            ref="tracksRef"
-            class="absolute w-full mt-2.5 overflow-y-scroll pb-10"
+            class="absolute w-full mt-2.5 overflow-y-scroll"
             :style="`height: calc(100% - 0.625rem);`"
           >
-            <TrackContainer class="video-container overflow-y-auto" :lists="trackLists.video" />
-
             <TrackContainer
-              ref="mainTrackRef"
-              :class="['main-container flex items-center', isSticky ? 'sticky-track' : '']"
-              :lists="[trackLists.main]"
-              :isMute="isMute"
-            >
-              <div class="text-lg w-full h-full rounded-xl flex items-center justify-center">
-                <div
-                  class="rounded-xl flex items-center justify-center w-14 h-14"
-                  :style="'border: 5px solid #313135; background-color: #464649'"
-                  @click="onMute"
-                >
-                  <AudioMutedOutlined v-if="isMute" />
-                  <SoundFilled v-else />
-                </div>
-              </div>
-            </TrackContainer>
-
-            <TrackContainer class="audio-container" :lists="trackLists.audio" />
+              ref="containerRef"
+              class="video-container relative overflow-y-auto max-h-full pb-10"
+              :lists="[...trackLists.video, trackLists.main, ...trackLists.audio]"
+              :mainIdx="mainIdx"
+            />
           </div>
         </div>
       </div>
@@ -64,11 +44,11 @@
   import TimeLine from './TimeLine.vue';
   import TrackHead from './TrackHead.vue';
 
-  import { trackHeadWidth } from '@/settings/componentSetting';
+  import { containerHeadWidth } from '@/settings/componentSetting';
 
   import { useI18n } from '@/hooks/useI18n';
   import useTimeLine from '@/hooks/useTimeLine';
-  import { getStyle, setStyle } from '@/utils/dom';
+  import { getStyle } from '@/utils/dom';
 
   import { mainList, audioList, videoList } from './data';
   import { forEachValue } from '@/utils';
@@ -107,6 +87,7 @@
         main: mainList,
         audio: audioList,
       });
+      const mainIdx = ref(trackLists.video.length);
 
       const wrapperWidth = ref(0);
       const { useUnit, initTimeLine, calcTrackWidth } = useTimeLine(600, 30);
@@ -119,8 +100,8 @@
             const { width, marginLeft } = calcTrackWidth(track);
             track.width = width;
             track.marginLeft = marginLeft;
-            left = width + marginLeft;
             if (key === 'main') track.marginLeft = 0;
+            left = width + track.marginLeft;
           } else {
             track.forEach((item, idx) => {
               left += updateWidth(key, item);
@@ -140,7 +121,7 @@
         if (!footer) return;
 
         const rawW = parseInt(getStyle(footer, 'width'));
-        const w = trackWidth + trackHeadWidth + 100;
+        const w = trackWidth + containerHeadWidth + 100;
         wrapperWidth.value = rawW > w ? rawW : w;
       };
 
@@ -149,12 +130,6 @@
       watch(percent, () => {
         updateTrackWidth();
       });
-
-      const isMute = ref(false);
-      const onMute = (e: MouseEvent) => {
-        e.stopPropagation();
-        isMute.value = !isMute.value;
-      };
 
       // let showTimeline = true;
       const timelineRef = ref<typeof TimeLine | null>(null);
@@ -165,28 +140,16 @@
         // console.log('1');
       };
 
+      // TODO: scroll bar
       const isSticky = ref(false);
-      const mainTrackRef = ref<ComponentPublicInstance | null>(null);
-      const tracksWrapperRef = ref<ComponentPublicInstance | null>(null);
-      const tracksRef = ref<ComponentPublicInstance | null>(null);
+      const containerRef = ref<ComponentPublicInstance | null>(null);
       const stickyTrack = () => {
-        const main = mainTrackRef.value?.$el || mainTrackRef.value;
-        const track = tracksRef.value?.$el || tracksRef.value;
-        const wrapper = tracksWrapperRef.value?.$el || tracksWrapperRef.value;
-        if (!track || !wrapper || !main) return;
-
-        const h = parseInt(getStyle(main, 'height'));
-        const height = parseInt(getStyle(wrapper, 'height'));
-
-        const margin = parseInt(getStyle(track, 'marginTop'));
-        const pad = parseInt(getStyle(track, 'paddingTop'));
-        const max = height - h - margin - pad;
-
-        const videoContainer = track.children[0] as HTMLElement;
-        setStyle(videoContainer, 'max-height', max + 'px');
-        if (track.scrollTop === 0 && main.offsetTop - pad === max) {
-          isSticky.value = true;
-        } else isSticky.value = false;
+        // const container = containerRef.value?.$el || containerRef.value;
+        // const tracks = container.children[1];
+        // const h = parseInt(getStyle(container, 'height'));
+        // const height = parseInt(getStyle(tracks, 'height'));
+        // console.log(container);
+        // console.log(h, height, container.scrollTop);
       };
       const onStickyTrack = (e: WheelEvent) => {
         stickyTrack();
@@ -194,8 +157,8 @@
       };
 
       onMounted(() => {
-        window.addEventListener('mousewheel', onStickyTrack, { passive: false });
         stickyTrack();
+        window.addEventListener('mousewheel', onStickyTrack, { passive: false });
 
         updateTrackWidth();
         nextTick(() => initTimeLine());
@@ -205,19 +168,16 @@
         title,
         wrapperWidth,
 
-        isMute,
         isSticky,
         percent,
         trackLists,
+        mainIdx,
 
         footerRef,
-        tracksWrapperRef,
-        tracksRef,
-        mainTrackRef,
+        containerRef,
         timelineRef,
 
         calcTrackWidth,
-        onMute,
         move,
         down,
       };
@@ -226,19 +186,5 @@
 </script>
 
 <style lang="less" scoped>
-  .sticky-track {
-    background-color: rgba(255, 255, 255, 0.1);
-    padding-bottom: 15px;
-    transition: 100ms all;
-  }
-
-  .sticky-track::after {
-    position: absolute;
-    content: '';
-    bottom: 7px;
-    left: 128px;
-    width: 50%;
-    height: 2px;
-    background-color: #3a7faf;
-  }
+  //
 </style>

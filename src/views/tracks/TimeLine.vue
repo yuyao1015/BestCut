@@ -30,7 +30,7 @@
   import type { ComponentPublicInstance } from 'vue';
   import { defineComponent, ref, onMounted, onUnmounted } from 'vue';
 
-  import { trackHeadWidth as lmin } from '@/settings/componentSetting';
+  import { containerHeadWidth as lmin } from '@/settings/componentSetting';
 
   import { on, off } from '@/utils/dom';
   import { MouseCtl } from '@/logic/mouse';

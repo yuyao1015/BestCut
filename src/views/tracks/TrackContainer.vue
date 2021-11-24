@@ -3,11 +3,12 @@
   import type { PropType, ComponentPublicInstance } from 'vue';
 
   import { computed, h, defineComponent, ref, watch } from 'vue';
+  import { SoundFilled, AudioMutedOutlined } from '@ant-design/icons-vue';
 
   import { ClickOutside } from '@/directives';
   import { MouseCtl } from '@/logic/mouse';
 
-  import { trackHeadWidth } from '@/settings/componentSetting';
+  import { containerHeadWidth } from '@/settings/componentSetting';
   import { getShapedArrary } from '@/utils';
 
   import {
@@ -23,6 +24,12 @@
 
   const NO_SELECT = { i: -1, j: -1 };
 
+  type TrackMap = {
+    [prop: string]:
+      | ((track: TrackItem, i?: number) => JSX.Element)
+      | ((track: TrackItem) => JSX.Element);
+  };
+
   export default defineComponent({
     name: 'TrackContainer',
     directives: {
@@ -33,30 +40,52 @@
         type: Array as PropType<TrackItem[][]>,
         default: () => [],
       },
-      isMute: {
-        type: Boolean,
-        default: false,
+      mainIdx: {
+        type: Number,
+        default: 0,
       },
     },
     emits: [],
     setup(props, { slots }) {
       const lists = computed(() => props.lists);
-      const isMain = computed(() => {
-        return Boolean(slots.default);
-      });
+      const mainIdx = computed(() => props.mainIdx);
+      const isMain = (i?: number) => {
+        return i === mainIdx.value;
+      };
 
       const getTrackHead = (track: TrackItem) => {
         return [track.trackName, track.duration];
       };
 
-      const video = (track: VideoTrackItem) => (
+      const isMute = ref(false);
+      const onMute = (e: MouseEvent) => {
+        e.stopPropagation();
+        isMute.value = !isMute.value;
+      };
+      const mute = () => (
+        <div
+          class={['rounded-xl text-lg h-full', 'flex items-center justify-center']}
+          style={`flex:0 0 ${containerHeadWidth}px; margin-left: ${-containerHeadWidth}px`}
+        >
+          <div
+            class="rounded-xl flex items-center justify-center w-14 h-14"
+            style="'border: 5px solid #313135; background-color: #464649'"
+            onClick={onMute}
+          >
+            {isMute.value ? <AudioMutedOutlined /> : <SoundFilled />}
+          </div>
+        </div>
+      );
+
+      const video = (track: VideoTrackItem, i?: number) => (
         <div class="video-track h-full w-full">
           <div class="track-item-head">
-            {(props.isMute ? ['已静音', ...getTrackHead(track)] : getTrackHead(track)).map(
-              (title) => (
-                <span class="track-item-title">{title}</span>
-              )
-            )}
+            {(isMute.value && isMain(i)
+              ? ['已静音', ...getTrackHead(track)]
+              : getTrackHead(track)
+            ).map((title) => (
+              <span class="track-item-title">{title}</span>
+            ))}
           </div>
           <div class="h-10">cover</div>
           <div class="h-5">foot wave</div>
@@ -83,7 +112,7 @@
         </div>
       );
 
-      const trackMap = {
+      const trackMap: TrackMap = {
         video,
         audio,
         sticker: attachment,
@@ -93,17 +122,18 @@
       };
 
       const canDrag = ref(true);
+      // TODO: sync mousectls with track opertation, or find a way to release mousectl in OnTrackDown event
       const mtraks: (MouseCtl | null)[][] = getShapedArrary(lists.value, null);
       const trackListsRef = ref<ComponentPublicInstance | null>(null);
       const draggedIdxs = ref(NO_SELECT);
       const activeIdxs = ref(NO_SELECT);
-      const activeTrak = ref<null | TrackItem>(null);
+      const activeTrack = ref<null | TrackItem>(null);
       watch(activeIdxs, (idxs: { i: number; j: number }) => {
         const { i, j } = idxs;
         if (i === -1 || j === -1) return;
-        if (activeTrak.value) activeTrak.value.active = false;
-        activeTrak.value = lists.value[i][j];
-        if (activeTrak.value) activeTrak.value.active = true;
+        if (activeTrack.value) activeTrack.value.active = false;
+        activeTrack.value = lists.value[i][j];
+        if (activeTrack.value) activeTrack.value.active = true;
       });
 
       const shadowDx = ref(0);
@@ -175,7 +205,7 @@
         window.addEventListener('keyup', offShortcut);
 
         const trakLists = (trackListsRef.value?.$el || trackListsRef.value) as HTMLElement;
-        const trak = trakLists.children[i].children[j] as HTMLElement;
+        const trak = trakLists.children[i].children[j + 1] as HTMLElement;
 
         const style = getComputedStyle(trakLists.children[i]);
         const my = parseInt(style.marginTop) + parseInt(style.marginBottom);
@@ -214,7 +244,7 @@
             draggedIdxs.value.i = idx;
           }
 
-          if (isMain.value && idx === i) {
+          if (isMain(i) && idx === i) {
             shadowDx.value = 0;
             swapMainTrack(currentlist, left, j);
           } else {
@@ -257,11 +287,11 @@
                   : insertedIdx,
               j: 0,
             };
-            deleteTrack(lists.value, removedIdx, j, isMain.value);
+            deleteTrack(lists.value, removedIdx, j, isMain(i));
           } else {
             // horizontal
             if (idx === i) {
-              if (isMain.value) {
+              if (isMain(i)) {
                 updateMainOrder(currentlist, dx, j);
               } else {
                 updateOrder(currentlist, dx, j);
@@ -283,7 +313,7 @@
                   i: idx > i && currentlist.length === 1 ? idx - 1 : idx,
                   j: _j,
                 };
-                deleteTrack(lists.value, i, j, isMain.value);
+                deleteTrack(lists.value, i, j, isMain(i));
               }
             }
           }
@@ -309,7 +339,7 @@
             } else if (e.code === 'Backspace') {
               if (isCtrlPressing) {
                 const { i, j } = activeIdxs.value;
-                deleteTrack(lists.value, i, j, isMain.value);
+                deleteTrack(lists.value, i, j, isMain(i));
                 (mtraks[i][j] as MouseCtl).moveCallback = () => {};
                 (mtraks[i][j] as MouseCtl).upCallback = () => {};
                 activeIdxs.value = NO_SELECT;
@@ -341,7 +371,10 @@
               ? 'track-list-active'
               : '',
           ]}
+          style={`height: ${tracks[0].height}px;`}
         >
+          {isMain(i) ? mute() : <div />}
+
           {tracks.map((track: TrackItem, j: number) => {
             return (
               <div
@@ -351,14 +384,13 @@
                   track.active ? 'border-white border' : '',
                 ]}
                 style={`flex:0 0 ${track.width}px;
-                    height: ${track.height}px;
                     margin-left: ${track.marginLeft}px;
                     margin-right: ${track.marginRight}px;
                     `}
                 onPointerdown={(e: MouseEvent) => onTrackDown(e, track, i, j)}
                 v-clickOutside={() => onClickOutside(track)}
               >
-                {trackMap[track.type as keyof typeof trackMap](track)}
+                {trackMap[track.type as keyof typeof trackMap](track, i)}
 
                 {track.active
                   ? h(TrackBorder, {
@@ -379,7 +411,7 @@
           {draggedIdxs.value.i === i ? (
             <div
               class="shadow absolute rounded-sm m-px px-1 bg-gray-300 opacity-10 h-full"
-              style={`width: ${Number(activeTrak.value?.width)}px;
+              style={`width: ${Number(activeTrack.value?.width)}px;
                   top:0; left: ${shadowLeft.value}px;`}
             />
           ) : null}
@@ -396,7 +428,7 @@
 
       return () => (
         <div class="flex w-full">
-          <div class="track-container-head h-full" style={`flex:0 0 ${trackHeadWidth}px;`}>
+          <div class="track-container-head h-full" style={`flex:0 0 ${containerHeadWidth}px;`}>
             {slots.default ? slots.default() : null}
           </div>
           <div ref={trackListsRef} class="list w-full h-full flex flex-col justify-center">
@@ -494,6 +526,22 @@
 
   .new-list-line {
     background: #276161;
+  }
+
+  .sticky-track {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+    transition: 100ms all;
+  }
+
+  .sticky-track::after {
+    position: absolute;
+    content: '';
+    bottom: 7px;
+    left: 128px;
+    width: 50%;
+    height: 2px;
+    background-color: #3a7faf;
   }
 </style>
 

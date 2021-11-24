@@ -1,1 +1,1 @@
-export const trackHeadWidth = 128;
+export const containerHeadWidth = 128;
