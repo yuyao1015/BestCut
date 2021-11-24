@@ -84,8 +84,11 @@
 
       const trackLists = reactive<TrackState>({
         video: videoList,
+        // video: [],
         main: mainList,
+        // main: [],
         audio: audioList,
+        // audio: [],
       });
       const mainIdx = ref(trackLists.video.length);
 
