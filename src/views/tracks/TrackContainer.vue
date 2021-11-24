@@ -342,39 +342,51 @@
               : '',
           ]}
         >
-          {tracks.map((track: TrackItem, j: number) => {
-            return (
-              <div
-                class={[
-                  'track-item rounded-sm overflow-hidden text-xs mr-px relative px-1',
-                  `track-item-${track.type}`,
-                  track.active ? 'border-white border' : '',
-                ]}
-                style={`flex:0 0 ${track.width}px;
+          {isMain.value && !tracks.length ? (
+            <div
+              class={[
+                'rounded-md w-full h-20 border border-light-50 border-dashed',
+                'flex items-center justify-start mx-1 pl-10 opacity-50',
+              ]}
+              style="background-color: rgba(255, 255, 255, 0.1);"
+            >
+              视频拖拽到这里
+            </div>
+          ) : (
+            tracks.map((track: TrackItem, j: number) => {
+              return (
+                <div
+                  class={[
+                    'track-item rounded-sm overflow-hidden text-xs mr-px relative px-1',
+                    `track-item-${track.type}`,
+                    track.active ? 'border-white border' : '',
+                  ]}
+                  style={`flex:0 0 ${track.width}px;
                     height: ${track.height}px;
                     margin-left: ${track.marginLeft}px;
                     margin-right: ${track.marginRight}px;
                     `}
-                onPointerdown={(e: MouseEvent) => onTrackDown(e, track, i, j)}
-                v-clickOutside={() => onClickOutside(track)}
-              >
-                {trackMap[track.type as keyof typeof trackMap](track)}
+                  onPointerdown={(e: MouseEvent) => onTrackDown(e, track, i, j)}
+                  v-clickOutside={() => onClickOutside(track)}
+                >
+                  {trackMap[track.type as keyof typeof trackMap](track)}
 
-                {track.active
-                  ? h(TrackBorder, {
-                      track,
-                      i,
-                      j,
-                      lists: lists.value,
-                      canDrag: canDrag.value,
-                      'onUpdate:canDrag': (value: boolean) => {
-                        canDrag.value = value;
-                      },
-                    })
-                  : null}
-              </div>
-            );
-          })}
+                  {track.active
+                    ? h(TrackBorder, {
+                        track,
+                        i,
+                        j,
+                        lists: lists.value,
+                        canDrag: canDrag.value,
+                        'onUpdate:canDrag': (value: boolean) => {
+                          canDrag.value = value;
+                        },
+                      })
+                    : null}
+                </div>
+              );
+            })
+          )}
 
           {draggedIdxs.value.i === i ? (
             <div

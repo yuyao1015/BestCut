@@ -27,11 +27,20 @@
 
             <TrackContainer
               ref="mainTrackRef"
-              :class="['main-container flex items-center', isSticky ? 'sticky-track' : '']"
+              :class="[
+                'main-container flex items-center',
+                isSticky && trackLists.video.length ? 'sticky-track' : '',
+                !trackLists.video.length && !trackLists.audio.length
+                  ? 'absolute h-full w-full my-auto'
+                  : '',
+              ]"
               :lists="[trackLists.main]"
               :isMute="isMute"
             >
-              <div class="text-lg w-full h-full rounded-xl flex items-center justify-center">
+              <div
+                v-if="trackLists.main.length"
+                class="text-lg w-full h-full rounded-xl flex items-center justify-center"
+              >
                 <div
                   class="rounded-xl flex items-center justify-center w-14 h-14"
                   :style="'border: 5px solid #313135; background-color: #464649'"
@@ -104,8 +113,11 @@
 
       const trackLists = reactive<TrackState>({
         video: videoList,
+        // video: [],
         main: mainList,
+        // main: [],
         audio: audioList,
+        // audio: [],
       });
 
       const wrapperWidth = ref(0);
@@ -119,8 +131,8 @@
             const { width, marginLeft } = calcTrackWidth(track);
             track.width = width;
             track.marginLeft = marginLeft;
-            left = width + marginLeft;
             if (key === 'main') track.marginLeft = 0;
+            left = width + track.marginLeft;
           } else {
             track.forEach((item, idx) => {
               left += updateWidth(key, item);
@@ -227,7 +239,7 @@
 
 <style lang="less" scoped>
   .sticky-track {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.08);
     padding-bottom: 15px;
     transition: 100ms all;
   }
