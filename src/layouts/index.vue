@@ -117,7 +117,7 @@
         previewCanvas.height = Math.floor(w / ratio);
         useResourceStore().onPreviewCanvasSizeChange(resizeProportion);
       };
-      const canvasSizeChangeDebounce = _.debounce(canvasSizeChange, 100);
+      const canvasSizeChangeDebounce = _.debounce(canvasSizeChange, 10);
       const onResize = () => {
         const { innerWidth: w } = window;
         resourceW.value = w * resourceRatio.value;

@@ -9,12 +9,10 @@
   import { Slider } from 'ant-design-vue';
 
   import SectionBox from '@/layouts/SectionBox.vue';
-  import SpecialEffects from '@/components/SpecialEffects.vue';
   import { useI18n } from '@/hooks/useI18n';
 
   import { useResourceStore } from '@/store/resource';
   import { usePlayerStore } from '@/store/player';
-  import type { PixiCanvasProps } from '#/resource';
 
   export default defineComponent({
     name: 'Preview',
@@ -43,17 +41,6 @@
       });
 
       const active = ref(false);
-      const applicationOptions: PixiCanvasProps = {
-        width: 100,
-        height: 100,
-        backgroundColor: '0xffffff',
-        position: {
-          top: 100,
-          left: 100,
-          // right: 100,
-          // bottom: 100,
-        },
-      };
       const total = computed(() => {
         return active.value ? playerStore.total : '00:00:00:00';
       });
@@ -136,7 +123,6 @@
       const content = () => (
         <div class="relative flex items-center h-full" id="canvasContent">
           {canvas()}
-          <SpecialEffects applicationOptions={applicationOptions} />
         </div>
       );
 
