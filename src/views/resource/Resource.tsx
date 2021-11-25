@@ -1,7 +1,5 @@
 import type { ResourceFragment, ResourceItem } from '#/resource';
-import type { VNode } from 'vue';
 
-import { h } from 'vue';
 import { PlusCircleFilled } from '@ant-design/icons-vue';
 
 import Resource from '@/views/resource/Resource.vue';
@@ -55,11 +53,12 @@ const loadLocalFile = () => {
 };
 
 const getTips = (row1: string, row2: string, offline = false) => [
-  h('div', { class: 'flex items-center justify-center' }, [
-    offline ? h(PlusCircleFilled, { class: 'mr-0.5' }) : '',
-    h('div', row1),
-  ]),
-  h('div', { class: 'desc-color text-xs text-center' }, row2),
+  <div class="flex items-center justify-center">
+    {offline ? <PlusCircleFilled class="mr-0.5" /> : null}
+    <div>{row1}</div>
+  </div>,
+
+  <div class="desc-color text-xs text-center">{row2}</div>,
 ];
 
 export const cachedResource = (empty: boolean, offline = false) => {
@@ -74,85 +73,88 @@ export const cachedResource = (empty: boolean, offline = false) => {
       size = 'w-full h-20 m-2 bg-gray-200 bg-opacity-10';
     }
 
-    let el = h(
-      'div',
-      {
-        class: [
+    let el = (
+      <div
+        class={[
           'load-local-file rounded-md',
           'flex flex-col items-center justify-center',
           'border border-dotted',
           size,
-        ],
-        onClick: loadLocalFile,
-      },
-      offline
-        ? getTips('导入素材', '视频、音频、图片', true)
-        : getTips('暂无收藏', '收藏的文本将会在这里出现')
+        ]}
+        onClick={loadLocalFile}
+      >
+        {offline
+          ? getTips('导入素材', '视频、音频、图片', true)
+          : getTips('暂无收藏', '收藏的文本将会在这里出现')}
+      </div>
     );
-    if (empty && offline)
-      el = h('div', { class: 'h-full w-full flex items-center justify-center' }, el);
+
+    if (empty && offline) el = <div class="h-full w-full flex items-center justify-center"> </div>;
 
     return el;
   };
 };
 
-export const useResourceList = (
+export const resourceList = (
   fragment: ResourceFragment,
-  component?: () => VNode,
+  component?: () => JSX.Element,
   offline = false
-) => {
-  return h('div', { class: 'flex flex-col' }, [
-    fragment.name ? h('div', { class: 'ml-2' }, fragment.name) : '',
-    h('div', { class: 'flex flex-wrap' }, [
-      component ? component() : '',
+) => (
+  <div class="flex flex-col">
+    {fragment.name ? <div class="ml-2">{fragment.name}</div> : null}
+    <div class="flex flex-wrap">
+      {component ? component() : null}
 
-      ...fragment.list.map((resource, j) => {
-        return h(Resource, {
-          key: j,
-          class: 'local-resource-list relative m-2 text-xs',
-          offline,
-          resource,
-          usable: resource.usable ? resource.usable : fragment.usable,
-          favorite: resource.favorite ? resource.favorite : fragment.favorite,
-          showAdd: resource.showAdd ? resource.showAdd : fragment.showAdd,
-          onEvent: offline ? () => {} : () => {}, // TODO: 添加离线资源
-        });
-      }),
-    ]),
-  ]);
-};
+      {fragment.list.map((resource, j) => (
+        <Resource
+          key={j}
+          class="local-resource-list relative m-2 text-xs"
+          offline={offline}
+          resource={resource}
+          usable={resource.usable ? resource.usable : fragment.usable}
+          favorite={resource.favorite ? resource.favorite : fragment.favorite}
+          showAdd={resource.showAdd ? resource.showAdd : fragment.showAdd}
+          onEvent={offline ? () => {} : () => {}} // TODO: 添加离线资源
+        />
+      ))}
+    </div>
+  </div>
+);
 
 type ResourceDescriptor = {
   loc?: string;
   indexes?: number[];
   offline?: boolean;
-  component?: (fragment: any) => () => VNode;
+  component?: (fragment: any) => () => JSX.Element;
 };
 
-export const useResourceWrapper = (
+export const resourceWrapper = (
   resourceDescriptor: ResourceDescriptor = {}
-): ((list: ResourceFragment[]) => VNode) => {
+): ((list: ResourceFragment[]) => JSX.Element) => {
   return (list: ResourceFragment[]) => {
     const { loc, offline, indexes = [0] } = resourceDescriptor;
-    let cached = () => h('div');
+
+    let cached = () => <div />;
     let empty = false;
-    return h('div', { class: 'h-full' }, [
-      // h('div', { class: 'bg-red-200 text-center w-full' }, 'search'),
-      h('div', { id: 'resource-list', class: 'h-full overflow-y-scroll' }, [
-        ...list.map((fragment, i) => {
-          let ret;
-          empty = fragment.list.length === 0;
-          if ((!empty && offline) || (empty && !offline)) cached = cachedResource(empty, offline);
+    return (
+      <div class="h-full m-1">
+        <div id="resource-list" class="h-full overflow-y-scroll">
+          {list.map((fragment, i) => {
+            let ret;
+            empty = fragment.list.length === 0;
+            if ((!empty && offline) || (empty && !offline)) cached = cachedResource(empty, offline);
 
-          if (indexes.includes(i) && (loc === 'wrap-top' || empty)) {
-            ret = useResourceList(fragment, cached, offline);
-          } else ret = useResourceList(fragment);
+            if (indexes.includes(i) && (loc === 'wrap-top' || empty)) {
+              ret = resourceList(fragment, cached, offline);
+            } else ret = resourceList(fragment);
 
-          if (empty && offline) cached = cachedResource(empty, offline);
-          return ret;
-        }),
-        empty ? cached() : '',
-      ]),
-    ]);
+            if (empty && offline) cached = cachedResource(empty, offline);
+            return ret;
+          })}
+
+          {empty ? cached() : null}
+        </div>
+      </div>
+    );
   };
 };

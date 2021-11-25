@@ -371,18 +371,15 @@
                 >
                   {trackMap[track.type as keyof typeof trackMap](track)}
 
-                  {track.active
-                    ? h(TrackBorder, {
-                        track,
-                        i,
-                        j,
-                        lists: lists.value,
-                        canDrag: canDrag.value,
-                        'onUpdate:canDrag': (value: boolean) => {
-                          canDrag.value = value;
-                        },
-                      })
-                    : null}
+                  {track.active ? (
+                    <TrackBorder
+                      track={track}
+                      i={i}
+                      j={j}
+                      lists={lists.value}
+                      v-model={[canDrag.value, 'canDrag']}
+                    />
+                  ) : null}
                 </div>
               );
             })

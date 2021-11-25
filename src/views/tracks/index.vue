@@ -61,7 +61,7 @@
 </template>
 
 <script lang="tsx">
-  import type { ComponentPublicInstance } from 'vue';
+  import { ComponentPublicInstance, onUnmounted } from 'vue';
   import type { TrackItem } from '#/track';
 
   import { defineComponent, ref, onMounted, watch, reactive, nextTick } from 'vue';
@@ -211,6 +211,10 @@
 
         updateTrackWidth();
         nextTick(() => initTimeLine());
+      });
+
+      onUnmounted(() => {
+        window.removeEventListener('mousewheel', onStickyTrack);
       });
 
       return {

@@ -1,39 +1,4 @@
-<template>
-  <SectionBox :sider="{ width: 90, class: 'border-r border-black' }" :title="title">
-    <template #header>
-      <div class="tabs flex items-center pt-1 px-1 w-full">
-        <div
-          v-for="(tab, idx) in tabsData"
-          :key="idx"
-          :class="[activeTab === idx ? 'active-color' : '', 'flex flex-col items-center mx-1']"
-          :style="{ width: `${100 / tabsData.length}%` }"
-          @click="switchTab(idx)"
-        >
-          <component :is="tab.icon" class="mb-1"></component>
-
-          <span class="text-xs">{{ tab.name }}</span>
-        </div>
-      </div>
-    </template>
-
-    <template #sider>
-      <CollapsedMenu
-        :libs="resourceLibs"
-        v-model:selectedLib="selectedLib"
-        :selectedFragment="selectedFragment"
-        @clickFragment="switchFragment"
-      ></CollapsedMenu>
-    </template>
-
-    <template #content>
-      <keep-alive>
-        <component :is="currentLib.component(currentLib.fragments)" class="m-1" />
-      </keep-alive>
-    </template>
-  </SectionBox>
-</template>
-
-<script lang="ts">
+<script lang="tsx">
   import { computed, defineComponent, watch, ref, onMounted, onUnmounted } from 'vue';
 
   import SectionBox from '@/layouts/SectionBox.vue';
@@ -80,7 +45,7 @@
       };
 
       watch(activeTab, () => {
-        if (resourceStore.selectedFragment !== 0) {
+        if (selectedFragment.value !== 0) {
           resourceStore.switchFragment(0);
           selectedFragment.value = 0;
         }
@@ -98,9 +63,8 @@
         scrollTo(idx);
       });
 
-      const switchFragment = (idx: number) => {
+      const switchFragment = () => {
         if (!downScroll) downScroll = true;
-        selectedFragment.value = idx;
       };
 
       const stepArr: number[][] = [];
@@ -153,21 +117,42 @@
 
       updateFragments();
 
-      return {
-        title,
-        activeTab,
-        selectedLib,
-        selectedFragment,
-        tabsData,
-        resourceLibs,
-        currentLib,
-        switchFragment,
-        switchTab: resourceStore.switchTab,
-      };
+      const header = () => (
+        <div class="tabs flex items-center pt-1 px-1 w-full">
+          {tabsData.value.map((tab, idx) => (
+            <div
+              class={[
+                activeTab.value === idx ? 'active-color' : '',
+                'flex flex-col items-center mx-1',
+              ]}
+              style={{ width: `${100 / tabsData.value.length}%` }}
+              onClick={() => resourceStore.switchTab(idx)}
+            >
+              {tab.icon}
+              <span class="text-xs mt-1">{tab.name}</span>
+            </div>
+          ))}
+        </div>
+      );
+
+      return () => (
+        <SectionBox sider={{ width: 90, class: 'border-r border-black' }} title={title}>
+          {{
+            header,
+            sider: () => (
+              <CollapsedMenu
+                libs={resourceLibs.value}
+                v-models={[
+                  [selectedLib.value, 'selectedLib'],
+                  [selectedFragment.value, 'selectedFragment'],
+                ]}
+                onClickFragment={switchFragment}
+              />
+            ),
+            content: () => currentLib.value.component(currentLib.value.fragments),
+          }}
+        </SectionBox>
+      );
     },
   });
 </script>
-
-<style>
-  /* 1 */
-</style>

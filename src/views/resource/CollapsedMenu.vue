@@ -55,7 +55,7 @@
         default: 0,
       },
     },
-    emits: ['update:selectedLib', 'clickFragment'],
+    emits: ['update:selectedLib', 'update:selectedFragment', 'clickFragment'],
     setup(props, { emit }) {
       const { t } = useI18n();
 
@@ -82,11 +82,11 @@
 
       const switchItem = (idx: number) => {
         selectedFragment.value = idx;
+        emit('update:selectedFragment', idx);
         emit('clickFragment', idx);
       };
 
-      // const icon = (prop: Recordable) => {
-      const icon = (prop: any) => {
+      const icon = (prop: { [prop: string]: any }) => {
         const bool = prop.panelKey === activeLib.value;
         return bool ? h(CaretDownOutlined) : h(CaretRightOutlined);
       };
