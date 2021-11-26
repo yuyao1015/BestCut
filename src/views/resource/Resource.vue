@@ -66,6 +66,7 @@
       <PlusCircleFilled
         v-if="usable"
         :class="[showAdd ? '' : 'hidden', 'absolute bottom-1 right-1 add']"
+        @click.stop="add2Track"
       />
 
       <DownloadOutlined v-if="!usable && !isLoading" class="download absolute bottom-1 right-1" />
@@ -92,6 +93,7 @@
 
   import { useResourceStore } from '@/store/resource';
   import { usePlayerStore } from '@/store/player';
+  import { useTrackStore } from '@/store/track';
 
   import { ClickOutside } from '@/directives';
 
@@ -161,6 +163,27 @@
           checked.value = props.resource.checked;
         }
       );
+
+      const trackStore = useTrackStore();
+      const add2Track = () => {
+        const { type, src, duration, resourceName } = props.resource;
+        const track = {
+          type,
+          src,
+          trackName: resourceName,
+          duration,
+          marginLeft: 0,
+          marginRight: 0,
+          width: 80,
+          height: 84,
+          active: false,
+          start: 0,
+          end: 0,
+          offset: 0,
+          id: '',
+        };
+        trackStore.addTrack(track);
+      };
 
       const isLoading = ref(false);
       const resourceRef = ref<HTMLElement | null>(null);
@@ -237,6 +260,7 @@
         play,
         onClickOutside,
         onChecked,
+        add2Track,
         dragstart,
         dragenter,
       };

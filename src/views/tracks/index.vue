@@ -23,22 +23,22 @@
             class="absolute w-full mt-2.5 overflow-y-scroll pb-10"
             :style="`height: calc(100% - 0.625rem);`"
           >
-            <TrackContainer class="video-container overflow-y-auto" :lists="trackLists.video" />
+            <TrackContainer class="video-container overflow-y-auto" :lists="trackMap.video" />
 
             <TrackContainer
               ref="mainTrackRef"
               :class="[
                 'main-container flex items-center',
-                isSticky && trackLists.video.length ? 'sticky-track' : '',
-                !trackLists.video.length && !trackLists.audio.length
+                isSticky && trackMap.video.length ? 'sticky-track' : '',
+                !trackMap.video.length && !trackMap.audio.length
                   ? 'absolute h-full w-full my-auto'
                   : '',
               ]"
-              :lists="[trackLists.main]"
+              :lists="[trackMap.main]"
               :isMute="isMute"
             >
               <div
-                v-if="trackLists.main.length"
+                v-if="trackMap.main.length"
                 class="text-lg w-full h-full rounded-xl flex items-center justify-center"
               >
                 <div
@@ -52,7 +52,7 @@
               </div>
             </TrackContainer>
 
-            <TrackContainer class="audio-container" :lists="trackLists.audio" />
+            <TrackContainer class="audio-container" :lists="trackMap.audio" />
           </div>
         </div>
       </div>
@@ -62,9 +62,9 @@
 
 <script lang="tsx">
   import { ComponentPublicInstance, onUnmounted } from 'vue';
-  import type { TrackItem } from '#/track';
+  import type { TrackItem, TrackMap } from '#/track';
 
-  import { defineComponent, ref, onMounted, watch, reactive, nextTick } from 'vue';
+  import { defineComponent, ref, onMounted, watch, nextTick } from 'vue';
 
   import { SoundFilled, AudioMutedOutlined } from '@ant-design/icons-vue';
 
@@ -79,14 +79,8 @@
   import useTimeLine from '@/hooks/useTimeLine';
   import { getStyle, setStyle } from '@/utils/dom';
 
-  import { mainList, audioList, videoList } from './data';
   import { forEachValue } from '@/utils';
-
-  type TrackState = {
-    video: TrackItem[][];
-    main: TrackItem[];
-    audio: TrackItem[][];
-  };
+  import { useTrackStore } from '@/store/track';
 
   type TrackStateItem = TrackItem[] | TrackItem[][];
 
@@ -111,14 +105,18 @@
       const { t } = useI18n();
       const title = t('components.tracks');
 
-      const trackLists = reactive<TrackState>({
-        video: videoList,
-        // video: [],
-        main: mainList,
-        // main: [],
-        audio: audioList,
-        // audio: [],
-      });
+      const trackStore = useTrackStore();
+      const trackMap = ref(trackStore.trackMap);
+      watch(
+        () => trackStore.trackMap,
+        (newVal: TrackMap, oldVal: TrackMap) => {
+          trackMap.value = newVal;
+          updateTrackWidth();
+        },
+        {
+          deep: true,
+        }
+      );
 
       const wrapperWidth = ref(0);
       const { useUnit, initTimeLine, calcTrackWidth } = useTimeLine(600, 30);
@@ -145,7 +143,7 @@
           return left;
         };
 
-        forEachValue<TrackStateItem>(trackLists, (key: string, val: TrackStateItem) => {
+        forEachValue<TrackStateItem>(trackMap.value, (key: string, val: TrackStateItem) => {
           updateWidth(key, val);
         });
         const footer = footerRef.value?.$el || footerRef.value;
@@ -224,7 +222,7 @@
         isMute,
         isSticky,
         percent,
-        trackLists,
+        trackMap,
 
         footerRef,
         tracksWrapperRef,

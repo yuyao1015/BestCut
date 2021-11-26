@@ -1,8 +1,8 @@
 import type { VNode } from 'vue';
 
-import { ResourceType } from '@/enums/resource';
+// import { ResourceType } from '@/enums/resource';
 
-type Item = {
+type ItemOptional = {
   active: boolean;
   usable: boolean;
   showAdd: boolean;
@@ -16,11 +16,17 @@ type Item = {
   duration: string;
 };
 
-export interface VideoResourceItem extends Partial<Item> {
+type ItemRequired = {
+  //
+};
+
+type Item = Partial<ItemOptional> & ItemRequired;
+
+export interface VideoResourceItem extends Item {
   // type: ResourceType.Video;
   type: string;
 }
-export interface AudioResourceItem extends Partial<Item> {
+export interface AudioResourceItem extends Item {
   // type: ResourceType.Audio;
   type: string;
   album?: string;

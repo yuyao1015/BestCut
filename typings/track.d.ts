@@ -9,6 +9,7 @@ type ItemOptional = {
 };
 
 type ItemRequired = {
+  id: string;
   start: number;
   end: number;
   width: number; // pixel
@@ -21,13 +22,11 @@ type ItemRequired = {
 type Item = Partial<ItemOptional> & ItemRequired;
 
 export interface AudioTrackItem extends Item {
-  id: string;
   type: string;
   wave?: string;
 }
 
 export interface VideoTrackItem extends Item {
-  id: string;
   type: string;
   src?: string;
   audio?: AudioTrackItem;
@@ -35,3 +34,9 @@ export interface VideoTrackItem extends Item {
 }
 
 export type TrackItem = VideoTrackItem & AudioTrackItem;
+
+export type TrackMap = {
+  video: TrackItem[][];
+  main: TrackItem[];
+  audio: AudioTrackItem[][];
+};

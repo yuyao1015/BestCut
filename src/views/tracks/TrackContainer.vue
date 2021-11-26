@@ -1,5 +1,5 @@
 <script lang="tsx">
-  import type { AudioTrackItem, TrackItem, VideoTrackItem } from '#/track';
+  import type { AudioTrackItem, TrackItem, VideoTrackItem, TrackMap } from '#/track';
   import type { PropType, ComponentPublicInstance } from 'vue';
 
   import { computed, h, defineComponent, ref, watch } from 'vue';
@@ -9,6 +9,7 @@
 
   import { trackHeadWidth } from '@/settings/componentSetting';
   import { getShapedArrary } from '@/utils';
+  import { useTrackStore } from '@/store/track';
 
   import {
     searchMainIdx,
@@ -44,6 +45,14 @@
       const isMain = computed(() => {
         return Boolean(slots.default);
       });
+
+      const trackStore = useTrackStore();
+      const updateMap = (track: TrackItem, lists: TrackItem[][]) => {
+        let type: keyof TrackMap | undefined;
+        if (!['video', 'audio'].includes(track.type)) type = 'video';
+        if (track.type === 'video' && track.marginLeft === 0) type = 'main';
+        trackStore.updateMap(type === 'main' ? lists[0] : lists, type);
+      };
 
       const getTrackHead = (track: TrackItem) => {
         return [track.trackName, track.duration];
@@ -258,6 +267,7 @@
               j: 0,
             };
             deleteTrack(lists.value, removedIdx, j, isMain.value);
+            updateMap(_track, lists.value);
           } else {
             // horizontal
             if (idx === i) {
@@ -266,6 +276,7 @@
               } else {
                 updateOrder(currentlist, dx, j);
               }
+              updateMap(lists.value[i][j], lists.value);
               // vertical
             } else {
               const dstList = lists.value[idx];
@@ -284,6 +295,7 @@
                   j: _j,
                 };
                 deleteTrack(lists.value, i, j, isMain.value);
+                updateMap(_track, lists.value);
               }
             }
           }
@@ -309,11 +321,13 @@
             } else if (e.code === 'Backspace') {
               if (isCtrlPressing) {
                 const { i, j } = activeIdxs.value;
+                const track = lists.value[i][j];
                 deleteTrack(lists.value, i, j, isMain.value);
                 (mtraks[i][j] as MouseCtl).moveCallback = () => {};
                 (mtraks[i][j] as MouseCtl).upCallback = () => {};
                 activeIdxs.value = NO_SELECT;
                 draggedIdxs.value = NO_SELECT;
+                updateMap(track, lists.value);
               }
             }
           },
