@@ -23,6 +23,7 @@
           @dragstart="onDragStart"
           @dragend="onDragEnd"
         />
+        <Track class="resource-drag-view hidden" ref="trackRef" :track="track" />
       </div>
     </div>
 
@@ -35,17 +36,25 @@
   import type { ResourceItem } from '#/resource';
   import type { ComponentPublicInstance } from 'vue';
 
-  import { defineComponent, ref, PropType, watch, nextTick } from 'vue';
+  import { defineComponent, ref, PropType, watch, nextTick, computed } from 'vue';
 
   import ResourceBox from './ResourceBox.vue';
+  import Track from '@/components/Track.vue';
 
   import { setStyle, toggleClass } from '@/utils/dom';
   import { useTrackStore } from '@/store/track';
+
+  type DragView = {
+    el?: HTMLElement;
+    left: string;
+    top: string;
+  };
 
   export default defineComponent({
     name: 'Resource',
     components: {
       ResourceBox,
+      Track,
     },
     props: {
       usable: {
@@ -91,18 +100,49 @@
       watch(
         () => trackStore.isResourceOver,
         (val: boolean) => {
+          if (!trackRef.value || !maskView || !dragView.el) return;
+          const track = (trackRef.value.$el || trackRef.value) as HTMLElement;
           if (val) {
-            trackVisiable.value = true;
+            track.style.left = dragView.left;
+            track.style.top = dragView.top;
+            track.style.display = 'block';
+            dragView.el.style.display = 'none';
+            dragView.el = track;
           } else {
-            trackVisiable.value = false;
+            maskView.style.left = dragView.left;
+            maskView.style.top = dragView.top;
+            maskView.style.display = 'block';
+            dragView.el.style.display = 'none';
+            dragView.el = maskView;
           }
         }
       );
 
       const maskVisiable = ref(false);
-      const trackVisiable = ref(false);
       const maskRef = ref<ComponentPublicInstance | undefined>(undefined);
+      const trackRef = ref<ComponentPublicInstance | undefined>(undefined);
+      const track = computed(() => {
+        const { type, src, duration, resourceName } = props.resource;
+        const track = {
+          type,
+          src,
+          trackName: resourceName,
+          duration,
+          marginLeft: 0,
+          marginRight: 0,
+          width: 200,
+          height: 84,
+          active: false,
+          start: 0,
+          end: 0,
+          offset: 0,
+          id: '',
+        };
+        return track;
+      });
+
       let maskView: HTMLElement | undefined;
+      let dragView: DragView = { el: maskView, left: '', top: '' };
 
       const onResourceMove = (e: PointerEvent) => {
         if (maskVisiable.value) return;
@@ -114,13 +154,17 @@
 
         maskView = resource.cloneNode(true) as HTMLElement;
         toggleClass(maskView, 'resource-drag-view', true);
-        setStyle(maskView, 'top', `${top}px`);
-        setStyle(maskView, 'left', `${left}px`);
-        setStyle(maskView, 'width', `${rect.width}px`);
-        setStyle(maskView, 'height', `${rect.height}px`);
+        setStyle(maskView, {
+          top: top + 'px',
+          left: left + 'px',
+          width: rect.width + 'px',
+          height: rect.height + 'px',
+        });
+        dragView.el = maskView;
+        dragView.top = top + 'px';
+        dragView.left = left + 'px';
 
         let container = (resource.parentNode || document.body) as HTMLElement;
-
         do {
           if (
             container &&
@@ -143,10 +187,12 @@
           maskView && mask.parentNode?.appendChild(maskView);
 
           toggleClass(mask, 'resource-drag', true);
-          setStyle(mask, 'top', `${top}px`);
-          setStyle(mask, 'left', `${left}px`);
-          setStyle(mask, 'width', `${rect.width}px`);
-          setStyle(mask, 'height', `${rect.height}px`);
+          setStyle(mask, {
+            top: top + 'px',
+            left: left + 'px',
+            width: rect.width + 'px',
+            height: rect.height + 'px',
+          });
         });
       };
 
@@ -164,22 +210,24 @@
       };
 
       const onDragOver = (e: DragEvent) => {
-        if (maskView) {
-          const rect = maskView.getBoundingClientRect();
-          // maskView.style.left = `${e.pageX + 10}px`;
-          maskView.style.left = `${e.pageX - rect.width / 2}px`;
-          maskView.style.top = `${e.pageY - rect.height / 2}px`;
-        }
+        if (!dragView.el) return;
+        const rect = dragView.el.getBoundingClientRect();
+        dragView.el.style.left = `${
+          e.pageX + (trackStore.isResourceOver ? 10 : -rect.width / 2)
+        }px`;
+        dragView.el.style.top = `${e.pageY - rect.height / 2}px`;
       };
       const onDragEnd = () => {
         window.removeEventListener('dragover', onDragOver);
         maskVisiable.value = false;
+        if (dragView.el) dragView.el.style.display = 'none';
       };
 
       return {
         maskRef,
+        trackRef,
+        track,
         maskVisiable,
-        trackVisiable,
 
         onResourceMove,
         onResourceLeave,

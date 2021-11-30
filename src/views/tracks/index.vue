@@ -19,7 +19,7 @@
           class="tracks-wrapper absolute h-full w-full select-none"
           @dragenter="onResourceEnter"
           @dragover="onResourceOver"
-          @dragleave.capture="onResourceLeave"
+          @dragleave="onResourceLeave"
           @drop="onResourceDrop"
         >
           <div
@@ -114,13 +114,14 @@
       watch(
         () => trackStore.trackMap,
         (newVal: TrackMap, oldVal: TrackMap) => {
-          trackMap.value = newVal;
+          newVal;
+          // trackMap.value = newVal;
           if (!oldVal.main.length && !oldVal.audio.length && !oldVal.video.length) {
             // const { _useUnit, _calcTrackWidth } = useTimeLine(600, 30);
             // useUnit = _useUnit
             // calcTrackWidth = _calcTrackWidth
           }
-          updateTrackWidth();
+          // updateTrackWidth();
         },
         {
           deep: true,
@@ -229,6 +230,7 @@
         console.log('enter');
       };
       const onResourceOver = (e: DragEvent) => {
+        trackStore.setResourceOverState(true);
         console.log('over');
         e.preventDefault();
       };

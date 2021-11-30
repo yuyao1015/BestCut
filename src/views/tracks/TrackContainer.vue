@@ -1,8 +1,8 @@
 <script lang="tsx">
-  import type { AudioTrackItem, TrackItem, VideoTrackItem, TrackMap } from '#/track';
+  import type { TrackItem, TrackMap } from '#/track';
   import type { PropType, ComponentPublicInstance } from 'vue';
 
-  import { computed, h, defineComponent, ref, watch } from 'vue';
+  import { computed, defineComponent, ref, watch } from 'vue';
 
   import { ClickOutside } from '@/directives';
   import { MouseCtl } from '@/logic/mouse';
@@ -21,6 +21,7 @@
   } from './track';
 
   import TrackBorder from './TrackBorder.vue';
+  import Track from '@/components/Track.vue';
 
   const NO_SELECT = { i: -1, j: -1 };
 
@@ -52,52 +53,6 @@
         if (!['video', 'audio'].includes(track.type)) type = 'video';
         if (track.type === 'video' && track.marginLeft === 0) type = 'main';
         trackStore.updateMap(type === 'main' ? lists[0] : lists, type);
-      };
-
-      const getTrackHead = (track: TrackItem) => {
-        return [track.trackName, track.duration];
-      };
-
-      const video = (track: VideoTrackItem) => (
-        <div class="video-track h-full w-full">
-          <div class="track-item-head">
-            {(props.isMute ? ['已静音', ...getTrackHead(track)] : getTrackHead(track)).map(
-              (title) => (
-                <span class="track-item-title">{title}</span>
-              )
-            )}
-          </div>
-          <div class="h-10">cover</div>
-          <div class="h-5">foot wave</div>
-        </div>
-      );
-
-      const audio = (track: AudioTrackItem) => (
-        <div class="audio-track h-full w-full">
-          <div class="track-item-head">
-            {getTrackHead(track).map((title) => (
-              <span class="track-item-title">{title}</span>
-            ))}
-          </div>
-          <div class="h-8">{track.wave}</div>
-        </div>
-      );
-
-      const attachment = (track: TrackItem) => (
-        <div class={'attachment-track track-item-head w-full'}>
-          {track.icon && (() => h(track.icon, { class: 'track-item-title' }))()}
-          {track.sticker ? <img class="track-item-title" src={track.sticker} /> : null}
-          {track.type !== 'sticker' ? <div class="track-item-title">{track.trackName}</div> : null}
-        </div>
-      );
-
-      const trackMap = {
-        video,
-        audio,
-        sticker: attachment,
-        text: attachment,
-        sprite: attachment,
-        filter: attachment,
       };
 
       const canDrag = ref(true);
@@ -368,22 +323,12 @@
           ) : (
             tracks.map((track: TrackItem, j: number) => {
               return (
-                <div
-                  class={[
-                    'track-item rounded-sm overflow-hidden text-xs mr-px relative px-1',
-                    `track-item-${track.type}`,
-                    track.active ? 'border-white border' : '',
-                  ]}
-                  style={`flex:0 0 ${track.width}px;
-                    height: ${track.height}px;
-                    margin-left: ${track.marginLeft}px;
-                    margin-right: ${track.marginRight}px;
-                    `}
-                  onPointerdown={(e: MouseEvent) => onTrackDown(e, track, i, j)}
+                <Track
+                  track={track}
+                  isMute={props.isMute}
+                  onPointerdown={(e: PointerEvent) => onTrackDown(e, track, i, j)}
                   v-clickOutside={() => onClickOutside(track)}
                 >
-                  {trackMap[track.type as keyof typeof trackMap](track)}
-
                   {track.active ? (
                     <TrackBorder
                       track={track}
@@ -393,7 +338,7 @@
                       v-model={[canDrag.value, 'canDrag']}
                     />
                   ) : null}
-                </div>
+                </Track>
               );
             })
           )}

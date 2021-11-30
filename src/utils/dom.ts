@@ -54,7 +54,7 @@ export const getStyle = function (element: HTMLElement, styleName: string): stri
 
 export function setStyle(
   element: HTMLElement,
-  styleName: CSSStyleDeclaration | string,
+  styleName: Partial<CSSStyleDeclaration> | string,
   value?: string
 ): void {
   if (!element || !styleName) return;
