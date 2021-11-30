@@ -104,7 +104,7 @@
       });
 
       onUnmounted(() => {
-        mLocator && mLocator.stopAllListeners('self');
+        mLocator && mLocator.stopAllListeners();
       });
 
       return {

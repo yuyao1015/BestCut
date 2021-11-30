@@ -86,9 +86,8 @@
       const attachment = (track: TrackItem) => (
         <div class={'attachment-track track-item-head w-full'}>
           {track.icon && (() => h(track.icon, { class: 'track-item-title' }))()}
-          {track.sticker && (() => <img class="track-item-title" src={track.sticker} />)()}
-          {track.type !== 'sticker' &&
-            (() => h('div', { class: 'track-item-title' }, track.trackName))()}
+          {track.sticker ? <img class="track-item-title" src={track.sticker} /> : null}
+          {track.type !== 'sticker' ? <div class="track-item-title">{track.trackName}</div> : null}
         </div>
       );
 

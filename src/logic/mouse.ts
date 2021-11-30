@@ -29,7 +29,7 @@ export class MouseCtl {
   eventNames: SupportedEvents[] = [];
   constructor(element: HTMLElement) {
     this.element = (element === undefined ? document : element) as HTMLElement;
-    this.addEventListener(['mousedown'], 'self');
+    this.addEventListener(['mousedown'], true);
 
     this.zoomInCallback = () => {};
     this.zoomOutCallback = () => {};
@@ -76,11 +76,11 @@ export class MouseCtl {
     if (t === 'mousedown') {
       this.buttonRaw |= this.buttonOnMasks[e.buttons - 1];
       this.downCallback(e);
-      this.addEventListener(['mousemove', 'mouseup'], '');
+      this.addEventListener(['mousemove', 'mouseup'], false);
     } else if (t === 'mouseup') {
       this.buttonRaw &= this.buttonOffMasks[e.buttons - 1];
       this.upCallback(e);
-      this.removeEventListener(['mousemove', 'mouseup'], '');
+      this.removeEventListener(['mousemove', 'mouseup'], false);
       this.dragging = false;
     } else if (t === 'mousemove') {
       this.updateMove(e);
@@ -100,8 +100,8 @@ export class MouseCtl {
       this.updateWheel(e);
     }
   }
-  addEventListener(eventNames: SupportedEvents[], bind: string) {
-    const binder = bind === 'self' ? this.element : window;
+  addEventListener(eventNames: SupportedEvents[], self = true) {
+    const binder = self ? this.element : window;
     eventNames.forEach((name) => {
       const idx = this.eventNames.indexOf(name);
       if (idx !== -1) return;
@@ -110,8 +110,8 @@ export class MouseCtl {
     });
     if (eventNames.length > 0) this.active = true;
   }
-  removeEventListener(eventNames: SupportedEvents[], bind = 'self') {
-    const binder = bind === 'self' ? this.element : window;
+  removeEventListener(eventNames: SupportedEvents[], self = true) {
+    const binder = self ? this.element : window;
     binder;
     eventNames.forEach((name) => {
       const idx = this.eventNames.indexOf(name);
@@ -120,8 +120,8 @@ export class MouseCtl {
     });
     if (!this.eventNames.length) this.active = false;
   }
-  stopAllListeners(bind: string) {
-    this.removeEventListener(this.eventNames, bind);
+  stopAllListeners(self = true) {
+    this.removeEventListener(this.eventNames, self);
     this.active = false;
   }
 

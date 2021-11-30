@@ -17,10 +17,14 @@
           ref="tracksWrapperRef"
           id="tracks-wrapper"
           class="tracks-wrapper absolute h-full w-full select-none"
+          @dragenter="onResourceEnter"
+          @dragover="onResourceOver"
+          @dragleave.capture="onResourceLeave"
+          @drop="onResourceDrop"
         >
           <div
             ref="tracksRef"
-            class="absolute w-full mt-2.5 overflow-y-scroll pb-10"
+            class="tracks absolute w-full mt-2.5 overflow-y-scroll pb-10"
             :style="`height: calc(100% - 0.625rem);`"
           >
             <TrackContainer class="video-container overflow-y-auto" :lists="trackMap.video" />
@@ -111,6 +115,11 @@
         () => trackStore.trackMap,
         (newVal: TrackMap, oldVal: TrackMap) => {
           trackMap.value = newVal;
+          if (!oldVal.main.length && !oldVal.audio.length && !oldVal.video.length) {
+            // const { _useUnit, _calcTrackWidth } = useTimeLine(600, 30);
+            // useUnit = _useUnit
+            // calcTrackWidth = _calcTrackWidth
+          }
           updateTrackWidth();
         },
         {
@@ -215,6 +224,23 @@
         window.removeEventListener('mousewheel', onStickyTrack);
       });
 
+      const onResourceEnter = () => {
+        trackStore.setResourceOverState(true);
+        console.log('enter');
+      };
+      const onResourceOver = (e: DragEvent) => {
+        console.log('over');
+        e.preventDefault();
+      };
+      const onResourceLeave = () => {
+        trackStore.setResourceOverState(false);
+        console.log('leave');
+      };
+      const onResourceDrop = (e: DragEvent) => {
+        e.stopPropagation();
+        console.log('drop');
+      };
+
       return {
         title,
         wrapperWidth,
@@ -230,10 +256,13 @@
         mainTrackRef,
         timelineRef,
 
-        calcTrackWidth,
         onMute,
         move,
         down,
+        onResourceEnter,
+        onResourceOver,
+        onResourceLeave,
+        onResourceDrop,
       };
     },
   });

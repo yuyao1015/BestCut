@@ -68,3 +68,17 @@ export function setStyle(
     element.style[name] = value ? value : '';
   }
 }
+
+const R_SPACE = /\s+/g;
+export function toggleClass(el: HTMLElement, name: string, state: boolean) {
+  if (el && name) {
+    if (el.classList) {
+      el.classList[state ? 'add' : 'remove'](name);
+    } else {
+      const className = (' ' + el.className + ' ')
+        .replace(R_SPACE, ' ')
+        .replace(' ' + name + ' ', ' ');
+      el.className = (className + (state ? ' ' + name : '')).replace(R_SPACE, ' ');
+    }
+  }
+}

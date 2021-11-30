@@ -129,5 +129,5 @@ export const deleteTrack = (lists: TrackItem[][], i: number, j: number, isMain: 
   const list = lists[i];
   if (!isMain && list[j + 1]) list[j + 1].marginLeft += list[j].marginLeft + list[j].width;
   list.splice(j, 1);
-  if (!list.length) lists.splice(i, 1);
+  if (!isMain && !list.length) lists.splice(i, 1);
 };
