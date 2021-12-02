@@ -9,7 +9,7 @@ type ItemOptional = {
   favorite: boolean;
   checked: boolean;
   referenced: boolean;
-  resourceName: string;
+  name: string;
   boxSize: string;
   cover: string;
   src: string;

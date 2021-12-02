@@ -3,7 +3,6 @@
  */
 
 import type { PropEditInfo } from '#/viewItem';
-import type { TrackItem, VideoTrackItem, AudioTrackItem } from '#/track';
 
 import { PropComType } from '@/enums/viewItem';
 
@@ -203,69 +202,3 @@ export abstract class Effect extends Base {
 
   abstract transit: (time: number, blob: any) => any;
 }
-
-export class Track extends Base implements TrackItem {
-  type = '';
-  trackName = '';
-  target: Track | null = null;
-  position = -1;
-  duration = '';
-  active = false;
-
-  getProps() {
-    return null;
-  }
-}
-
-export abstract class MediaTrack extends Track {
-  refer: { from: number; to: number } | null = null;
-  path = '';
-  muted = false;
-}
-
-export class VideoTrack extends MediaTrack implements VideoTrackItem {
-  position = -1;
-  type = 'video';
-  audio?: AudioTrackItem;
-  cover?: string[];
-  src?: string;
-  constructor(opts: {
-    trackName: string;
-    src: string;
-    duration: string;
-    audio?: AudioTrackItem;
-    cover?: string[];
-  }) {
-    super();
-    this.trackName = opts.trackName;
-    this.duration = opts.duration;
-    this.audio = opts.audio;
-    this.cover = opts.cover;
-    this.src = opts.src;
-  }
-
-  getProps() {
-    return null;
-  } // todo;
-}
-
-export class AudioTrack extends MediaTrack implements AudioTrackItem {
-  position = -1;
-  type = 'audio';
-  wave?: string;
-
-  constructor(opts: { trackName: string; duration: string; wave?: string }) {
-    super();
-    this.trackName = opts.trackName;
-    this.duration = opts.duration;
-    this.wave = opts.wave;
-  }
-
-  getProps() {
-    return null;
-  } // todo;
-}
-
-// export class Track {
-//   items: Track[] = [];
-// }

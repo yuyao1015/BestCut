@@ -349,7 +349,7 @@ export class MP4Player {
   onChunk(file: any, track: any, totalFrames: number) {
     let chunkCount = 0;
     let startTime = 0;
-    return (chunk: any, config: any) => {
+    return (chunk: any /* config: any */) => {
       const ab = new ArrayBuffer(chunk.byteLength);
       chunk.copyTo(ab);
       //

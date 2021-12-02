@@ -17,10 +17,6 @@
           ref="tracksWrapperRef"
           id="tracks-wrapper"
           class="tracks-wrapper absolute h-full w-full select-none"
-          @dragenter="onResourceEnter"
-          @dragover="onResourceOver"
-          @dragleave="onResourceLeave"
-          @drop="onResourceDrop"
         >
           <div
             ref="tracksRef"
@@ -66,7 +62,7 @@
 
 <script lang="tsx">
   import { ComponentPublicInstance, onUnmounted } from 'vue';
-  import type { TrackItem, TrackMap } from '#/track';
+  import { TrackMap, TrackItem } from '@/logic/track';
 
   import { defineComponent, ref, onMounted, watch, nextTick } from 'vue';
 
@@ -225,24 +221,6 @@
         window.removeEventListener('mousewheel', onStickyTrack);
       });
 
-      const onResourceEnter = () => {
-        trackStore.setResourceOverState(true);
-        console.log('enter');
-      };
-      const onResourceOver = (e: DragEvent) => {
-        trackStore.setResourceOverState(true);
-        console.log('over');
-        e.preventDefault();
-      };
-      const onResourceLeave = () => {
-        trackStore.setResourceOverState(false);
-        console.log('leave');
-      };
-      const onResourceDrop = (e: DragEvent) => {
-        e.stopPropagation();
-        console.log('drop');
-      };
-
       return {
         title,
         wrapperWidth,
@@ -261,10 +239,6 @@
         onMute,
         move,
         down,
-        onResourceEnter,
-        onResourceOver,
-        onResourceLeave,
-        onResourceDrop,
       };
     },
   });

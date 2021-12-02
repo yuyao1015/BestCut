@@ -20,9 +20,9 @@
 </template>
 
 <script lang="ts">
-  import type { TrackItem } from '#/track';
   import type { ComponentPublicInstance, PropType } from 'vue';
 
+  import { isMedia, TrackItem } from '@/logic/track';
   import { defineComponent, ref } from 'vue';
   import { MoreOutlined } from '@ant-design/icons-vue';
 
@@ -74,11 +74,11 @@
 
         ml.moveCallback = function () {
           let dx = this.x - this.lastX;
-          if (dx < 0 && ['video', 'audio'].includes(track.type)) {
+          if (dx < 0 && isMedia(track.type)) {
             dx = dx < marginLeft - track.marginLeft ? marginLeft - track.marginLeft : dx;
           }
           dx = track.width - dx < offset ? 0 : dx;
-          track.start += dx; // TODO: map
+          // track.start += dx; // TODO: map
           track.marginLeft += dx;
           track.width -= dx;
         };
@@ -97,12 +97,12 @@
         const { width } = track;
         mr.moveCallback = function () {
           let dx = this.x - this.lastX;
-          if (dx > 0 && ['video', 'audio'].includes(track.type)) {
+          if (dx > 0 && isMedia(track.type)) {
             dx = dx > width - track.width ? width - track.width : dx;
           }
           dx = track.width - dx < offset ? 0 : dx;
 
-          track.end += dx; //
+          // track.end += dx; //
           track.width += dx;
         };
 

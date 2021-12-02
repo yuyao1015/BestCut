@@ -45,7 +45,7 @@ const loadLocalFile = () => {
       src,
       cover,
       duration,
-      resourceName: file.name,
+      name: file.name,
     };
     useResourceStore().addResource(resource);
   };
@@ -114,7 +114,7 @@ export const resourceList = (
           usable={resource.usable ? resource.usable : fragment.usable}
           favorite={resource.favorite ? resource.favorite : fragment.favorite}
           showAdd={resource.showAdd ? resource.showAdd : fragment.showAdd}
-          onEvent={offline ? () => {} : () => {}} // TODO: 添加离线资源
+          // onEvent={offline ? () => {} : () => {}} // TODO: 添加离线资源
         />
       ))}
     </div>

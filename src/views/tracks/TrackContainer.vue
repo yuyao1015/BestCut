@@ -1,7 +1,7 @@
 <script lang="tsx">
-  import type { TrackItem, TrackMap } from '#/track';
   import type { PropType, ComponentPublicInstance } from 'vue';
 
+  import { isMedia, TrackMap, TrackItem } from '@/logic/track';
   import { computed, defineComponent, ref, watch } from 'vue';
 
   import { ClickOutside } from '@/directives';
@@ -22,6 +22,7 @@
 
   import TrackBorder from './TrackBorder.vue';
   import Track from '@/components/Track.vue';
+  import { TrackType } from '@/enums/track';
 
   const NO_SELECT = { i: -1, j: -1 };
 
@@ -50,8 +51,9 @@
       const trackStore = useTrackStore();
       const updateMap = (track: TrackItem, lists: TrackItem[][]) => {
         let type: keyof TrackMap | undefined;
-        if (!['video', 'audio'].includes(track.type)) type = 'video';
-        if (track.type === 'video' && track.marginLeft === 0) type = 'main';
+        if (!isMedia(track.type)) type = 'video';
+        else if (track.type === TrackType.Video && track.marginLeft === 0) type = 'main';
+        else type = 'audio';
         trackStore.updateMap(type === 'main' ? lists[0] : lists, type);
       };
 
@@ -301,6 +303,23 @@
         }
       };
 
+      const onResourceOver = (e: DragEvent) => {
+        trackStore.setResourceOverState(true);
+        console.log('over');
+        e.preventDefault();
+      };
+
+      const onResourceLeave = () => {
+        trackStore.setResourceOverState(false);
+        console.log('leave');
+      };
+
+      const onResourceDrop = (e: DragEvent) => {
+        trackStore.setResourceOverState(false);
+        e.stopPropagation();
+        console.log('drop');
+      };
+
       const trackList = (tracks: TrackItem[], i: number) => (
         <div
           class={[
@@ -366,7 +385,13 @@
           <div class="track-container-head h-full" style={`flex:0 0 ${trackHeadWidth}px;`}>
             {slots.default ? slots.default() : null}
           </div>
-          <div ref={trackListsRef} class="list w-full h-full flex flex-col justify-center">
+          <div
+            ref={trackListsRef}
+            class="list w-full h-full flex flex-col justify-center"
+            onDragover={onResourceOver}
+            onDragleave={onResourceLeave}
+            onDrop={onResourceDrop}
+          >
             {lists.value.map((tracks, i) => trackList(tracks, i))}
           </div>
         </div>

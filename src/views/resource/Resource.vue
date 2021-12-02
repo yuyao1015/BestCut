@@ -27,8 +27,8 @@
       </div>
     </div>
 
-    <div v-if="resource.resourceName" class="desc-color text-left text-xs ml-2 mt-1 h-4">
-      {{ resource.resourceName }}
+    <div v-if="resource.name" class="desc-color text-left text-xs ml-2 mt-1 h-4">
+      {{ resource.name }}
     </div>
   </div>
 </template>
@@ -43,6 +43,7 @@
 
   import { setStyle, toggleClass } from '@/utils/dom';
   import { useTrackStore } from '@/store/track';
+  import { VideoTrack } from '@/logic/track';
 
   type DragView = {
     el?: HTMLElement;
@@ -122,23 +123,13 @@
       const maskRef = ref<ComponentPublicInstance | undefined>(undefined);
       const trackRef = ref<ComponentPublicInstance | undefined>(undefined);
       const track = computed(() => {
-        const { type, src, duration, resourceName } = props.resource;
-        const track = {
-          type,
-          src,
-          trackName: resourceName,
-          duration,
-          marginLeft: 0,
-          marginRight: 0,
-          width: 200,
-          height: 84,
-          active: false,
-          start: 0,
-          end: 0,
-          offset: 0,
-          id: '',
-        };
-        return track;
+        const { src, duration, name } = props.resource;
+
+        return new VideoTrack({
+          name: name,
+          duration: duration || '',
+          src: src || '',
+        });
       });
 
       let maskView: HTMLElement | undefined;

@@ -1,4 +1,4 @@
-import type { TrackMap, TrackItem } from '#/track';
+import { TrackMap, TrackItem, VideoTrack, AudioTrack } from '@/logic/track';
 
 import { defineStore } from 'pinia';
 
@@ -6,7 +6,7 @@ import { store } from '@/store';
 
 import { mainList, audioList, videoList } from '@/../mocks/_track';
 
-const Debug = 0;
+const Debug = 1;
 const trackMap = Debug
   ? { video: videoList, main: mainList, audio: audioList }
   : {
@@ -41,10 +41,10 @@ export const useTrackStore = defineStore({
       this.trackMap[type] = lists;
     },
     addTrack(track: TrackItem) {
-      if (track.type === 'video') this.trackMap.main.push(track);
-      else if (track.type === 'audio') this.trackMap.audio.push([track]);
+      if (track instanceof VideoTrack) this.trackMap.main.push(track);
+      else if (track instanceof AudioTrack) this.trackMap.audio.push([track]);
       else {
-        const idx = this.trackMap.video.findIndex((traks) => traks[0].type === 'video');
+        const idx = this.trackMap.video.findIndex((traks) => traks[0] instanceof VideoTrack);
         if (idx === -1) this.trackMap.video.push([track]);
         else this.trackMap.video.splice(idx, 0, [track]);
       }

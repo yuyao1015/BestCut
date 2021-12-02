@@ -1,5 +1,6 @@
 <script lang="tsx">
-  import type { AudioTrackItem, TrackItem, VideoTrackItem } from '#/track';
+  import { TrackType } from '@/enums/track';
+  import { AudioTrack, VideoTrack, TrackItem } from '@/logic/track';
 
   import { defineComponent, PropType, h, computed } from 'vue';
 
@@ -20,10 +21,10 @@
       const track = computed(() => props.track);
 
       const getTrackHead = (track: TrackItem) => {
-        return [track.trackName, track.duration];
+        return [track.name, track.duration];
       };
 
-      const video = (track: VideoTrackItem) => (
+      const video = (track: VideoTrack) => (
         <div class="video-track h-full w-full">
           <div class="track-item-head">
             {(props.isMute ? ['已静音', ...getTrackHead(track)] : getTrackHead(track)).map(
@@ -37,7 +38,7 @@
         </div>
       );
 
-      const audio = (track: AudioTrackItem) => (
+      const audio = (track: AudioTrack) => (
         <div class="audio-track h-full w-full">
           <div class="track-item-head">
             {getTrackHead(track).map((title) => (
@@ -52,17 +53,19 @@
         <div class={'attachment-track track-item-head w-full'}>
           {track.icon && (() => h(track.icon, { class: 'track-item-title' }))()}
           {track.sticker ? <img class="track-item-title" src={track.sticker} /> : null}
-          {track.type !== 'sticker' ? <div class="track-item-title">{track.trackName}</div> : null}
+          {track.type !== TrackType.Sticker ? (
+            <div class="track-item-title">{track.name}</div>
+          ) : null}
         </div>
       );
 
       const trackMap = {
-        video,
-        audio,
-        sticker: attachment,
-        text: attachment,
-        sprite: attachment,
-        filter: attachment,
+        [TrackType.Video]: video,
+        [TrackType.Audio]: audio,
+        [TrackType.Sticker]: attachment,
+        [TrackType.Text]: attachment,
+        [TrackType.Effect]: attachment,
+        [TrackType.Filter]: attachment,
       };
 
       return () => (
@@ -109,7 +112,7 @@
       background-color: #924e3c;
     }
 
-    &-sprite {
+    &-effect {
       background-color: #6e4c7f;
     }
 

@@ -4,7 +4,7 @@ const video = (n: number) =>
   new Array(n).fill({
     type: 'video',
     duration: '@time("mm:ss")',
-    resourceName: '@word().mp4',
+    name: '@word().mp4',
     cover: '',
     src: '/media/bbb.mp4',
     referenced: true,
@@ -14,7 +14,7 @@ const audio = (n: number, album = '', author = '') =>
   new Array(n).fill({
     type: 'audio',
     duration: '@time("mm:ss")',
-    resourceName: '@word().aac',
+    name: '@word().aac',
     referenced: false,
     cover: '',
     album,
@@ -25,7 +25,7 @@ const picture = (n: number) =>
   new Array(n).fill({
     type: 'picture',
     duration: '03:00',
-    resourceName: '@word().png',
+    name: '@word().png',
     cover: '',
     referenced: false,
   });

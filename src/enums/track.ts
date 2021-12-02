@@ -1,15 +1,9 @@
-export enum ResourceType {
+export enum TrackType {
   Video = 'video',
   Audio = 'audio',
-  Picture = 'picture',
   Sticker = 'sticker',
   Text = 'text',
   Effect = 'effect',
   Filter = 'filter',
   Unknow = 'unknow',
-}
-
-export enum ResourceLoc {
-  WrapTop = 1,
-  Top,
 }

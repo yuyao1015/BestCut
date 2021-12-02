@@ -1,4 +1,4 @@
-import type { TrackItem } from '#/track';
+import { TrackItem } from '@/logic/track';
 import { swap } from '@/utils';
 
 export const offset = 20;
@@ -93,7 +93,6 @@ export const updateOrder = (list: TrackItem[], dx: number, j: number) => {
   col
 */
 // TODO: attachment track create new list boundary
-const isMedia = (type: string) => ['video', 'audio'].includes(type);
 
 export const searchColIdx = (lists: TrackItem[][], dy: number, my: number, idx: number) => {
   let _dy = dy > 0 ? dy : -dy;

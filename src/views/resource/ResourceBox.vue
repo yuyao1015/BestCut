@@ -87,6 +87,7 @@
   import { useTrackStore } from '@/store/track';
 
   import { ClickOutside } from '@/directives';
+  import { VideoTrack } from '@/logic/track';
 
   export default defineComponent({
     name: 'ResourceBox',
@@ -153,22 +154,14 @@
 
       const trackStore = useTrackStore();
       const add2Track = () => {
-        const { type, src, duration, resourceName } = props.resource;
-        const track = {
-          type,
-          src,
-          trackName: resourceName,
-          duration,
-          marginLeft: 0,
-          marginRight: 0,
-          width: 80,
-          height: 84,
-          active: false,
-          start: 0,
-          end: 0,
-          offset: 0,
-          id: '',
-        };
+        const { src, duration, name } = props.resource;
+
+        const track = new VideoTrack({
+          name: name,
+          duration: duration || '',
+          src: src || '',
+        });
+
         trackStore.addTrack(track);
       };
 
