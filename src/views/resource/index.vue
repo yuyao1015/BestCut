@@ -67,7 +67,7 @@
         if (!downScroll) downScroll = true;
       };
 
-      const stepArr: number[][] = [];
+      let stepArr: number[][] = [];
       let lastScrollHeight = 0;
       let downScroll = false;
 
@@ -87,7 +87,8 @@
         if (!resourceList) return;
         const { scrollTop, children } = resourceList;
 
-        if (!stepArr.length) {
+        if (!stepArr.length || stepArr.length !== currentLib.value.fragments.length) {
+          stepArr = [];
           let h = 0;
           for (let i = 0; i < children.length; i++) {
             stepArr.push([h, h + children[i].clientHeight]);

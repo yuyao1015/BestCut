@@ -36,7 +36,16 @@
   import type { ResourceItem } from '@/logic/resource';
   import type { ComponentPublicInstance } from 'vue';
 
-  import { defineComponent, ref, PropType, watch, nextTick, computed } from 'vue';
+  import {
+    defineComponent,
+    ref,
+    PropType,
+    watch,
+    nextTick,
+    computed,
+    onMounted,
+    onUnmounted,
+  } from 'vue';
 
   import ResourceBox from './ResourceBox.vue';
   import Track from '@/components/Track.vue';
@@ -125,6 +134,7 @@
         return props.resource.toTrack();
       });
 
+      let maskTop = 0;
       let maskView: HTMLElement | undefined;
       let dragView: DragView = { el: maskView, left: '', top: '' };
 
@@ -147,6 +157,7 @@
         dragView.el = maskView;
         dragView.top = top + 'px';
         dragView.left = left + 'px';
+        maskTop = (document.getElementById('resource-list') as HTMLElement).scrollTop || 0;
 
         let container = (resource.parentNode || document.body) as HTMLElement;
         do {
@@ -206,6 +217,18 @@
         maskVisiable.value = false;
         if (dragView.el) dragView.el.style.display = 'none';
       };
+
+      const updateMaskTop = () => {
+        const resourceList = document.getElementById('resource-list') as HTMLElement;
+        if (!resourceList || !maskVisiable.value || !maskView) return;
+        maskView.style.top = parseInt(dragView.top) + maskTop - resourceList.scrollTop + 'px';
+      };
+      onMounted(() => {
+        window.addEventListener('mousewheel', updateMaskTop, { passive: false });
+      });
+      onUnmounted(() => {
+        window.removeEventListener('mousewheel', updateMaskTop);
+      });
 
       return {
         maskRef,
