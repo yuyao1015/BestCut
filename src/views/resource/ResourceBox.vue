@@ -83,7 +83,7 @@
   } from '@ant-design/icons-vue';
 
   import { useResourceStore } from '@/store/resource';
-  import { usePlayerStore } from '@/store/player';
+  import { usePreviewStore } from '@/store/preview';
   import { useTrackStore } from '@/store/track';
 
   import { ClickOutside } from '@/directives';
@@ -135,8 +135,8 @@
       const usable = ref(props.usable);
 
       const resourceStore = useResourceStore();
-      const playerStore = usePlayerStore();
-      const ratio = computed(() => playerStore.ratio);
+      const previewStore = usePreviewStore();
+      const ratio = computed(() => previewStore.ratio);
 
       const onChecked = () => {
         checked.value = !checked.value;
@@ -154,7 +154,7 @@
       const trackStore = useTrackStore();
       const add2Track = () => {
         const track = props.resource.toTrack();
-        track.width = 200; // TODO: calcTrackWidth
+        if (trackStore.calcWidth) track.width = trackStore.calcWidth(track).width;
         trackStore.addTrack(track);
       };
 
@@ -164,14 +164,14 @@
         resourceStore.setResource(props.resource);
         if (usable.value) {
           const id = 'preview-canvas';
-          if (playerStore.playing && playerStore.player.id === id) {
+          if (previewStore.playing && previewStore.player.id === id) {
             if (!resourceRef.value) return;
             const left = resourceRef.value?.getBoundingClientRect().left || 0;
             const width = parseInt(getComputedStyle(resourceRef.value).width);
             const w = e.pageX - left - scrollX;
             const ratio = w / width;
-            playerStore.jumpTo(ratio);
-          } else playerStore.mount({ id, url: props.resource.src || '' });
+            previewStore.jumpTo(ratio);
+          } else previewStore.mount({ id, url: props.resource.src || '' });
           return;
         } else {
           isLoading.value = true;
@@ -208,7 +208,7 @@
       });
 
       const onClickOutside = () => {
-        if (active.value) playerStore.player.stop();
+        if (active.value) previewStore.player.stop();
         if (resourceStore.resource) resourceStore.setResource(undefined);
       };
 

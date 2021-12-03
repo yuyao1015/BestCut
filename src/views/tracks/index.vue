@@ -126,6 +126,7 @@
 
       const wrapperWidth = ref(0);
       const { useUnit, initTimeLine, calcTrackWidth } = useTimeLine(600, 30);
+      trackStore.setCalculator(calcTrackWidth);
       const footerRef = ref<ComponentPublicInstance | null>(null);
       const updateTrackWidth = () => {
         let trackWidth = 0;

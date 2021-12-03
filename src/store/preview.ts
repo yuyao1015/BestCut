@@ -6,13 +6,13 @@ import { store } from '@/store';
 import { MP4Player } from '@/logic/mp4';
 import { getDurationString, clipDurationString } from '@/utils/player';
 
-interface PlayerState {
+interface PreviewState {
   player: MP4Player;
 }
 
-export const usePlayerStore = defineStore({
+export const usePreviewStore = defineStore({
   id: 'app-player',
-  state: (): PlayerState => ({
+  state: (): PreviewState => ({
     player: new MP4Player({ id: '' }),
   }),
   getters: {
@@ -88,6 +88,6 @@ export const usePlayerStore = defineStore({
   },
 });
 
-export function usePlayerStoreWithOut() {
-  return usePlayerStore(store);
+export function usePreviewStoreWithOut() {
+  return usePreviewStore(store);
 }

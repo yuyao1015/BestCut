@@ -2,7 +2,7 @@
   import type { PropType, ComponentPublicInstance } from 'vue';
 
   import { isMedia, TrackMap, TrackItem } from '@/logic/track';
-  import { computed, defineComponent, ref, watch } from 'vue';
+  import { computed, defineComponent, ref, watch, nextTick } from 'vue';
 
   import { ClickOutside } from '@/directives';
   import { MouseCtl } from '@/logic/mouse';
@@ -75,10 +75,11 @@
       const currentList = ref<TrackItem[]>([]);
       const shadowLeft = computed(() => {
         const { j } = draggedIdxs.value;
-        let l = currentList.value
-          .slice(0, j)
-          .reduce((l, trak) => (l += trak.width + trak.marginLeft), 0);
-        return Math.max(l + currentList.value[j].marginLeft + shadowDx.value, 0);
+        const leftList = currentList.value.slice(0, j);
+        if (leftList.length) {
+          let l = leftList.reduce((l, trak) => (l += trak.width + trak.marginLeft), 0);
+          return Math.max(l + currentList.value[j].marginLeft + shadowDx.value, 0);
+        } else return 0;
       });
 
       const swapMainTrack = (list: TrackItem[], dx: number, j: number) => {
@@ -303,23 +304,6 @@
         }
       };
 
-      const onResourceOver = (e: DragEvent) => {
-        trackStore.setResourceOverState(true);
-        console.log('over');
-        e.preventDefault();
-      };
-
-      const onResourceLeave = () => {
-        trackStore.setResourceOverState(false);
-        console.log('leave');
-      };
-
-      const onResourceDrop = (e: DragEvent) => {
-        trackStore.setResourceOverState(false);
-        e.stopPropagation();
-        console.log('drop');
-      };
-
       const trackList = (tracks: TrackItem[], i: number) => (
         <div
           class={[
@@ -380,6 +364,45 @@
         </div>
       );
 
+      let enterCnt = 0;
+      const onResourceEnter = () => {
+        enterCnt++;
+        if (trackStore.isResourceOver) return;
+        trackStore.setResourceOverState(true);
+        nextTick(() => {
+          if (isMain.value && trackStore.track) {
+            const currentlist = lists.value[0];
+            const track = Object.assign({}, trackStore.track);
+            // track.marginLeft = -track.width;
+            currentlist.push(track);
+            activeIdxs.value = { i: 0, j: 0 };
+            draggedIdxs.value = { i: 0, j: 0 };
+          }
+        });
+      };
+
+      const onResourceOver = (e: DragEvent) => {
+        // swapMainTrack(currentlist, 0, 0);
+        e.preventDefault();
+      };
+
+      const onResourceLeave = () => {
+        enterCnt--;
+        if (enterCnt !== 0) return;
+        trackStore.setResourceOverState(false);
+        if (isMain.value && trackStore.track) {
+          const currentlist = lists.value[0];
+          activeIdxs.value = NO_SELECT;
+          draggedIdxs.value = NO_SELECT;
+          currentlist.splice(0, 1);
+        }
+      };
+
+      const onResourceDrop = (e: DragEvent) => {
+        trackStore.setResourceOverState(false);
+        e.stopPropagation();
+      };
+
       return () => (
         <div class="flex w-full">
           <div class="track-container-head h-full" style={`flex:0 0 ${trackHeadWidth}px;`}>
@@ -388,9 +411,13 @@
           <div
             ref={trackListsRef}
             class="list w-full h-full flex flex-col justify-center"
+            onDragenter={onResourceEnter}
             onDragover={onResourceOver}
             onDragleave={onResourceLeave}
             onDrop={onResourceDrop}
+            onClick={() => {
+              console.log(1);
+            }}
           >
             {lists.value.map((tracks, i) => trackList(tracks, i))}
           </div>
@@ -401,87 +428,10 @@
 </script>
 
 <style lang="less" scoped>
-  .track-item {
-    &-video {
-      background-color: #1e4c51;
-    }
-
-    &-audio {
-      background-color: #182f55;
-    }
-
-    &-wave {
-      background-color: #3a7faf;
-    }
-
-    &-foot-wave {
-      background-color: #2d6666;
-    }
-
-    &-text {
-      background-color: #924e3c;
-    }
-
-    &-sprite {
-      background-color: #6e4c7f;
-    }
-
-    &-sticker {
-      background-color: #cc9641;
-    }
-
-    &-filter {
-      background-color: #464186;
-    }
-
-    &-title {
-      display: flex;
-      align-items: center;
-      height: 1rem;
-      padding: 0 1px;
-      margin: 0 0.25rem;
-      border-radius: 0.125rem;
-      background-color: rgba(255, 255, 255, 0.1);
-      white-space: nowrap;
-      overflow: hidden;
-    }
-
-    &-head {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      height: 1.25rem;
-    }
-  }
-
-  .track-item:last-child {
-    margin-right: 0;
-  }
-
   .track-list-active {
     background-color: #383839;
     border-top: solid 1px #4d4d4e;
     border-bottom: solid 1px #4d4d4e;
-  }
-
-  .track-scale {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    background-color: #fff;
-    height: 100%;
-    width: 0.1rem;
-    background-size: 100% 100%;
-    color: #000;
-    font-size: 10px;
-
-    &-left {
-      cursor: ew-resize;
-    }
-
-    &-right {
-      cursor: ew-resize;
-    }
   }
 
   .new-list-line {

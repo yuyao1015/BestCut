@@ -88,6 +88,7 @@
             track.value.active ? 'border-white border' : '',
           ]}
           style={`flex:0 0 ${track.value.width}px;
+                    width: ${track.value.width}px;
                     height: ${track.value.height}px;
                     margin-left: ${track.value.marginLeft}px;
                     margin-right: ${track.value.marginRight}px;
@@ -104,7 +105,8 @@
 
 <style lang="less" scoped>
   .track-item {
-    &-video {
+    &-video,
+    &-picture {
       background-color: #1e4c51;
     }
 

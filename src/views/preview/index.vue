@@ -12,7 +12,7 @@
   import { useI18n } from '@/hooks/useI18n';
 
   import { useResourceStore } from '@/store/resource';
-  import { usePlayerStore } from '@/store/player';
+  import { usePreviewStore } from '@/store/preview';
 
   export default defineComponent({
     name: 'Preview',
@@ -28,7 +28,7 @@
       // const title = t('components.preview');
 
       const resourceStore = useResourceStore();
-      const playerStore = usePlayerStore();
+      const previewStore = usePreviewStore();
 
       const title = computed(() => {
         const { resource } = resourceStore;
@@ -42,18 +42,18 @@
 
       const active = ref(false);
       const total = computed(() => {
-        return active.value ? playerStore.total : '00:00:00:00';
+        return active.value ? previewStore.total : '00:00:00:00';
       });
       const current = computed(() => {
-        return active.value ? playerStore.current : '00:00:00:00';
+        return active.value ? previewStore.current : '00:00:00:00';
       });
 
       const paused = computed(() => {
-        return active.value ? playerStore.paused : true;
+        return active.value ? previewStore.paused : true;
       });
       const pauseResume = () => {
         if (!active.value) return;
-        playerStore.pauseResume();
+        previewStore.pauseResume();
       };
 
       watch(
@@ -69,7 +69,7 @@
         if (!isInFullScreen.value) {
           isInFullScreen.value = true;
 
-          playerStore.player.onPlaying = function () {
+          previewStore.player.onPlaying = function () {
             const preview = document.getElementById('preview-box') as HTMLDivElement;
             const { height, width } = getComputedStyle(preview);
             this.canvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
@@ -81,7 +81,7 @@
           };
         } else {
           isInFullScreen.value = false;
-          playerStore.player.onPlaying = function () {
+          previewStore.player.onPlaying = function () {
             this.canvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
             this.ctx = this.canvas.getContext('2d');
           };
@@ -102,9 +102,9 @@
           e.preventDefault();
           pauseResume();
         } else if (e.code === 'ArrowLeft') {
-          playerStore.prev();
+          previewStore.prev();
         } else if (e.code === 'ArrowRight') {
-          playerStore.next();
+          previewStore.next();
         } else if (e.code === 'Escape') {
           clickFullScreen();
         }
@@ -129,9 +129,9 @@
       /*
           footer panel
         */
-      const percent = computed(() => +playerStore.ratio);
+      const percent = computed(() => +previewStore.ratio);
       const jumpTo = (value: number) => {
-        playerStore.jumpTo(value / 100);
+        previewStore.jumpTo(value / 100);
       };
       const footer = () => (
         <div

@@ -2,7 +2,7 @@ import { PlusCircleFilled } from '@ant-design/icons-vue';
 
 import Resource from '@/views/resource/Resource.vue';
 import { useResourceStore } from '@/store/resource';
-import { usePlayerStoreWithOut } from '@/store/player';
+import { usePreviewStoreWithOut } from '@/store/preview';
 
 import { ResourceItem, ResourceFragment } from '@/logic/resource';
 import { stretchImg } from '@/utils/image';
@@ -25,9 +25,9 @@ const loadLocalFile = () => {
       duration = '03:00';
     if (['.mp4'].includes(suffix)) {
       type = ResourceType.Video;
-      const playerStore = usePlayerStoreWithOut();
-      const cfg = await playerStore.parseInfo(src);
-      playerStore.stop();
+      const previewStore = usePreviewStoreWithOut();
+      const cfg = await previewStore.parseInfo(src);
+      previewStore.stop();
       cover = await stretchImg(cfg.cover, 144, 80);
       duration = cfg.duration;
     } else if (['.aac', '.mp3'].includes(suffix)) {

@@ -5,7 +5,7 @@ const video = (n: number) =>
     new VideoResource({
       src: '/media/bbb.mp4',
       cover: '',
-      duration: '@time("mm:ss")',
+      duration: '@time("03:ss")',
       name: '@word().mp4',
     })
   );

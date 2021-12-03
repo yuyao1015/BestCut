@@ -15,10 +15,13 @@ const trackMap = Debug
       audio: [],
     };
 
+type Calculator = (track: TrackItem) => { width: number; marginLeft: number };
 interface TrackState {
   isScrolling: boolean;
   isResourceOver: boolean;
   trackMap: TrackMap;
+  track?: TrackItem;
+  calcWidth?: Calculator;
 }
 
 export const useTrackStore = defineStore({
@@ -36,6 +39,13 @@ export const useTrackStore = defineStore({
     setResourceOverState(bool: boolean) {
       this.isResourceOver = bool;
     },
+    setTrack(track: TrackItem) {
+      this.track = track;
+    },
+    setCalculator(calc: Calculator) {
+      this.calcWidth = calc;
+    },
+
     updateMap<K extends keyof TrackMap>(lists: TrackMap[K], type?: K) {
       if (!type || !(type in this.trackMap)) return;
       this.trackMap[type] = lists;

@@ -50,7 +50,7 @@
 
   import { useI18n } from '@/hooks/useI18n';
 
-  import { usePlayerStore } from '@/store/player';
+  import { usePreviewStore } from '@/store/preview';
 
   export default defineComponent({
     name: 'Editor',
@@ -67,10 +67,10 @@
     setup() {
       const { t } = useI18n();
 
-      const playerStore = usePlayerStore();
+      const previewStore = usePreviewStore();
 
       const exportMedia = () => {
-        playerStore.export();
+        previewStore.export();
       };
 
       return {

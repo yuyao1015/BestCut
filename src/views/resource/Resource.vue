@@ -110,13 +110,15 @@
         () => trackStore.isResourceOver,
         (val: boolean) => {
           if (!trackRef.value || !maskView || !dragView.el) return;
-          const track = (trackRef.value.$el || trackRef.value) as HTMLElement;
+          const trackView = (trackRef.value.$el || trackRef.value) as HTMLElement;
           if (val) {
-            track.style.left = dragView.left;
-            track.style.top = dragView.top;
-            track.style.display = 'block';
+            trackStore.setTrack(track.value);
+
+            trackView.style.left = dragView.left;
+            trackView.style.top = dragView.top;
+            trackView.style.display = 'block';
             dragView.el.style.display = 'none';
-            dragView.el = track;
+            dragView.el = trackView;
           } else {
             maskView.style.left = dragView.left;
             maskView.style.top = dragView.top;
@@ -131,7 +133,9 @@
       const maskRef = ref<ComponentPublicInstance | undefined>(undefined);
       const trackRef = ref<ComponentPublicInstance | undefined>(undefined);
       const track = computed(() => {
-        return props.resource.toTrack();
+        const trak = props.resource.toTrack();
+        if (trackStore.calcWidth) trak.width = trackStore.calcWidth(trak).width;
+        return trak;
       });
 
       let maskTop = 0;
@@ -195,13 +199,12 @@
         maskVisiable.value = false;
       };
 
-      const onDragStart = (e: DragEvent) => {
+      const onDragStart = () => {
         if (!maskRef.value) return;
         const mask = (maskRef.value.$el || maskRef.value) as HTMLElement;
         mask.style.opacity = '0';
 
         window.addEventListener('dragover', onDragOver);
-        e.dataTransfer?.setData('track', '');
       };
 
       const onDragOver = (e: DragEvent) => {
