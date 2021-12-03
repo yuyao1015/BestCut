@@ -36,10 +36,10 @@ export const mainList = [
 ];
 
 export const audioList = [
-  [new AudioTrack({ name: 'aaa.aac', duration: '00:10:34:17', src: '' })],
+  [new AudioTrack({ name: 'aaa.aac', duration: '00:10:34:17', src: '', offset: 200 })],
   [
-    new AudioTrack({ name: 'bbb.aac', duration: '00:05:30:20', src: '' }),
-    new AudioTrack({ name: 'ccc.aac', duration: '00:10:34:17', src: '' }),
-    new AudioTrack({ name: 'ddd.aac', duration: '00:05:30:20', src: '' }),
+    new AudioTrack({ name: 'bbb.aac', duration: '00:05:30:20', src: '', offset: 300 }),
+    new AudioTrack({ name: 'ccc.aac', duration: '00:10:34:17', src: '', offset: 150 }),
+    new AudioTrack({ name: 'ddd.aac', duration: '00:05:30:20', src: '', offset: 100 }),
   ],
 ];

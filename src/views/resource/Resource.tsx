@@ -1,12 +1,12 @@
-import type { ResourceFragment, ResourceItem } from '#/resource';
-
 import { PlusCircleFilled } from '@ant-design/icons-vue';
 
 import Resource from '@/views/resource/Resource.vue';
 import { useResourceStore } from '@/store/resource';
 import { usePlayerStoreWithOut } from '@/store/player';
 
+import { ResourceItem, ResourceFragment } from '@/logic/resource';
 import { stretchImg } from '@/utils/image';
+import { ResourceType } from '@/enums/resource';
 
 const loadLocalFile = () => {
   const input = document.createElement('input');
@@ -20,33 +20,27 @@ const loadLocalFile = () => {
     const suffix = file.name.slice(idx);
     const src = URL.createObjectURL(file);
 
-    let type = 'video',
+    let type = ResourceType.Video,
       cover = '',
       duration = '03:00';
     if (['.mp4'].includes(suffix)) {
-      type = 'video';
+      type = ResourceType.Video;
       const playerStore = usePlayerStoreWithOut();
       const cfg = await playerStore.parseInfo(src);
       playerStore.stop();
       cover = await stretchImg(cfg.cover, 144, 80);
       duration = cfg.duration;
     } else if (['.aac', '.mp3'].includes(suffix)) {
-      type = 'audio';
+      type = ResourceType.Audio;
     } else if (['.jpg', '.jpeg', '.png'].includes(suffix)) {
-      type = 'picture';
+      type = ResourceType.Picture;
       cover = await stretchImg(src, 144, 80);
     } else {
       console.log('illegal file type');
       return;
     }
 
-    const resource: ResourceItem = {
-      type,
-      src,
-      cover,
-      duration,
-      name: file.name,
-    };
+    const resource = new ResourceItem({ type, src, cover, duration, name: file.name });
     useResourceStore().addResource(resource);
   };
   input.click();

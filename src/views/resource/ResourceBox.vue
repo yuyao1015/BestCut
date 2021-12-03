@@ -16,7 +16,7 @@
     ></div>
 
     <div class="resource-content overflow-hidden absolute h-full w-full">
-      <div v-if="resource.type === 'audio'" class="h-full flex items-center">
+      <div v-if="resource instanceof AudioResource" class="h-full flex items-center">
         <img class="rounded-md h-5/6 w-2/5 ml-2 mr-1" draggable="false" :src="resource.cover" />
         <div class="text-xs flex flex-col justify-between h-5/6">
           <div>
@@ -41,11 +41,11 @@
     </div>
 
     <div class="absolute top-1 right-1">
-      <FileImageOutlined v-if="resource.type === 'picture'" />
+      <FileImageOutlined v-if="resource instanceof PictureResource" />
       <div
         v-if="
-          resource.type === 'video' ||
-          (resource.type === 'audio' && !resource.album && !resource.author)
+          resource instanceof VideoResource ||
+          (resource instanceof AudioResource && !resource.album && !resource.author)
         "
       >
         {{ resource.duration }}
@@ -70,7 +70,7 @@
   </div>
 </template>
 <script lang="ts">
-  import type { ResourceItem } from '#/resource';
+  import { ResourceItem, AudioResource, VideoResource, PictureResource } from '@/logic/resource';
 
   import { defineComponent, ref, PropType, watch, computed, onBeforeMount } from 'vue';
   import {
@@ -87,7 +87,6 @@
   import { useTrackStore } from '@/store/track';
 
   import { ClickOutside } from '@/directives';
-  import { VideoTrack } from '@/logic/track';
 
   export default defineComponent({
     name: 'ResourceBox',
@@ -154,14 +153,8 @@
 
       const trackStore = useTrackStore();
       const add2Track = () => {
-        const { src, duration, name } = props.resource;
-
-        const track = new VideoTrack({
-          name: name,
-          duration: duration || '',
-          src: src || '',
-        });
-
+        const track = props.resource.toTrack();
+        track.width = 200; // TODO: calcTrackWidth
         trackStore.addTrack(track);
       };
 
@@ -231,6 +224,10 @@
         onClickOutside,
         onChecked,
         add2Track,
+
+        AudioResource,
+        VideoResource,
+        PictureResource,
       };
     },
   });

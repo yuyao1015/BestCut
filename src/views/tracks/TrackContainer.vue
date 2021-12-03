@@ -22,7 +22,7 @@
 
   import TrackBorder from './TrackBorder.vue';
   import Track from '@/components/Track.vue';
-  import { TrackType } from '@/enums/track';
+  import { ResourceType } from '@/enums/resource';
 
   const NO_SELECT = { i: -1, j: -1 };
 
@@ -52,7 +52,7 @@
       const updateMap = (track: TrackItem, lists: TrackItem[][]) => {
         let type: keyof TrackMap | undefined;
         if (!isMedia(track.type)) type = 'video';
-        else if (track.type === TrackType.Video && track.marginLeft === 0) type = 'main';
+        else if (track.type === ResourceType.Video && track.marginLeft === 0) type = 'main';
         else type = 'audio';
         trackStore.updateMap(type === 'main' ? lists[0] : lists, type);
       };

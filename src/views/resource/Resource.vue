@@ -33,7 +33,7 @@
   </div>
 </template>
 <script lang="ts">
-  import type { ResourceItem } from '#/resource';
+  import type { ResourceItem } from '@/logic/resource';
   import type { ComponentPublicInstance } from 'vue';
 
   import { defineComponent, ref, PropType, watch, nextTick, computed } from 'vue';
@@ -43,7 +43,6 @@
 
   import { setStyle, toggleClass } from '@/utils/dom';
   import { useTrackStore } from '@/store/track';
-  import { VideoTrack } from '@/logic/track';
 
   type DragView = {
     el?: HTMLElement;
@@ -123,13 +122,7 @@
       const maskRef = ref<ComponentPublicInstance | undefined>(undefined);
       const trackRef = ref<ComponentPublicInstance | undefined>(undefined);
       const track = computed(() => {
-        const { src, duration, name } = props.resource;
-
-        return new VideoTrack({
-          name: name,
-          duration: duration || '',
-          src: src || '',
-        });
+        return props.resource.toTrack();
       });
 
       let maskView: HTMLElement | undefined;

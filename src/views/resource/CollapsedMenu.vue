@@ -27,10 +27,10 @@
   </Collapse>
 </template>
 <script lang="ts">
-  import type { ResourceLibItem } from '#/resource';
+  import type { ResourceLib } from '@/logic/resource';
+
   import { computed, defineComponent, h, PropType, ref, watch } from 'vue';
   import { Collapse, CollapsePanel } from 'ant-design-vue';
-
   import { CaretRightOutlined, CaretDownOutlined } from '@ant-design/icons-vue';
 
   import { useI18n } from '@/hooks/useI18n';
@@ -43,7 +43,7 @@
     },
     props: {
       libs: {
-        type: Array as PropType<ResourceLibItem[]>,
+        type: Array as PropType<ResourceLib[]>,
         default: [],
       },
       selectedLib: {

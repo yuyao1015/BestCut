@@ -1,18 +1,30 @@
-import type { ResourceTabItem, ResourceLibItem, ResourceFragment, ResourceItem } from '#/resource';
+import type { ResourceTab, ResourceLib, ResourceFragment, ResourceItem } from '@/logic/resource';
 
 import { defineStore } from 'pinia';
 
 import { store } from '@/store';
 import { tabsData } from '@/views/resource/routes';
+import * as Resource from '@/logic/resource';
+import { ResourceType } from '@/enums/resource';
 
 interface ResourceState {
-  tabs: ResourceTabItem[];
+  tabs: ResourceTab[];
   activeTab: number;
   selectedLib: number;
   selectedFragment: number;
   resource?: ResourceItem;
   resizeProportion: number;
 }
+
+const ResourceMap = {
+  [ResourceType.Video]: Resource.VideoResource,
+  [ResourceType.Audio]: Resource.AudioResource,
+  [ResourceType.Picture]: Resource.PictureResource,
+  [ResourceType.Sticker]: Resource.StickerResource,
+  [ResourceType.Text]: Resource.TextResource,
+  [ResourceType.Effect]: Resource.EffectResource,
+  [ResourceType.Filter]: Resource.FilterResource,
+};
 
 export const useResourceStore = defineStore({
   id: 'app-resource',
@@ -25,10 +37,10 @@ export const useResourceStore = defineStore({
     resizeProportion: 1,
   }),
   getters: {
-    resourceLibs(): ResourceLibItem[] {
+    resourceLibs(): ResourceLib[] {
       return this.tabs[this.activeTab].libs;
     },
-    currentLib(): ResourceLibItem {
+    currentLib(): ResourceLib {
       return this.resourceLibs[this.selectedLib];
     },
     currentFragment(): ResourceFragment {
@@ -40,6 +52,9 @@ export const useResourceStore = defineStore({
   },
   actions: {
     updateFragments(data: ResourceFragment[]) {
+      data.forEach((fragment) => {
+        fragment.list = fragment.list.map((resource) => new ResourceMap[resource.type](resource));
+      });
       this.currentLib.fragments = data;
     },
     switchFragment(idx: number) {
@@ -67,7 +82,7 @@ export const useResourceStore = defineStore({
       this.favoriteList.splice(idx, 1);
     },
 
-    setResource(resource: ResourceItem | undefined) {
+    setResource(resource?: ResourceItem) {
       if (this.resource?.active) {
         this.resource.active = false;
       }

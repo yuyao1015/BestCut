@@ -1,6 +1,13 @@
 <script lang="tsx">
-  import { TrackType } from '@/enums/track';
-  import { AudioTrack, VideoTrack, TrackItem } from '@/logic/track';
+  import { ResourceType } from '@/enums/resource';
+  import {
+    AudioTrack,
+    VideoTrack,
+    StickerTrack,
+    FilterTrack,
+    EffectTrack,
+    TrackItem,
+  } from '@/logic/track';
 
   import { defineComponent, PropType, h, computed } from 'vue';
 
@@ -51,21 +58,26 @@
 
       const attachment = (track: TrackItem) => (
         <div class={'attachment-track track-item-head w-full'}>
-          {track.icon && (() => h(track.icon, { class: 'track-item-title' }))()}
-          {track.sticker ? <img class="track-item-title" src={track.sticker} /> : null}
-          {track.type !== TrackType.Sticker ? (
+          {track instanceof FilterTrack ||
+            (track instanceof EffectTrack &&
+              (() => h(track.icon, { class: 'track-item-title' }))())}
+          {track instanceof StickerTrack ? (
+            <img class="track-item-title" src={track.sticker} />
+          ) : null}
+          {track.type !== ResourceType.Sticker ? (
             <div class="track-item-title">{track.name}</div>
           ) : null}
         </div>
       );
 
       const trackMap = {
-        [TrackType.Video]: video,
-        [TrackType.Audio]: audio,
-        [TrackType.Sticker]: attachment,
-        [TrackType.Text]: attachment,
-        [TrackType.Effect]: attachment,
-        [TrackType.Filter]: attachment,
+        [ResourceType.Video]: video,
+        [ResourceType.Picture]: video,
+        [ResourceType.Audio]: audio,
+        [ResourceType.Sticker]: attachment,
+        [ResourceType.Text]: attachment,
+        [ResourceType.Effect]: attachment,
+        [ResourceType.Filter]: attachment,
       };
 
       return () => (

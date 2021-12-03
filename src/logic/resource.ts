@@ -1,10 +1,9 @@
+import type { VNode } from 'vue';
+
 import { Base } from './data';
 import { ResourceType } from '@/enums/resource';
 
-export enum ResourceLoc {
-  WrapTop = 1,
-  Top,
-}
+import * as Track from './track';
 
 type ItemOptional = {
   id: string;
@@ -28,7 +27,17 @@ type ItemRequired = {
 
 type ResourceOption = Partial<ItemOptional> & ItemRequired;
 
+const TrackCtorMap = {
+  [ResourceType.Video]: Track.VideoTrack,
+  [ResourceType.Audio]: Track.AudioTrack,
+  [ResourceType.Picture]: Track.VideoTrack,
+  [ResourceType.Sticker]: Track.StickerTrack,
+  [ResourceType.Text]: Track.TextTrack,
+  [ResourceType.Effect]: Track.EffectTrack,
+  [ResourceType.Filter]: Track.FilterTrack,
+};
 export class ResourceItem extends Base {
+  src: string;
   type: ResourceType;
   duration: string;
   cover: string;
@@ -42,6 +51,7 @@ export class ResourceItem extends Base {
 
   constructor(options: ResourceOption) {
     super(options.name, options.id);
+    this.src = options.src;
     this.type = options.type;
     this.cover = options.cover;
     this.duration = options.duration;
@@ -50,11 +60,18 @@ export class ResourceItem extends Base {
   getProps() {
     return undefined;
   }
+
+  toTrack() {
+    return new TrackCtorMap[this.type](this as any);
+  }
 }
 
 export class VideoResource extends ResourceItem {
   constructor(options: Omit<ResourceOption, 'type'>) {
     super(Object.assign({ type: ResourceType.Video }, options));
+  }
+  toTrack() {
+    return new Track.VideoTrack(this as Track.TrackOption);
   }
 }
 
@@ -68,6 +85,12 @@ export class AudioResource extends ResourceItem {
   }
 }
 
+export class PictureResource extends ResourceItem {
+  constructor(options: Omit<ResourceOption, 'type'>) {
+    super(Object.assign({ type: ResourceType.Picture }, options));
+  }
+}
+
 export class StickerResource extends ResourceItem {
   constructor(options: Omit<ResourceOption, 'type'>) {
     super(Object.assign({ type: ResourceType.Sticker }, options));
@@ -75,7 +98,6 @@ export class StickerResource extends ResourceItem {
 }
 
 export class FilterResource extends ResourceItem {
-  icon: any;
   constructor(options: Omit<ResourceOption, 'type'>) {
     super(Object.assign({ type: ResourceType.Text }, options));
   }
@@ -91,4 +113,29 @@ export class TextResource extends ResourceItem {
   constructor(options: Omit<ResourceOption, 'type'>) {
     super(Object.assign({ type: ResourceType.Text }, options));
   }
+}
+
+export interface ResourceFragment {
+  name?: string;
+  usable?: boolean;
+  favorite?: boolean;
+  showAdd?: boolean;
+  list: ResourceItem[];
+}
+
+export class ResourceLib {
+  libName = '';
+  fragments: ResourceFragment[] = [];
+  component: (list: ResourceFragment[]) => JSX.Element;
+  constructor(libName: string, component: (list: ResourceFragment[]) => JSX.Element) {
+    this.libName = libName;
+    this.component = component;
+  }
+}
+
+export interface ResourceTab {
+  tabName: string;
+  name: string;
+  icon?: VNode;
+  libs: ResourceLib[];
 }

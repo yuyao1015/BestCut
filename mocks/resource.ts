@@ -1,34 +1,36 @@
-import { ResourceFragment } from './../typings/resource.d';
+import { ResourceFragment, VideoResource, AudioResource, PictureResource } from '@/logic/resource';
 
 const video = (n: number) =>
-  new Array(n).fill({
-    type: 'video',
-    duration: '@time("mm:ss")',
-    name: '@word().mp4',
-    cover: '',
-    src: '/media/bbb.mp4',
-    referenced: true,
-  });
+  new Array(n).fill(
+    new VideoResource({
+      src: '/media/bbb.mp4',
+      cover: '',
+      duration: '@time("mm:ss")',
+      name: '@word().mp4',
+    })
+  );
 
 const audio = (n: number, album = '', author = '') =>
-  new Array(n).fill({
-    type: 'audio',
-    duration: '@time("mm:ss")',
-    name: '@word().aac',
-    referenced: false,
-    cover: '',
-    album,
-    author,
-  });
+  new Array(n).fill(
+    new AudioResource({
+      src: '',
+      cover: '',
+      duration: '@time("mm:ss")',
+      name: '@word().aac',
+      album,
+      author,
+    })
+  );
 
 const picture = (n: number) =>
-  new Array(n).fill({
-    type: 'picture',
-    duration: '03:00',
-    name: '@word().png',
-    cover: '',
-    referenced: false,
-  });
+  new Array(n).fill(
+    new PictureResource({
+      src: '',
+      duration: '03:00',
+      cover: '',
+      name: '@word().png',
+    })
+  );
 
 const resourceMsg = (url: string, response: () => ResourceFragment[]) => ({
   url: url,

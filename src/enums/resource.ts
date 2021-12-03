@@ -6,7 +6,6 @@ export enum ResourceType {
   Text = 'text',
   Effect = 'effect',
   Filter = 'filter',
-  Unknow = 'unknow',
 }
 
 export enum ResourceLoc {

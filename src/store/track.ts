@@ -6,7 +6,7 @@ import { store } from '@/store';
 
 import { mainList, audioList, videoList } from '@/../mocks/_track';
 
-const Debug = 1;
+const Debug = 0;
 const trackMap = Debug
   ? { video: videoList, main: mainList, audio: audioList }
   : {

@@ -1,4 +1,4 @@
-import type { ResourceLibItem, ResourceTabItem } from '#/resource';
+import { ResourceLib, ResourceTab } from '@/logic/resource';
 
 import { h } from 'vue';
 import {
@@ -17,17 +17,7 @@ import { resourceWrapper } from '@/views/resource/Resource';
 import { useI18n } from '@/hooks/useI18n';
 const { t } = useI18n();
 
-class ResourceLib implements ResourceLibItem {
-  libName = '';
-  fragments = [];
-  component = resourceWrapper();
-  constructor(libName: string, component: ReturnType<typeof resourceWrapper>) {
-    this.libName = libName;
-    this.component = component;
-  }
-}
-
-export const tabsData: ResourceTabItem[] = [
+export const tabsData: ResourceTab[] = [
   {
     icon: h(PlayCircleOutlined),
     tabName: 'media',

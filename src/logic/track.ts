@@ -1,5 +1,5 @@
 import { Base } from './data';
-import { TrackType } from '@/enums/track';
+import { ResourceType } from '@/enums/resource';
 
 import { FireFilled, FilterOutlined } from '@ant-design/icons-vue';
 
@@ -16,20 +16,15 @@ type ItemOptional = {
 };
 
 type ItemRequired = {
-  type: TrackType;
+  type: ResourceType;
   duration: string;
 };
 
-type TrackOption = Partial<ItemOptional> & ItemRequired;
+export type TrackOption = Partial<ItemOptional> & ItemRequired;
 
 export class TrackItem extends Base {
-  type: TrackType;
+  type: ResourceType;
   duration: string;
-
-  src?: string;
-  icon?: any;
-  sticker?: string;
-  muted?: boolean;
 
   active = false;
   offset = 0; // second  convert to marginLeft
@@ -65,7 +60,7 @@ export class VideoTrack extends TrackItem {
   constructor(
     options: Omit<TrackOption, 'type'> & { src?: string; audio?: AudioTrack; cover?: string[] }
   ) {
-    super(Object.assign({ type: TrackType.Video, height: 84 }, options));
+    super(Object.assign({ type: ResourceType.Video, height: 84 }, options));
     this.src = options.src;
     this.cover = options.cover;
     this.audio = options.audio;
@@ -77,7 +72,7 @@ export class AudioTrack extends TrackItem {
   wave?: string;
   muted? = false;
   constructor(options: Omit<TrackOption, 'type'> & { src?: string; wave?: string }) {
-    super(Object.assign({ type: TrackType.Audio, height: 60 }, options));
+    super(Object.assign({ type: ResourceType.Audio, height: 60 }, options));
     this.src = options.src;
     this.wave = options.wave;
   }
@@ -86,7 +81,7 @@ export class AudioTrack extends TrackItem {
 export class StickerTrack extends TrackItem {
   sticker: string;
   constructor(options: Omit<TrackOption, 'type'> & { sticker: string }) {
-    super(Object.assign({ type: TrackType.Sticker, height: 20 }, options));
+    super(Object.assign({ type: ResourceType.Sticker, height: 20 }, options));
     this.sticker = options.sticker;
   }
 }
@@ -94,7 +89,7 @@ export class StickerTrack extends TrackItem {
 export class FilterTrack extends TrackItem {
   icon: any;
   constructor(options: Omit<TrackOption, 'type'> & { icon?: any }) {
-    super(Object.assign({ type: TrackType.Text, height: 20 }, options));
+    super(Object.assign({ type: ResourceType.Text, height: 20 }, options));
     this.icon = options.icon || FilterOutlined;
   }
 }
@@ -102,14 +97,14 @@ export class FilterTrack extends TrackItem {
 export class EffectTrack extends TrackItem {
   icon: any;
   constructor(options: Omit<TrackOption, 'type'> & { icon?: any }) {
-    super(Object.assign({ type: TrackType.Effect, height: 20 }, options));
+    super(Object.assign({ type: ResourceType.Effect, height: 20 }, options));
     this.icon = options.icon || FireFilled;
   }
 }
 
 export class TextTrack extends TrackItem {
   constructor(options: Omit<TrackOption, 'type'>) {
-    super(Object.assign({ type: TrackType.Text, height: 20 }, options));
+    super(Object.assign({ type: ResourceType.Text, height: 20 }, options));
   }
 }
 
@@ -119,6 +114,6 @@ export type TrackMap = {
   audio: AudioTrack[][];
 };
 
-export function isMedia(type: TrackType) {
-  return [TrackType.Video, TrackType.Audio].includes(type);
+export function isMedia(type: ResourceType) {
+  return [ResourceType.Video, ResourceType.Audio].includes(type);
 }
