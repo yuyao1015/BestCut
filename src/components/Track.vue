@@ -58,9 +58,9 @@
 
       const attachment = (track: TrackItem) => (
         <div class={'attachment-track track-item-head w-full'}>
-          {track instanceof FilterTrack ||
-            (track instanceof EffectTrack &&
-              (() => h(track.icon, { class: 'track-item-title' }))())}
+          {track instanceof FilterTrack || track instanceof EffectTrack
+            ? h(track.icon, { class: 'track-item-title' })
+            : null}
           {track instanceof StickerTrack ? (
             <img class="track-item-title" src={track.sticker} />
           ) : null}

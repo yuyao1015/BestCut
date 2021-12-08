@@ -20,20 +20,25 @@
         >
           <div
             ref="tracksRef"
-            class="tracks absolute w-full mt-2.5 overflow-y-scroll pb-10"
+            class="tracks absolute w-full mt-2.5 overflow-y-scroll"
             :style="`height: calc(100% - 0.625rem);`"
+            @dragenter="onResourceEnter"
+            @dragleave="onResourceLeave"
+            @drop="onResourceDrop"
           >
-            <TrackContainer class="video-container overflow-y-auto" :lists="trackMap.video" />
+            <TrackContainer
+              :class="['video-container overflow-y-auto', !isMapEmpty ? 'min-h-1/3' : '']"
+              :lists="trackMap.video"
+            />
 
             <TrackContainer
               ref="mainTrackRef"
               :class="[
                 'main-container flex items-center',
                 isSticky && trackMap.video.length ? 'sticky-track' : '',
-                !trackMap.video.length && !trackMap.audio.length
-                  ? 'absolute h-full w-full my-auto'
-                  : '',
+                isMapEmpty ? 'absolute h-full w-full my-auto' : '',
               ]"
+              :isMapEmpty="isMapEmpty"
               :lists="[trackMap.main]"
               :isMute="isMute"
             >
@@ -52,7 +57,10 @@
               </div>
             </TrackContainer>
 
-            <TrackContainer class="audio-container" :lists="trackMap.audio" />
+            <TrackContainer
+              :class="['audio-container', !isMapEmpty ? 'min-h-1/3' : '']"
+              :lists="trackMap.audio"
+            />
           </div>
         </div>
       </div>
@@ -64,7 +72,7 @@
   import { ComponentPublicInstance, onUnmounted } from 'vue';
   import { TrackMap, TrackItem } from '@/logic/track';
 
-  import { defineComponent, ref, onMounted, watch, nextTick } from 'vue';
+  import { defineComponent, ref, onMounted, watch, nextTick, computed } from 'vue';
 
   import { SoundFilled, AudioMutedOutlined } from '@ant-design/icons-vue';
 
@@ -107,6 +115,14 @@
 
       const trackStore = useTrackStore();
       const trackMap = ref(trackStore.trackMap);
+      const isMapEmpty = computed(() => {
+        let empty = true;
+        forEachValue(trackMap.value, (_, v) => {
+          if (v.length) empty = false;
+        });
+        return empty;
+      });
+
       watch(
         () => trackStore.trackMap,
         (newVal: TrackMap, oldVal: TrackMap) => {
@@ -222,11 +238,25 @@
         window.removeEventListener('mousewheel', onStickyTrack);
       });
 
+      let enterCnt = 0;
+      const onResourceEnter = () => {
+        enterCnt++;
+      };
+      const onResourceLeave = () => {
+        enterCnt--;
+        if (enterCnt !== 0) return;
+        trackStore.setResourceOverState(false);
+      };
+      const onResourceDrop = () => {
+        enterCnt = 0;
+      };
+
       return {
         title,
         wrapperWidth,
 
         isMute,
+        isMapEmpty,
         isSticky,
         percent,
         trackMap,
@@ -240,6 +270,9 @@
         onMute,
         move,
         down,
+        onResourceEnter,
+        onResourceLeave,
+        onResourceDrop,
       };
     },
   });

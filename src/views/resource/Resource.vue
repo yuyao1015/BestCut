@@ -210,9 +210,7 @@
       const onDragOver = (e: DragEvent) => {
         if (!dragView.el) return;
         const rect = dragView.el.getBoundingClientRect();
-        dragView.el.style.left = `${
-          e.pageX + (trackStore.isResourceOver ? 10 : -rect.width / 2)
-        }px`;
+        dragView.el.style.left = `${e.pageX + (trackStore.isResourceOver ? 0 : -rect.width / 2)}px`;
         dragView.el.style.top = `${e.pageY - rect.height / 2}px`;
       };
       const onDragEnd = () => {

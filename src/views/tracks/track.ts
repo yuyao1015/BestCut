@@ -21,16 +21,23 @@ export const searchMainIdx = (list: TrackItem[], dx: number, idx: number) => {
       idx--;
     }
   }
-  return idx;
+  return { idx, dx };
 };
 
-export const updateMainOrder = (list: TrackItem[], dx: number, j: number) => {
+export const updateMainOrder = (list: TrackItem[], dx: number, j: number, track?: TrackItem) => {
   for (const trak of list) {
     trak.marginRight = 0;
     trak.marginLeft = 0;
   }
 
-  const idx = searchMainIdx(list, dx, j);
+  const { idx, dx: _dx } = searchMainIdx(list, dx, j);
+
+  if (track) {
+    if (_dx >= offset) list.splice(idx + 1, 0, track);
+    else list.splice(idx, 0, track);
+    return;
+  }
+
   if (idx === j) return;
 
   const sign = dx > 0 ? 1 : 0;

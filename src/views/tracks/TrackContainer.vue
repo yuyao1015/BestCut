@@ -23,6 +23,7 @@
   import TrackBorder from './TrackBorder.vue';
   import Track from '@/components/Track.vue';
   import { ResourceType } from '@/enums/resource';
+  // import { getStyle } from '@/utils/dom';
 
   const NO_SELECT = { i: -1, j: -1 };
 
@@ -37,6 +38,10 @@
         default: () => [],
       },
       isMute: {
+        type: Boolean,
+        default: false,
+      },
+      isMapEmpty: {
         type: Boolean,
         default: false,
       },
@@ -62,7 +67,7 @@
       const trackListsRef = ref<ComponentPublicInstance | null>(null);
       const draggedIdxs = ref(NO_SELECT);
       const activeIdxs = ref(NO_SELECT);
-      const activeTrak = ref<null | TrackItem>(null);
+      const activeTrak = ref<undefined | TrackItem>(undefined);
       watch(activeIdxs, (idxs: { i: number; j: number }) => {
         const { i, j } = idxs;
         if (i === -1 || j === -1) return;
@@ -75,16 +80,34 @@
       const currentList = ref<TrackItem[]>([]);
       const shadowLeft = computed(() => {
         const { j } = draggedIdxs.value;
-        const leftList = currentList.value.slice(0, j);
-        if (leftList.length) {
-          let l = leftList.reduce((l, trak) => (l += trak.width + trak.marginLeft), 0);
-          return Math.max(l + currentList.value[j].marginLeft + shadowDx.value, 0);
-        } else return 0;
+        if (!currentList.value[j]) return shadowDx.value;
+
+        const l = currentList.value
+          .slice(0, j)
+          .reduce((l, trak) => (l += trak.width + trak.marginLeft), 0);
+        const ml = currentList.value[j]?.marginLeft || 0;
+        return Math.max(l + ml + shadowDx.value, 0);
       });
 
-      const swapMainTrack = (list: TrackItem[], dx: number, j: number) => {
+      const swapMainTrack = (list: TrackItem[], dx: number, j: number, track?: TrackItem) => {
         // index in dragging
-        const idx = searchMainIdx(list, dx, j);
+        shadowDx.value = 0;
+        let { idx, dx: _dx } = searchMainIdx(list, dx, j);
+
+        if (track) {
+          if (_dx >= 20) idx++;
+          for (let k = j + 1; k < list.length; k++) {
+            if (k < idx) {
+              shadowDx.value += list[k].width;
+            }
+            if (k === idx) list[idx].marginLeft = track.width;
+            else {
+              list[k].marginLeft = 0;
+              list[k].marginRight = 0;
+            }
+          }
+          return;
+        }
 
         if (dx > 0) {
           for (let k = j + 1; k < list.length; k++) {
@@ -181,7 +204,6 @@
           }
 
           if (isMain.value && idx === i) {
-            shadowDx.value = 0;
             swapMainTrack(currentlist, left, j);
           } else {
             shadowDx.value = left;
@@ -317,7 +339,7 @@
             <div
               class={[
                 'rounded-md w-full h-20 border border-light-50 border-dashed',
-                'flex items-center justify-start mx-1 pl-10 opacity-50',
+                'flex items-center justify-start pl-10 opacity-50',
               ]}
               style="background-color: rgba(255, 255, 255, 0.1);"
             >
@@ -346,11 +368,11 @@
             })
           )}
 
-          {draggedIdxs.value.i === i ? (
+          {draggedIdxs.value.i === i && activeTrak.value ? (
             <div
               class="shadow absolute rounded-sm m-px px-1 bg-gray-300 opacity-10 h-full"
-              style={`width: ${Number(activeTrak.value?.width)}px;
-                  top:0; left: ${shadowLeft.value}px;`}
+              style={`width: ${Number(activeTrak.value.width)}px;
+                    top:0; left: ${shadowLeft.value}px;`}
             />
           ) : null}
 
@@ -358,67 +380,93 @@
             <div
               class="new-list-line absolute w-full h-0.5 left-0"
               style={`transform: translateY(${newListLine.value.top ? '-' : ''}0.6rem);
-                    ${newListLine.value.top ? 'top' : 'bottom'}: 0;`}
+                      ${newListLine.value.top ? 'top' : 'bottom'}: 0;`}
             ></div>
           ) : null}
         </div>
       );
 
       let enterCnt = 0;
-      const onResourceEnter = () => {
+      let enterLoc = { x: 0, y: 0 };
+      const onResourceEnter = (e: DragEvent) => {
+        if (enterCnt === 0) {
+          console.log('enter');
+          enterLoc = { x: e.pageX, y: e.pageY };
+        }
         enterCnt++;
-        if (trackStore.isResourceOver) return;
+
+        if (enterCnt !== 1) return;
         trackStore.setResourceOverState(true);
         nextTick(() => {
-          if (isMain.value && trackStore.track) {
-            const currentlist = lists.value[0];
-            const track = Object.assign({}, trackStore.track);
-            // track.marginLeft = -track.width;
-            currentlist.push(track);
-            activeIdxs.value = { i: 0, j: 0 };
-            draggedIdxs.value = { i: 0, j: 0 };
+          if (props.isMapEmpty) {
+            //
+          } else {
+            // console.log(activeIdxs.value, activeTrak.value?.active);
+            if (activeTrak.value) activeTrak.value.active = false;
           }
+          activeTrak.value = trackStore.track?.clone();
         });
-      };
-
-      const onResourceOver = (e: DragEvent) => {
-        // swapMainTrack(currentlist, 0, 0);
-        e.preventDefault();
       };
 
       const onResourceLeave = () => {
         enterCnt--;
         if (enterCnt !== 0) return;
-        trackStore.setResourceOverState(false);
-        if (isMain.value && trackStore.track) {
-          const currentlist = lists.value[0];
-          activeIdxs.value = NO_SELECT;
-          draggedIdxs.value = NO_SELECT;
-          currentlist.splice(0, 1);
+        console.log('leave');
+        activeIdxs.value.i = -1;
+        draggedIdxs.value.i = -1;
+
+        if (isMain.value) {
+          for (const trak of lists.value[0]) {
+            trak.marginRight = 0;
+            trak.marginLeft = 0;
+          }
         }
       };
 
+      const onResourceOver = (e: DragEvent) => {
+        const dx = e.pageX - trackHeadWidth - 9; // footer margin-left
+        if (props.isMapEmpty) {
+          draggedIdxs.value.i = activeIdxs.value.i = 0;
+        }
+
+        if (isMain.value) {
+          if (dx > 0) draggedIdxs.value.i = 0;
+          else draggedIdxs.value.i = -1;
+          swapMainTrack(lists.value[0], dx + 20, -1, trackStore.track?.clone());
+        }
+
+        e.preventDefault();
+      };
+
       const onResourceDrop = (e: DragEvent) => {
+        const dx = e.pageX - trackHeadWidth - 9;
+
+        if (props.isMapEmpty && trackStore.track) {
+          lists.value[0].push(trackStore.track.clone());
+          activeIdxs.value = { i: 0, j: 0 };
+        } else {
+          if (isMain.value) {
+            updateMainOrder(lists.value[0], dx, -1, trackStore.track?.clone());
+          }
+        }
+        draggedIdxs.value.i = -1;
+
+        enterCnt = 0;
         trackStore.setResourceOverState(false);
-        e.stopPropagation();
       };
 
       return () => (
-        <div class="flex w-full">
+        <div
+          class="flex w-full"
+          onDragenter={onResourceEnter}
+          onDragover={onResourceOver}
+          onDragleave={onResourceLeave}
+          onDrop={onResourceDrop}
+        >
           <div class="track-container-head h-full" style={`flex:0 0 ${trackHeadWidth}px;`}>
             {slots.default ? slots.default() : null}
           </div>
-          <div
-            ref={trackListsRef}
-            class="list w-full h-full flex flex-col justify-center"
-            onDragenter={onResourceEnter}
-            onDragover={onResourceOver}
-            onDragleave={onResourceLeave}
-            onDrop={onResourceDrop}
-            onClick={() => {
-              console.log(1);
-            }}
-          >
+          <div ref={trackListsRef} class="list w-full h-full flex flex-col justify-center">
             {lists.value.map((tracks, i) => trackList(tracks, i))}
           </div>
         </div>
@@ -443,6 +491,12 @@
   .video-container {
     .track-list:first-child {
       margin-top: 2.5rem;
+    }
+  }
+
+  .audio-container {
+    .track-list:last-child {
+      padding-bottom: 2.5rem;
     }
   }
 </style>

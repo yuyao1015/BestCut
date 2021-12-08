@@ -16,7 +16,7 @@ export const videoList = [
     new TextTrack({ name: '默认文本4', duration: '01:30', offset: 100 }),
   ],
   [new EffectTrack({ name: '渐渐放大', duration: '03:00', offset: 450 })],
-  [new FilterTrack({ name: '渐渐放大', duration: '03:00', offset: 450 })],
+  [new EffectTrack({ name: '渐渐放大', duration: '03:00', offset: 450 })],
   [new StickerTrack({ duration: '03:00', sticker: '123', offset: 150 })],
 
   [new VideoTrack({ name: 'bbb.mp4', duration: '00:10:34:17', src: '/media/bbb.mp4' })],

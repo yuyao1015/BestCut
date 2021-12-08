@@ -1,4 +1,5 @@
-import { TrackMap, TrackItem, VideoTrack, AudioTrack } from '@/logic/track';
+import { TrackMap, TrackItem } from '@/logic/track';
+import { ResourceType } from '@/enums/resource';
 
 import { defineStore } from 'pinia';
 
@@ -38,6 +39,7 @@ export const useTrackStore = defineStore({
     },
     setResourceOverState(bool: boolean) {
       this.isResourceOver = bool;
+      if (!bool) this.track = undefined;
     },
     setTrack(track: TrackItem) {
       this.track = track;
@@ -51,10 +53,10 @@ export const useTrackStore = defineStore({
       this.trackMap[type] = lists;
     },
     addTrack(track: TrackItem) {
-      if (track instanceof VideoTrack) this.trackMap.main.push(track);
-      else if (track instanceof AudioTrack) this.trackMap.audio.push([track]);
+      if (track.type === ResourceType.Video) this.trackMap.main.push(track);
+      else if (track.type === ResourceType.Audio) this.trackMap.audio.push([track]);
       else {
-        const idx = this.trackMap.video.findIndex((traks) => traks[0] instanceof VideoTrack);
+        const idx = this.trackMap.video.findIndex((traks) => traks[0].type === ResourceType.Video);
         if (idx === -1) this.trackMap.video.push([track]);
         else this.trackMap.video.splice(idx, 0, [track]);
       }

@@ -1,7 +1,9 @@
+import { v4 as uuid } from 'uuid';
+import { FireFilled, FilterOutlined } from '@ant-design/icons-vue';
+
 import { Base } from './data';
 import { ResourceType } from '@/enums/resource';
-
-import { FireFilled, FilterOutlined } from '@ant-design/icons-vue';
+import { deepCopy } from '@/utils';
 
 type ItemOptional = {
   id: string;
@@ -44,16 +46,20 @@ export class TrackItem extends Base {
   getProps() {
     return undefined;
   }
+
+  clone() {
+    const clone = deepCopy(this);
+    clone.id = uuid();
+    return clone;
+  }
 }
 
 export class MediaTrack extends TrackItem {
   refer?: { from: number; to: number };
-  src = '';
-  muted = false;
+  src?: string;
 }
 
-export class VideoTrack extends TrackItem {
-  src?: string;
+export class VideoTrack extends MediaTrack {
   audio?: AudioTrack;
   cover?: string[];
 
@@ -61,17 +67,16 @@ export class VideoTrack extends TrackItem {
     options: Omit<TrackOption, 'type'> & { src?: string; audio?: AudioTrack; cover?: string[] }
   ) {
     super(Object.assign({ type: ResourceType.Video, height: 84 }, options));
-    this.src = options.src;
+    this.src = options.src || '';
     this.cover = options.cover;
     this.audio = options.audio;
   }
 }
 
-export class AudioTrack extends TrackItem {
-  src?: string;
+export class AudioTrack extends MediaTrack {
   wave?: string;
-  muted? = false;
-  constructor(options: Omit<TrackOption, 'type'> & { src?: string; wave?: string }) {
+  muted?: boolean;
+  constructor(options: Omit<TrackOption, 'type'> & { src: string; wave?: string }) {
     super(Object.assign({ type: ResourceType.Audio, height: 60 }, options));
     this.src = options.src;
     this.wave = options.wave;
@@ -89,7 +94,7 @@ export class StickerTrack extends TrackItem {
 export class FilterTrack extends TrackItem {
   icon: any;
   constructor(options: Omit<TrackOption, 'type'> & { icon?: any }) {
-    super(Object.assign({ type: ResourceType.Text, height: 20 }, options));
+    super(Object.assign({ type: ResourceType.Filter, height: 20 }, options));
     this.icon = options.icon || FilterOutlined;
   }
 }
