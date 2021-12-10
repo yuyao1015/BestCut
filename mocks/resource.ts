@@ -15,7 +15,7 @@ const audio = (n: number, album = '', author = '') =>
     new AudioResource({
       src: '',
       cover: '',
-      duration: '@time("mm:ss")',
+      duration: '@time("05:ss")',
       name: '@word().aac',
       album,
       author,

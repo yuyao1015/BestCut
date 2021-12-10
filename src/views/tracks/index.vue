@@ -29,6 +29,7 @@
             <TrackContainer
               :class="['video-container overflow-y-auto', !isMapEmpty ? 'min-h-1/3' : '']"
               :lists="trackMap.video"
+              type="video"
             />
 
             <TrackContainer
@@ -41,6 +42,7 @@
               :isMapEmpty="isMapEmpty"
               :lists="[trackMap.main]"
               :isMute="isMute"
+              type="main"
             >
               <div
                 v-if="trackMap.main.length"
@@ -60,6 +62,7 @@
             <TrackContainer
               :class="['audio-container', !isMapEmpty ? 'min-h-1/3' : '']"
               :lists="trackMap.audio"
+              type="audio"
             />
           </div>
         </div>

@@ -11,9 +11,9 @@ const Debug = 0;
 const trackMap = Debug
   ? { video: videoList, main: mainList, audio: audioList }
   : {
-      video: [],
+      video: videoList,
       main: [],
-      audio: [],
+      audio: audioList,
     };
 
 type Calculator = (track: TrackItem) => { width: number; marginLeft: number };

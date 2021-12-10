@@ -41,6 +41,10 @@
         type: Boolean,
         default: false,
       },
+      type: {
+        type: String,
+        default: '',
+      },
       isMapEmpty: {
         type: Boolean,
         default: false,
@@ -50,7 +54,7 @@
     setup(props, { slots }) {
       const lists = computed(() => props.lists);
       const isMain = computed(() => {
-        return Boolean(slots.default);
+        return props.type === 'main';
       });
 
       const trackStore = useTrackStore();
@@ -387,11 +391,9 @@
       );
 
       let enterCnt = 0;
-      let enterLoc = { x: 0, y: 0 };
       const onResourceEnter = (e: DragEvent) => {
         if (enterCnt === 0) {
-          console.log('enter');
-          enterLoc = { x: e.pageX, y: e.pageY };
+          // console.log('enter');
         }
         enterCnt++;
 
@@ -411,9 +413,10 @@
       const onResourceLeave = () => {
         enterCnt--;
         if (enterCnt !== 0) return;
-        console.log('leave');
+        // console.log('leave');
         activeIdxs.value.i = -1;
         draggedIdxs.value.i = -1;
+        activeTrak.value = undefined;
 
         if (isMain.value) {
           for (const trak of lists.value[0]) {
@@ -424,31 +427,71 @@
       };
 
       const onResourceOver = (e: DragEvent) => {
-        const dx = e.pageX - trackHeadWidth - 9; // footer margin-left
+        const container = (e.currentTarget as HTMLElement).children[2];
+        const rect = container.getBoundingClientRect();
+        const dx = e.pageX - rect.left;
+
         if (props.isMapEmpty) {
           draggedIdxs.value.i = activeIdxs.value.i = 0;
+          return;
         }
 
         if (isMain.value) {
-          if (dx > 0) draggedIdxs.value.i = 0;
-          else draggedIdxs.value.i = -1;
-          swapMainTrack(lists.value[0], dx + 20, -1, trackStore.track?.clone());
+          if (activeTrak.value?.type === ResourceType.Video) {
+            if (dx > 0) draggedIdxs.value.i = 0;
+            else draggedIdxs.value.i = -1;
+            swapMainTrack(lists.value[0], dx + 20, -1, trackStore.track?.clone());
+          }
+        } else {
+          let dy = e.pageY - rect.top;
+          if (!lists.value.length || !container.children.length || !dy) return;
+
+          let style;
+          if (props.type === 'video') style = getComputedStyle(container.children[0]);
+          if (props.type === 'audio')
+            style = getComputedStyle(container.children[container.children.length - 1]);
+          if (!style) return;
+
+          const mt = parseInt(style.marginTop);
+          const mb = parseInt(style.marginBottom);
+          const my = Math.min(mt, mb) * 2;
+
+          const {
+            idx,
+            dy: _dy,
+            newListVisiable,
+            canRequestNewList,
+          } = searchColIdx(lists.value, dy - (props.type === 'video' ? mt : my), my, -1);
+
+          console.log(dy, _dy, newListVisiable, canRequestNewList);
+
+          draggedIdxs.value.i = idx;
+
+          if (
+            lists.value[lists.value.length - 1][0].height < _dy ||
+            (props.type === 'video' && dy < mt - mb)
+          ) {
+            draggedIdxs.value.i = -1;
+          }
         }
 
         e.preventDefault();
       };
 
       const onResourceDrop = (e: DragEvent) => {
-        const dx = e.pageX - trackHeadWidth - 9;
+        const container = (e.currentTarget as HTMLElement).children[2];
+        const dx = e.pageX - container.getBoundingClientRect().left;
 
         if (props.isMapEmpty && trackStore.track) {
           lists.value[0].push(trackStore.track.clone());
           activeIdxs.value = { i: 0, j: 0 };
-        } else {
-          if (isMain.value) {
-            updateMainOrder(lists.value[0], dx, -1, trackStore.track?.clone());
-          }
+          return;
         }
+
+        if (isMain.value) {
+          updateMainOrder(lists.value[0], dx, -1, trackStore.track?.clone());
+        }
+
         draggedIdxs.value.i = -1;
 
         enterCnt = 0;
@@ -466,6 +509,9 @@
           <div class="track-container-head h-full" style={`flex:0 0 ${trackHeadWidth}px;`}>
             {slots.default ? slots.default() : null}
           </div>
+
+          <div class="hidden">{draggedIdxs.value.i}</div>
+
           <div ref={trackListsRef} class="list w-full h-full flex flex-col justify-center">
             {lists.value.map((tracks, i) => trackList(tracks, i))}
           </div>
@@ -496,7 +542,7 @@
 
   .audio-container {
     .track-list:last-child {
-      padding-bottom: 2.5rem;
+      margin-bottom: 2.5rem;
     }
   }
 </style>

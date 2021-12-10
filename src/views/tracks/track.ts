@@ -100,13 +100,15 @@ export const updateOrder = (list: TrackItem[], dx: number, j: number) => {
   col
 */
 // TODO: attachment track create new list boundary
-
 export const searchColIdx = (lists: TrackItem[][], dy: number, my: number, idx: number) => {
   let _dy = dy > 0 ? dy : -dy;
-  let newListVisiable = false;
+  let newListVisiable = false,
+    canRequestNewList = true;
 
   const sign = dy > 0 ? 1 : -1;
-  while (lists[idx + sign] && lists[idx + sign].length && _dy > (lists[idx][0].height * 2) / 3) {
+  const ratio = idx++ === -1 ? 1 : 2 / 3;
+
+  while (lists[idx + sign] && lists[idx] && _dy > lists[idx][0].height * ratio) {
     const cur = lists[idx][0];
     const next = lists[idx + sign][0];
 
@@ -126,9 +128,9 @@ export const searchColIdx = (lists: TrackItem[][], dy: number, my: number, idx: 
   )
     newListVisiable = true;
 
-  const canRequestNewList = _dy > lists[idx][0].height / 3;
+  canRequestNewList = _dy > lists[idx][0].height / 3;
 
-  return { idx, newListVisiable, canRequestNewList };
+  return { idx, newListVisiable, canRequestNewList, dy: _dy };
 };
 
 export const deleteTrack = (lists: TrackItem[][], i: number, j: number, isMain: boolean) => {
