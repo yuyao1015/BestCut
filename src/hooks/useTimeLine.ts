@@ -1,4 +1,4 @@
-import type { TrackItem } from '@/logic/track';
+import { TrackItem } from '@/logic/track';
 import type { Ref } from 'vue';
 
 import { watch } from 'vue';
@@ -120,18 +120,21 @@ export default (duration: number, fps: number) => {
     });
   };
 
-  const calcTrackWidth = (track: TrackItem) => {
-    let w;
-    if (!track.duration) {
-      w = track.width ? track.width : 50;
-    } else {
-      const s = durationString2Sec(track.duration) / unit;
-      w = s * step;
-    }
-    const ml = track.offset ? (track.offset / unit) * step : 0;
+  const calcWidth = (track: TrackItem | number) => {
+    let w,
+      ml = 0;
+    if (track instanceof TrackItem) {
+      if (!track.duration) {
+        w = track.width ? track.width : 50;
+      } else {
+        const s = durationString2Sec(track.duration) / unit;
+        w = s * step;
+      }
+      ml = (track.offset / unit) * step;
+    } else w = (track / unit) * step;
 
     return { width: w, marginLeft: ml };
   };
 
-  return { initTimeLine, useUnit, calcTrackWidth };
+  return { initTimeLine, useUnit, calcWidth };
 };

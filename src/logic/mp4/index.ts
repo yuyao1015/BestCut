@@ -61,11 +61,7 @@ class MP4Source {
     return this.file.moov.traks[0].mdia.minf.stbl.stsd.entries[0].avcC;
   }
 
-  onSamples(track_id: string, ref: any, samples: any[]) {
-    track_id;
-    ref;
-    samples;
-  }
+  onSamples(track_id: string, ref: any, samples: any[]) {}
 
   async getConfig() {
     const info = await this.getInfo();
@@ -84,13 +80,11 @@ class MP4Source {
     return Promise.resolve(config);
   }
 
-  start(type: string) {
-    const id = type === 'video' ? this.videoTrack.id : this.audioTrack.id;
+  start(id: string | number) {
     this.file.setExtractionOptions(id);
     this.file.start();
   }
-  getSamples(type: string) {
-    const id = type === 'video' ? this.videoTrack.id : this.audioTrack.id;
+  getSamples(id: string | number) {
     return this.file.getTrackSamplesInfo(id);
   }
 }
@@ -98,8 +92,9 @@ class MP4Source {
 export class MP4Player {
   id: string;
   canvas: HTMLCanvasElement;
-  ctx?: CanvasRenderingContext2D | null;
+  ctx: null | CanvasRenderingContext2D;
   url?: string;
+  paused: boolean; // flag for resume/pause
 
   // video
   fps = 30;
@@ -107,7 +102,7 @@ export class MP4Player {
   lastTime = 0;
   interval = 100 / 3;
   canPaint = true;
-  active = false;
+  active = false; // whether video normally decoded
   rAF: number | null = null;
 
   // config
@@ -122,7 +117,7 @@ export class MP4Player {
   chunkStart = 0;
   chunkSize = 0;
 
-  refs = reactive({ current: 0, total: 0, paused: false });
+  refs = reactive({ current: 0, total: 0 });
 
   constructor(opts: MP4PlayerOption) {
     if (opts.id) {
@@ -138,6 +133,7 @@ export class MP4Player {
     this.ctx = this.canvas.getContext('2d');
 
     this.url = opts.url;
+    this.paused = opts.paused || false;
     opts.url && this.demux(opts.url);
   }
 
@@ -160,21 +156,22 @@ export class MP4Player {
         this.canvas.width = w;
       }
 
-      this.samples = this.source?.getSamples('video');
+      this.samples = this.source?.getSamples(this.source.videoTrack.id);
       if (!this.samples?.length) return;
+
       this.chunkSize = this.samples?.length;
       const sample = this.samples[0];
-      this.fps = sample.timescale / (sample.cts - sample.dts);
+      // this.fps = sample.timescale / (sample.cts - sample.dts);
       this.interval = 1000 / this.fps;
-      this.source?.start('video');
+      this.source?.start(this.source.videoTrack.id);
 
       this.lastTime = performance.now();
       const { movie_duration, movie_timescale } = this.source?.videoTrack;
       this.refs.total = movie_duration / movie_timescale;
-      if (this.refs.paused) this.pause();
 
       this.onPlayStart();
       this.display();
+      if (this.paused) this.pause();
     });
   }
 
@@ -221,10 +218,7 @@ export class MP4Player {
   }
 
   jumpTo(idx: number) {
-    const {
-      refs: { paused },
-      samples,
-    } = this;
+    const { paused, samples } = this;
 
     if (!samples?.length) return;
     if (this.configured() && !paused) this.pause();
@@ -243,10 +237,7 @@ export class MP4Player {
   }
 
   prevFrame(n: number) {
-    const {
-      refs: { paused },
-      samples,
-    } = this;
+    const { paused, samples } = this;
 
     if (!paused) return;
 
@@ -259,10 +250,7 @@ export class MP4Player {
 
   // TODO: first call current duration 2 frame ++
   nextFrame(n: number) {
-    const {
-      refs: { paused },
-      samples,
-    } = this;
+    const { paused, samples } = this;
 
     if (!paused) return;
     this.chunkStart = Math.min(this.chunkStart + n, samples.length);
@@ -303,20 +291,20 @@ export class MP4Player {
 
   pauseResume() {
     if (this.closed()) return;
-    if (this.refs.paused) this.resume();
+    if (this.paused) this.resume();
     else this.pause();
   }
 
   pause() {
     this.rAF && cancelAnimationFrame(this.rAF);
-    this.refs.paused = true;
+    this.paused = true;
   }
 
   resume() {
     if (!this.currentTime) this.lastTime = performance.now();
     this.updateLastTime();
     this.rAF = requestAnimationFrame(() => this.display());
-    this.refs.paused = false;
+    this.paused = false;
   }
 
   stop() {
@@ -327,7 +315,7 @@ export class MP4Player {
 
     this.refs.current = 0;
     this.refs.total = 0;
-    this.refs.paused = true;
+    this.paused = true;
     this.active = false;
   }
   closed() {
@@ -405,9 +393,9 @@ export class MP4Player {
       decoder.configure(videoCfg);
       const { codedHeight: height, codedWidth: width, codec, videoDuration } = videoCfg;
 
-      const samples = source?.getSamples('video');
+      const samples = source?.getSamples(source.videoTrack.id);
       if (!samples?.length) return;
-      source?.start('video');
+      source?.start(source.videoTrack.id);
 
       const file = new window.MP4Box.createFile();
       const track = file.addTrack({

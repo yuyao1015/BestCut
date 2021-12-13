@@ -28,12 +28,14 @@
 
 <script lang="ts">
   import type { ComponentPublicInstance } from 'vue';
-  import { defineComponent, ref, onMounted, onUnmounted } from 'vue';
+  import { defineComponent, ref, onMounted, onUnmounted, watch } from 'vue';
 
-  import { trackHeadWidth as lmin } from '@/settings/componentSetting';
+  import { trackHeadWidth as lmin } from '@/settings/trackSetting';
 
   import { on, off } from '@/utils/dom';
   import { MouseCtl } from '@/logic/mouse';
+
+  import { useTrackStore } from '@/store/track';
 
   export default defineComponent({
     name: 'TimeLine',
@@ -49,6 +51,16 @@
       const hoverX = ref(lmin);
       const locatorX = ref(lmin);
       const locator = ref<HTMLElement | null>(null);
+
+      const trackStore = useTrackStore();
+      watch(
+        () => trackStore.manager.currentTime,
+        (val: number) => {
+          if (!trackStore.calcWidth) return;
+          const x = trackStore.calcWidth(val / 1000).width;
+          locatorX.value = lmin + x;
+        }
+      );
 
       const timelineRef = ref<ComponentPublicInstance | null>(null);
       let mLocator: MouseCtl | null = null;

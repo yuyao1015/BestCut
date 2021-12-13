@@ -13,6 +13,8 @@
 
   import { useResourceStore } from '@/store/resource';
   import { usePreviewStore } from '@/store/preview';
+  import { useTrackStore } from '@/store/track';
+  import { CanvasId } from '@/settings/playerSetting';
 
   export default defineComponent({
     name: 'Preview',
@@ -29,6 +31,7 @@
 
       const resourceStore = useResourceStore();
       const previewStore = usePreviewStore();
+      const trackStore = useTrackStore();
 
       const title = computed(() => {
         const { resource } = resourceStore;
@@ -40,29 +43,33 @@
         return `${t('components.player')}`;
       });
 
-      const active = ref(false);
+      const active = computed(() => {
+        return Boolean(resourceStore.resource) || !trackStore.isMapEmpty;
+      });
       const total = computed(() => {
-        return active.value ? previewStore.total : '00:00:00:00';
+        let _total = '00:00:00:00';
+        if (!trackStore.isMapEmpty) _total = trackStore.total;
+        if (resourceStore.resource) _total = previewStore.total;
+        return _total;
       });
       const current = computed(() => {
-        return active.value ? previewStore.current : '00:00:00:00';
+        let _current = '00:00:00:00';
+        if (!trackStore.isMapEmpty) _current = trackStore.current;
+        if (resourceStore.resource) _current = previewStore.current;
+        return _current;
       });
 
       const paused = computed(() => {
-        return active.value ? previewStore.paused : true;
+        if (!active.value) return true;
+        if (resourceStore.resource && previewStore.player.active) return previewStore.player.paused;
+        if (!trackStore.isMapEmpty) return trackStore.manager.paused;
+        return true;
       });
       const pauseResume = () => {
         if (!active.value) return;
-        previewStore.pauseResume();
+        previewStore.player.active && previewStore.pauseResume();
+        !resourceStore.resource && trackStore.pauseResume();
       };
-
-      watch(
-        () => resourceStore.resource,
-        () => {
-          if (resourceStore.resource) active.value = true;
-          else active.value = false;
-        }
-      );
 
       const isInFullScreen = ref(false);
       const fullScreen = async () => {
@@ -72,7 +79,7 @@
           previewStore.player.onPlaying = function () {
             const preview = document.getElementById('preview-box') as HTMLDivElement;
             const { height, width } = getComputedStyle(preview);
-            this.canvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
+            this.canvas = document.getElementById(CanvasId) as HTMLCanvasElement;
             this.ctx = this.canvas.getContext('2d');
             if (this.canvas.width < parseInt(width) || this.canvas.height < parseInt(height)) {
               this.canvas.width = parseInt(width);
@@ -82,7 +89,7 @@
         } else {
           isInFullScreen.value = false;
           previewStore.player.onPlaying = function () {
-            this.canvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
+            this.canvas = document.getElementById(CanvasId) as HTMLCanvasElement;
             this.ctx = this.canvas.getContext('2d');
           };
         }
@@ -119,7 +126,7 @@
         else window.removeEventListener('mousemove', showPanel);
       });
 
-      const canvas = () => <canvas id="preview-canvas" class="mx-auto bg-black" />;
+      const canvas = () => <canvas id={CanvasId} class="mx-auto bg-black" />;
       const content = () => (
         <div class="relative flex items-center h-full" id="canvasContent">
           {canvas()}
@@ -133,6 +140,7 @@
       const jumpTo = (value: number) => {
         previewStore.jumpTo(value / 100);
       };
+
       const footer = () => (
         <div
           id="preview-panel"
@@ -238,6 +246,7 @@
     },
   });
 </script>
+
 <style lang="less" scoped>
   .preview-panel {
     background-color: #272728;

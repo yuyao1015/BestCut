@@ -58,6 +58,7 @@
   import { localeList } from '@/locales/localeSetting';
   import { useResourceStore } from '@/store/resource';
   import _ from 'lodash-es';
+  import { CanvasId } from '@/settings/playerSetting';
 
   export default defineComponent({
     components: {
@@ -100,7 +101,7 @@
 
       const canvasSizeChange = () => {
         const { innerWidth, innerHeight } = window;
-        let previewCanvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
+        let previewCanvas = document.getElementById(CanvasId) as HTMLCanvasElement;
         if (!previewCanvas) previewCanvas = document.createElement('canvas');
 
         const previewW =

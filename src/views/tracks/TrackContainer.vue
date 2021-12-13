@@ -7,7 +7,7 @@
   import { ClickOutside } from '@/directives';
   import { MouseCtl } from '@/logic/mouse';
 
-  import { trackHeadWidth } from '@/settings/componentSetting';
+  import { trackHeadWidth } from '@/settings/trackSetting';
   import { getShapedArrary } from '@/utils';
   import { useTrackStore } from '@/store/track';
 
@@ -88,7 +88,7 @@
 
         const l = currentList.value
           .slice(0, j)
-          .reduce((l, trak) => (l += trak.width + trak.marginLeft), 0);
+          .reduce((l, trak) => l + trak.width + trak.marginLeft, 0);
         const ml = currentList.value[j]?.marginLeft || 0;
         return Math.max(l + ml + shadowDx.value, 0);
       });
@@ -391,7 +391,7 @@
       );
 
       let enterCnt = 0;
-      const onResourceEnter = (e: DragEvent) => {
+      const onResourceEnter = () => {
         if (enterCnt === 0) {
           // console.log('enter');
         }

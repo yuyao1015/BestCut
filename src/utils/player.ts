@@ -120,7 +120,7 @@ export function clipDurationString(duration: string) {
   return `${pad(+arr[1], 2)}:${pad(+arr[2], 2)}`;
 }
 
-export function durationString2Sec(duration: string) {
+export function durationString2Sec(duration: string, fps = 30) {
   let ret = 0;
   if (!duration) return ret;
   const arr = duration.split(':');
@@ -128,7 +128,7 @@ export function durationString2Sec(duration: string) {
   if (n === 2) {
     ret = +arr[0] * 60 + +arr[1];
   } else if (n == 4) {
-    ret = +arr[0] * 3600 + +arr[1] * 60 + +arr[2];
+    ret = +arr[0] * 3600 + +arr[1] * 60 + +arr[2] + +arr[3] / fps;
   }
   return ret;
 }

@@ -87,6 +87,7 @@
   import { useTrackStore } from '@/store/track';
 
   import { ClickOutside } from '@/directives';
+  import { CanvasId } from '@/settings/playerSetting';
 
   export default defineComponent({
     name: 'ResourceBox',
@@ -163,15 +164,14 @@
       const play = (e: MouseEvent) => {
         resourceStore.setResource(props.resource);
         if (usable.value) {
-          const id = 'preview-canvas';
-          if (previewStore.playing && previewStore.player.id === id) {
+          if (previewStore.player.active && previewStore.player.id === CanvasId) {
             if (!resourceRef.value) return;
             const left = resourceRef.value?.getBoundingClientRect().left || 0;
             const width = parseInt(getComputedStyle(resourceRef.value).width);
             const w = e.pageX - left - scrollX;
             const ratio = w / width;
             previewStore.jumpTo(ratio);
-          } else previewStore.mount({ id, url: props.resource.src || '' });
+          } else previewStore.mount({ id: CanvasId, url: props.resource.src || '' });
           return;
         } else {
           isLoading.value = true;

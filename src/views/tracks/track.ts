@@ -106,8 +106,8 @@ export const searchColIdx = (lists: TrackItem[][], dy: number, my: number, idx: 
     canRequestNewList = true;
 
   const sign = dy > 0 ? 1 : -1;
-  const ratio = idx++ === -1 ? 1 : 2 / 3;
-
+  const ratio = idx === -1 ? 1 : 2 / 3;
+  idx === -1 && idx++;
   while (lists[idx + sign] && lists[idx] && _dy > lists[idx][0].height * ratio) {
     const cur = lists[idx][0];
     const next = lists[idx + sign][0];
@@ -128,7 +128,7 @@ export const searchColIdx = (lists: TrackItem[][], dy: number, my: number, idx: 
   )
     newListVisiable = true;
 
-  canRequestNewList = _dy > lists[idx][0].height / 3;
+  if (lists[idx]) canRequestNewList = _dy > lists[idx][0].height / 3;
 
   return { idx, newListVisiable, canRequestNewList, dy: _dy };
 };

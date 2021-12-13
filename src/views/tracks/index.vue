@@ -84,7 +84,7 @@
   import TimeLine from './TimeLine.vue';
   import TrackHead from './TrackHead.vue';
 
-  import { trackHeadWidth } from '@/settings/componentSetting';
+  import { trackHeadWidth } from '@/settings/trackSetting';
 
   import { useI18n } from '@/hooks/useI18n';
   import useTimeLine from '@/hooks/useTimeLine';
@@ -118,13 +118,7 @@
 
       const trackStore = useTrackStore();
       const trackMap = ref(trackStore.trackMap);
-      const isMapEmpty = computed(() => {
-        let empty = true;
-        forEachValue(trackMap.value, (_, v) => {
-          if (v.length) empty = false;
-        });
-        return empty;
-      });
+      const isMapEmpty = computed(() => trackStore.isMapEmpty);
 
       watch(
         () => trackStore.trackMap,
@@ -134,7 +128,7 @@
           if (!oldVal.main.length && !oldVal.audio.length && !oldVal.video.length) {
             // const { _useUnit, _calcTrackWidth } = useTimeLine(600, 30);
             // useUnit = _useUnit
-            // calcTrackWidth = _calcTrackWidth
+            // calcWidth = _calcTrackWidth
           }
           // updateTrackWidth();
         },
@@ -144,15 +138,15 @@
       );
 
       const wrapperWidth = ref(0);
-      const { useUnit, initTimeLine, calcTrackWidth } = useTimeLine(600, 30);
-      trackStore.setCalculator(calcTrackWidth);
+      const { useUnit, initTimeLine, calcWidth } = useTimeLine(600, 30);
+      trackStore.setCalculator(calcWidth);
       const footerRef = ref<ComponentPublicInstance | null>(null);
       const updateTrackWidth = () => {
         let trackWidth = 0;
         const updateWidth = (key: string, track: TrackStateItem | TrackItem) => {
           let left = 0;
           if (!Array.isArray(track)) {
-            const { width, marginLeft } = calcTrackWidth(track);
+            const { width, marginLeft } = calcWidth(track);
             track.width = width;
             track.marginLeft = marginLeft;
             if (key === 'main') track.marginLeft = 0;

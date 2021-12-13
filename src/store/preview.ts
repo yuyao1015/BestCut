@@ -28,12 +28,6 @@ export const usePreviewStore = defineStore({
       const { refs } = this.player;
       return refs.total ? ((refs.current / refs.total) * 100).toFixed(2) : '0';
     },
-    paused(): boolean {
-      return this.player.refs.paused;
-    },
-    playing(): boolean {
-      return this.player.active;
-    },
   },
   actions: {
     mount(opts: MP4PlayerOption) {
