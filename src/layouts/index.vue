@@ -51,14 +51,17 @@
   import { computed, defineComponent, onMounted, onUnmounted, ref, unref, watchEffect } from 'vue';
 
   import { Layout } from 'ant-design-vue';
+  import _ from 'lodash-es';
 
   import Splitter from '@/components/Splitter.vue';
   import { useI18n } from '@/hooks/useI18n';
   import { useLocale } from '@/locales/useLocale';
   import { localeList } from '@/locales/localeSetting';
   import { useResourceStore } from '@/store/resource';
-  import _ from 'lodash-es';
+
   import { CanvasId } from '@/settings/playerSetting';
+  import { usePreviewStore } from '@/store/preview';
+  import { useTrackStore } from '@/store/track';
 
   export default defineComponent({
     components: {
@@ -99,6 +102,9 @@
 
       const ratio = 16 / 9;
 
+      const previewStore = usePreviewStore();
+      const trackStore = useTrackStore();
+
       const canvasSizeChange = () => {
         const { innerWidth, innerHeight } = window;
         let previewCanvas = document.getElementById(CanvasId) as HTMLCanvasElement;
@@ -116,9 +122,13 @@
         const resizeProportion = w / previewCanvas.width;
         previewCanvas.width = w;
         previewCanvas.height = Math.floor(w / ratio);
+
         useResourceStore().onPreviewCanvasSizeChange(resizeProportion);
+        if (useResourceStore().resource) previewStore.player.updateSize();
+        if (!trackStore.isMapEmpty) return trackStore.manager.updateSize();
       };
       const canvasSizeChangeDebounce = _.debounce(canvasSizeChange, 10);
+
       const onResize = () => {
         const { innerWidth: w } = window;
         resourceW.value = w * resourceRatio.value;

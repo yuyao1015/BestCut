@@ -4,8 +4,7 @@ import { FireFilled, FilterOutlined } from '@ant-design/icons-vue';
 import { Base } from './data';
 import { ResourceType } from '@/enums/resource';
 import { deepCopy } from '@/utils';
-import { MP4Player } from '@/logic/mp4';
-import { CanvasId } from '@/settings/playerSetting';
+import { MP4Source } from './mp4';
 
 type ItemOptional = {
   id: string;
@@ -26,7 +25,6 @@ type ItemRequired = {
 
 export type TrackOption = Partial<ItemOptional> & ItemRequired;
 
-let player: MP4Player;
 export class TrackItem extends Base {
   type: ResourceType;
   duration: string;
@@ -46,7 +44,7 @@ export class TrackItem extends Base {
     this.height = options.height || 0;
   }
 
-  getProps() {
+  getProps(): any {
     return undefined;
   }
 
@@ -55,9 +53,6 @@ export class TrackItem extends Base {
     clone.id = uuid();
     return clone;
   }
-
-  play() {}
-  pauseResume() {}
 }
 
 export class MediaTrack extends TrackItem {
@@ -78,14 +73,10 @@ export class VideoTrack extends MediaTrack {
     this.audio = options.audio;
   }
 
-  play() {
-    if (this.src) {
-      player = new MP4Player({ id: CanvasId, url: this.src });
-    }
-  }
-
-  pauseResume() {
-    player?.pauseResume();
+  getProps() {
+    let source;
+    if (this.src) source = new MP4Source(this.src);
+    return { source };
   }
 }
 

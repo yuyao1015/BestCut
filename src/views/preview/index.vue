@@ -61,7 +61,7 @@
 
       const paused = computed(() => {
         if (!active.value) return true;
-        if (resourceStore.resource && previewStore.player.active) return previewStore.player.paused;
+        if (resourceStore.resource) return previewStore.player.paused;
         if (!trackStore.isMapEmpty) return trackStore.manager.paused;
         return true;
       });
@@ -79,8 +79,7 @@
           previewStore.player.onPlaying = function () {
             const preview = document.getElementById('preview-box') as HTMLDivElement;
             const { height, width } = getComputedStyle(preview);
-            this.canvas = document.getElementById(CanvasId) as HTMLCanvasElement;
-            this.ctx = this.canvas.getContext('2d');
+            this.setCanvas(document.getElementById(CanvasId) as HTMLCanvasElement);
             if (this.canvas.width < parseInt(width) || this.canvas.height < parseInt(height)) {
               this.canvas.width = parseInt(width);
               this.canvas.height = parseInt(height);
@@ -89,8 +88,7 @@
         } else {
           isInFullScreen.value = false;
           previewStore.player.onPlaying = function () {
-            this.canvas = document.getElementById(CanvasId) as HTMLCanvasElement;
-            this.ctx = this.canvas.getContext('2d');
+            this.setCanvas(document.getElementById(CanvasId) as HTMLCanvasElement);
           };
         }
       };

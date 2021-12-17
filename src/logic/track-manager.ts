@@ -1,17 +1,23 @@
 import { ResourceType } from '@/enums/resource';
-import { TrackMap, TrackItem } from '@/logic/track';
+import { TrackMap, TrackItem, MediaTrack } from '@/logic/track';
 import { durationString2Sec } from '@/utils/player';
+import { MP4Player } from '@/logic/mp4';
+import { CanvasId } from '@/settings/playerSetting';
 
 type DisplayItem = {
-  track: TrackItem;
+  active: boolean;
+  track: MediaTrack;
   startTime: number;
   endTime: number;
+  attachments?: any[];
 };
 
 type DisplayQueue = {
   [ResourceType.Video]: DisplayItem[];
   [ResourceType.Audio]: DisplayItem[];
 };
+
+let player: MP4Player;
 
 export class TrackManager {
   map: TrackMap;
@@ -55,6 +61,7 @@ export class TrackManager {
         const startTime = track.offset + endTime;
         endTime = startTime + durationString2Sec(track.duration);
         const item = {
+          active: false,
           track,
           startTime: startTime * 1000,
           endTime: endTime * 1000,
@@ -131,8 +138,8 @@ export class TrackManager {
   duration() {
     const ends: number[] = [];
     ends.push(this.listEnd(this.map.main));
-    ends.push(this.map.video.reduce((t, list) => t + this.listEnd(list), 0));
-    ends.push(this.map.audio.reduce((t, list) => t + this.listEnd(list), 0));
+    ends.push(this.map.video.reduce((t, list) => Math.max(t, this.listEnd(list)), 0));
+    ends.push(this.map.audio.reduce((t, list) => Math.max(t, this.listEnd(list)), 0));
     return Math.max(...ends);
   }
 
@@ -144,15 +151,23 @@ export class TrackManager {
     this.currentTime = performance.now() - this.lastTime;
     if (this.displayed && this.currentTime < this._duration) {
       if (Math.abs(this.currentTime - this.displayed.endTime) < 17) {
-        this.displayed.track.pauseResume();
+        this.displayed.active = false;
+        player?.stop();
         this.displayed = this.displayQueue.video[++this.displayedIdx];
         if (!this.displayed) {
           this.active = false;
         }
       }
 
-      if (Math.abs(this.currentTime - this.displayed.startTime) < 17) {
-        this.displayed.track.play();
+      if (Math.abs(this.currentTime - this.displayed.startTime) < 17 && !this.displayed.active) {
+        this.displayed.active = true;
+        if (!player) {
+          player = new MP4Player({ id: CanvasId, url: this.displayed.track?.src });
+        } else {
+          const { source } = this.displayed.track.getProps();
+          player.paused = false;
+          player.demux(source);
+        }
       }
     }
 
@@ -175,14 +190,22 @@ export class TrackManager {
 
   pause() {
     this.rAF && cancelAnimationFrame(this.rAF);
-    this.displayed?.track.pauseResume();
+    player?.pauseResume();
     this.paused = true;
   }
 
   resume() {
     this.lastTime += performance.now() - this.lastTime - this.currentTime;
     this.rAF = requestAnimationFrame(() => this._play());
-    this.displayed?.track.pauseResume();
+    player?.pauseResume();
     this.paused = false;
+  }
+
+  export() {
+    console.log('export');
+  }
+
+  updateSize() {
+    player?.updateSize();
   }
 }

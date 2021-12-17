@@ -939,6 +939,11 @@
   resolved "https://registry.nlark.com/@types/stack-utils/download/@types/stack-utils-2.0.1.tgz#20f18294f797f2209b5f65c8e3b5c8e8261d127c"
   integrity sha1-IPGClPeX8iCbX2XI47XI6CYdEnw=
 
+"@types/three@^0.135.0":
+  version "0.135.0"
+  resolved "https://registry.npmmirror.com/@types/three/download/@types/three-0.135.0.tgz#db7f9d9699b60aba844fc5b2893adf6dd6811665"
+  integrity sha512-l7WLhIHjhHMtlpyTSltPPAKLpiMwgMD1hXHj59AVUpYRoZP7Fd9NNOSRSvZBCPLpTHPYojgQvSJCoza9zoL7bg==
+
 "@types/unist@*", "@types/unist@^2.0.0", "@types/unist@^2.0.2":
   version "2.0.6"
   resolved "https://registry.npmmirror.com/@types/unist/download/@types/unist-2.0.6.tgz?cache=0&sync_timestamp=1637270401708&other_urls=https%3A%2F%2Fregistry.npmmirror.com%2F%40types%2Funist%2Fdownload%2F%40types%2Funist-2.0.6.tgz#250a7b16c3b91f672a24552ec64678eeb1d3a08d"
@@ -5912,6 +5917,11 @@ text-table@^0.2.0:
   version "0.2.0"
   resolved "https://registry.nlark.com/text-table/download/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
+
+three@^0.135.0:
+  version "0.135.0"
+  resolved "https://registry.npmmirror.com/three/download/three-0.135.0.tgz#cff4ec8edd3c51ce9bc7e88d13e8eafed4d0ddfc"
+  integrity sha512-kuEpuuxRzLv0MDsXai9huCxOSQPZ4vje6y0gn80SRmQvgz6/+rI0NAvCRAw56zYaWKMGMfqKWsxF9Qa2Z9xymQ==
 
 throat@^6.0.1:
   version "6.0.1"

@@ -14,7 +14,7 @@ const Debug = 0;
 const trackMap = Debug
   ? { video: videoList, main: mainList, audio: audioList }
   : {
-      video: [videoList[6]],
+      video: [videoList[2], videoList[7], videoList[8]],
       main: [mainList[0]],
       audio: [],
     };
@@ -86,6 +86,12 @@ export const useTrackStore = defineStore({
       const { manager, trackMap } = this;
       manager.updateMap(trackMap);
       manager.active ? manager.pauseResume() : manager.play();
+    },
+
+    export() {
+      const { manager, trackMap } = this;
+      manager.updateMap(trackMap);
+      manager.export();
     },
   },
 });

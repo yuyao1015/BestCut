@@ -62,14 +62,14 @@
         let type: keyof TrackMap | undefined;
         if (!isMedia(track.type)) type = 'video';
         else if (track.type === ResourceType.Video && track.marginLeft === 0) type = 'main';
-        else type = 'audio';
         trackStore.updateMap(type === 'main' ? lists[0] : lists, type);
       };
 
       const canDrag = ref(true);
       const mtraks: (MouseCtl | null)[][] = getShapedArrary(lists.value, null);
       const trackListsRef = ref<ComponentPublicInstance | null>(null);
-      const draggedIdxs = ref(NO_SELECT);
+      const di = ref(-1); // dragged i
+      const dj = ref(-1);
       const activeIdxs = ref(NO_SELECT);
       const activeTrak = ref<undefined | TrackItem>(undefined);
       watch(activeIdxs, (idxs: { i: number; j: number }) => {
@@ -83,13 +83,12 @@
       const shadowDx = ref(0);
       const currentList = ref<TrackItem[]>([]);
       const shadowLeft = computed(() => {
-        const { j } = draggedIdxs.value;
-        if (!currentList.value[j]) return shadowDx.value;
+        if (!currentList.value[dj.value]) return shadowDx.value;
 
         const l = currentList.value
-          .slice(0, j)
+          .slice(0, dj.value)
           .reduce((l, trak) => l + trak.width + trak.marginLeft, 0);
-        const ml = currentList.value[j]?.marginLeft || 0;
+        const ml = currentList.value[dj.value]?.marginLeft || 0;
         return Math.max(l + ml + shadowDx.value, 0);
       });
 
@@ -154,7 +153,7 @@
             tid = window.setTimeout(() => {
               newListLine.value.i = i;
               newListLine.value.top = placeTop;
-              draggedIdxs.value.i = -1;
+              di.value = -1;
             }, 500);
           },
         };
@@ -162,7 +161,9 @@
 
       const onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
         e.stopPropagation();
-        activeIdxs.value = draggedIdxs.value = { i, j };
+        activeIdxs.value = { i, j };
+        di.value = i;
+        dj.value = j;
 
         window.addEventListener('keydown', onShortcut);
         window.addEventListener('keyup', offShortcut);
@@ -195,16 +196,16 @@
           if (dx === 0 && dy === 0 && canRequestNewList) {
             newListRequestor.createNewList(idx, top <= 0);
           } else {
-            draggedIdxs.value.i = idx;
+            di.value = idx;
           }
 
           if (newListVisiable) {
             newListLine.value.i = idx;
             newListLine.value.top = top <= 0;
-            draggedIdxs.value.i = -1;
+            di.value = -1;
           } else {
             newListLine.value.i = -1;
-            draggedIdxs.value.i = idx;
+            di.value = idx;
           }
 
           if (isMain.value && idx === i) {
@@ -216,8 +217,8 @@
               dummyList.unshift(_track);
               const { overlap } = searchRowIdx(dummyList, shadowLeft.value + _track.width, 0);
               if (overlap) {
-                draggedIdxs.value.i = i;
-              } else draggedIdxs.value.i = idx;
+                di.value = i;
+              } else di.value = idx;
             }
           }
 
@@ -289,7 +290,7 @@
           this.element.style.zIndex = '';
           shadowDx.value = 0;
           newListLine.value.i = -1;
-          draggedIdxs.value = NO_SELECT;
+          di.value = dj.value = -1;
         };
       };
 
@@ -309,7 +310,7 @@
                 (mtraks[i][j] as MouseCtl).moveCallback = () => {};
                 (mtraks[i][j] as MouseCtl).upCallback = () => {};
                 activeIdxs.value = NO_SELECT;
-                draggedIdxs.value = NO_SELECT;
+                di.value = dj.value = -1;
                 updateMap(track, lists.value);
               }
             }
@@ -334,7 +335,7 @@
         <div
           class={[
             'track-list relative flex w-full my-2',
-            draggedIdxs.value.i === i || (draggedIdxs.value.i === -1 && activeIdxs.value.i === i)
+            di.value === i || (di.value === -1 && activeIdxs.value.i === i)
               ? 'track-list-active'
               : '',
           ]}
@@ -372,7 +373,7 @@
             })
           )}
 
-          {draggedIdxs.value.i === i && activeTrak.value ? (
+          {di.value === i && activeTrak.value ? (
             <div
               class="shadow absolute rounded-sm m-px px-1 bg-gray-300 opacity-10 h-full"
               style={`width: ${Number(activeTrak.value.width)}px;
@@ -415,7 +416,7 @@
         if (enterCnt !== 0) return;
         // console.log('leave');
         activeIdxs.value.i = -1;
-        draggedIdxs.value.i = -1;
+        di.value = -1;
         activeTrak.value = undefined;
 
         if (isMain.value) {
@@ -427,19 +428,19 @@
       };
 
       const onResourceOver = (e: DragEvent) => {
-        const container = (e.currentTarget as HTMLElement).children[2];
+        const container = (e.currentTarget as HTMLElement).children[1];
         const rect = container.getBoundingClientRect();
         const dx = e.pageX - rect.left;
 
         if (props.isMapEmpty) {
-          draggedIdxs.value.i = activeIdxs.value.i = 0;
+          di.value = activeIdxs.value.i = 0;
           return;
         }
 
         if (isMain.value) {
           if (activeTrak.value?.type === ResourceType.Video) {
-            if (dx > 0) draggedIdxs.value.i = 0;
-            else draggedIdxs.value.i = -1;
+            if (dx > 0) di.value = 0;
+            else di.value = -1;
             swapMainTrack(lists.value[0], dx + 20, -1, trackStore.track?.clone());
           }
         } else {
@@ -465,13 +466,13 @@
 
           console.log(dy, _dy, newListVisiable, canRequestNewList);
 
-          draggedIdxs.value.i = idx;
+          di.value = idx;
 
           if (
             lists.value[lists.value.length - 1][0].height < _dy ||
             (props.type === 'video' && dy < mt - mb)
           ) {
-            draggedIdxs.value.i = -1;
+            di.value = -1;
           }
         }
 
@@ -479,7 +480,7 @@
       };
 
       const onResourceDrop = (e: DragEvent) => {
-        const container = (e.currentTarget as HTMLElement).children[2];
+        const container = (e.currentTarget as HTMLElement).children[1];
         const dx = e.pageX - container.getBoundingClientRect().left;
 
         if (props.isMapEmpty && trackStore.track) {
@@ -492,7 +493,7 @@
           updateMainOrder(lists.value[0], dx, -1, trackStore.track?.clone());
         }
 
-        draggedIdxs.value.i = -1;
+        di.value = -1;
 
         enterCnt = 0;
         trackStore.setResourceOverState(false);
@@ -509,8 +510,6 @@
           <div class="track-container-head h-full" style={`flex:0 0 ${trackHeadWidth}px;`}>
             {slots.default ? slots.default() : null}
           </div>
-
-          <div class="hidden">{draggedIdxs.value.i}</div>
 
           <div ref={trackListsRef} class="list w-full h-full flex flex-col justify-center">
             {lists.value.map((tracks, i) => trackList(tracks, i))}

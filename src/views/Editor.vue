@@ -9,7 +9,7 @@
         <div class="right">
           <a-button class="absolute right-36"> </a-button>
 
-          <a-button class="export h-8 px-2" @click="exportMedia">
+          <a-button class="export h-8 px-2" @click="exportWorkspace">
             <ExportOutlined class="text-md" />
             {{ t('components.export') }}
           </a-button>
@@ -50,7 +50,7 @@
 
   import { useI18n } from '@/hooks/useI18n';
 
-  import { usePreviewStore } from '@/store/preview';
+  import { useTrackStore } from '@/store/track';
 
   export default defineComponent({
     name: 'Editor',
@@ -67,15 +67,15 @@
     setup() {
       const { t } = useI18n();
 
-      const previewStore = usePreviewStore();
+      const trackStore = useTrackStore();
 
-      const exportMedia = () => {
-        previewStore.export();
+      const exportWorkspace = () => {
+        trackStore.export();
       };
 
       return {
         t,
-        exportMedia,
+        exportWorkspace,
       };
     },
   });
