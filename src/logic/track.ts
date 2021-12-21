@@ -1,10 +1,20 @@
 import { v4 as uuid } from 'uuid';
 import { FireFilled, FilterOutlined } from '@ant-design/icons-vue';
+import * as THREE from 'three';
 
 import { Base } from './data';
 import { ResourceType } from '@/enums/resource';
 import { deepCopy } from '@/utils';
 import { MP4Source } from './mp4';
+import { Renderer } from './renderer';
+
+const _geometry = new THREE.BufferGeometry();
+_geometry.setAttribute(
+  'position',
+  new THREE.Float32BufferAttribute([-1, 3, 0, -1, -1, 0, 3, -1, 0], 3)
+);
+_geometry.setAttribute('uv', new THREE.Float32BufferAttribute([0, 2, 0, 0, 2, 0], 2));
+const _camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
 type ItemOptional = {
   id: string;
@@ -90,7 +100,11 @@ export class AudioTrack extends MediaTrack {
   }
 }
 
-export class StickerTrack extends TrackItem {
+export class AttachmentTrack extends TrackItem {
+  fn: any = (x: number) => x;
+}
+
+export class StickerTrack extends AttachmentTrack {
   sticker: string;
   constructor(options: Omit<TrackOption, 'type'> & { sticker: string }) {
     super(Object.assign({ type: ResourceType.Sticker, height: 20 }, options));
@@ -98,23 +112,83 @@ export class StickerTrack extends TrackItem {
   }
 }
 
-export class FilterTrack extends TrackItem {
+export class FilterTrack extends AttachmentTrack {
   icon: any;
+  fn = function (this: Renderer, i: number, s: number, e: number, buffer: any) {
+    const GrayShader = {
+      uniforms: {
+        tDiffuse: {
+          value: null,
+        },
+        time: {
+          value: 0.0,
+        },
+      },
+      vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      }`,
+      fragmentShader: `
+      uniform sampler2D tDiffuse;
+      uniform float time;
+      varying vec2 vUv;
+      void main() {
+        vec4 cTextureScreen = texture2D( tDiffuse, vUv );
+        vec3 cResult = vec3( cTextureScreen.r * 0.3 + cTextureScreen.g * 0.59 + cTextureScreen.b * 0.11 );
+        gl_FragColor =  vec4( cResult, cTextureScreen.a );
+      }`,
+    };
+    const material = new THREE.ShaderMaterial({
+      uniforms: GrayShader.uniforms,
+      vertexShader: GrayShader.vertexShader,
+      fragmentShader: GrayShader.fragmentShader,
+    });
+    GrayShader.uniforms.tDiffuse.value = buffer.texture;
+    GrayShader.uniforms.time.value = i / e;
+
+    const mesh = new THREE.Mesh(_geometry, material);
+    this.render(mesh, _camera);
+  };
+
   constructor(options: Omit<TrackOption, 'type'> & { icon?: any }) {
     super(Object.assign({ type: ResourceType.Filter, height: 20 }, options));
     this.icon = options.icon || FilterOutlined;
   }
 }
 
-export class EffectTrack extends TrackItem {
+export class EffectTrack extends AttachmentTrack {
   icon: any;
+
+  fn = function (this: Renderer, i: number, s: number, e: number) {
+    let { frustum } = this;
+
+    const fn = (x: number) => (i === e ? x : x * (1 - (i - s) / (e - s + 1)));
+
+    frustum = fn(frustum);
+    this.camera = new THREE.OrthographicCamera(-frustum, frustum, frustum, -frustum, 0, 1);
+  };
+
   constructor(options: Omit<TrackOption, 'type'> & { icon?: any }) {
     super(Object.assign({ type: ResourceType.Effect, height: 20 }, options));
     this.icon = options.icon || FireFilled;
   }
 }
 
-export class TextTrack extends TrackItem {
+export class TextTrack extends AttachmentTrack {
+  x = 0.5;
+  y = 0.5;
+  size = 30;
+  fontFamily = 'SimSun';
+  // weight = 'normal';
+  // height = 18;
+  // bevelThickness = 2;
+  // bevelSize = 0.5;
+  // bevelEnabled = true;
+  // bevelSegments = 3;
+  // curveSegments = 12;
+  // steps = 1;
   constructor(options: Omit<TrackOption, 'type'>) {
     super(Object.assign({ type: ResourceType.Text, height: 20 }, options));
   }

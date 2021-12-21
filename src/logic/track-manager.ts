@@ -1,15 +1,21 @@
 import { ResourceType } from '@/enums/resource';
-import { TrackMap, TrackItem, MediaTrack } from '@/logic/track';
+import { TrackMap, TrackItem, AttachmentTrack, MediaTrack, isMedia } from '@/logic/track';
 import { durationString2Sec } from '@/utils/player';
 import { MP4Player } from '@/logic/mp4';
 import { CanvasId } from '@/settings/playerSetting';
 
-type DisplayItem = {
+export type Attachment = {
+  track: AttachmentTrack;
+  startFrame: number;
+  endFrame: number;
+};
+
+export type DisplayItem = {
   active: boolean;
-  track: MediaTrack;
+  track?: MediaTrack;
   startTime: number;
   endTime: number;
-  attachments?: any[];
+  attachments?: Attachment[];
 };
 
 type DisplayQueue = {
@@ -33,6 +39,7 @@ export class TrackManager {
 
   constructor(map?: TrackMap) {
     this.map = map || { video: [], main: [], audio: [] };
+    this.updateQueue();
   }
 
   updateMap(map: TrackMap) {
@@ -43,32 +50,44 @@ export class TrackManager {
   // media track overlap on timeline, upper layer display first
   updateQueue() {
     const idx = this.map.video.findIndex((list) => list[0].type === ResourceType.Video);
-    const { audio } = this.map;
+    // const { audio } = this.map;
     const attachment = this.map.video.slice(0, idx);
     const video = this.map.video.slice(idx).concat([this.map.main]);
 
     this.flatten(video);
+    this.flatten(attachment);
     // this.flatten(audio);
-    // this.flatten(attachment);
   }
 
-  flatten(lists: TrackItem[][]) {
-    const type = lists[0][0].type as keyof DisplayQueue;
+  flatten(lists: (MediaTrack | AttachmentTrack)[][]) {
+    let type: keyof DisplayQueue;
+    if (!isMedia(lists[0][0].type)) type = ResourceType.Video;
+    else type = lists[0][0].type as keyof DisplayQueue;
+
     const que = this.displayQueue[type];
 
     lists.forEach((list, i) => {
-      list.reduce((endTime, track) => {
-        const startTime = track.offset + endTime;
-        endTime = startTime + durationString2Sec(track.duration);
-        const item = {
-          active: false,
-          track,
-          startTime: startTime * 1000,
-          endTime: endTime * 1000,
-        };
+      list.reduce((endTime, track, j) => {
+        let startTime;
+        if (track.type === ResourceType.Video && this.map.main.length && i === lists.length - 1) {
+          startTime = durationString2Sec(list[j - 1]?.duration);
+        } else {
+          startTime = track.offset + endTime;
+        }
 
-        // first row has always been displayed
-        if (i === 0) que.push(item);
+        endTime = startTime + durationString2Sec(track.duration);
+        const item = Object.assign(
+          {
+            active: false,
+            startTime,
+            endTime,
+            track,
+          },
+          isMedia(track.type) ? { attachments: [] } : {}
+        );
+
+        // first video row has always been displayed
+        if (i === 0 && track.type === ResourceType.Video) que.push(item);
         else this.enque(que, item);
         return endTime;
       }, 0);
@@ -76,64 +95,96 @@ export class TrackManager {
   }
 
   enque(que: DisplayItem[], item: DisplayItem) {
-    const n = que.length;
+    if (item.track?.type === ResourceType.Video) {
+      this._venque(que, item);
+    } else if (item.track?.type === ResourceType.Audio) {
+      this._aenque(que, item);
+    } else {
+      this._enque(que, item);
+    }
+  }
+
+  _enque(que: DisplayItem[], item: DisplayItem) {
+    const track = item.track as AttachmentTrack;
+    if (!track) return;
+
+    const fps = player?.fps || 30;
+    const n = que.length - 1;
     let l = 0,
       r = n;
-    while (l < r) {
+    while (l <= r) {
       const mid = l + Math.floor((r - l) / 2);
       const target = que[mid];
+      const itemLeft = Object.assign({}, item, { endTime: target.startTime });
+      const itemRight = Object.assign({}, item, { startTime: target.endTime });
+
       if (target.endTime <= item.startTime) l = mid < r ? mid + 1 : r;
       else if (target.startTime >= item.endTime) r = mid > l ? mid - 1 : l;
-      else if (target.startTime <= item.startTime && target.endTime >= item.endTime) return;
-      else if (target.endTime >= item.endTime) {
-        const prev = que[mid - 1];
-        if (!prev) {
-          item.endTime = target.startTime;
-          que.splice(mid, 0, item);
-          return;
-        }
-        // overlap
-        if (prev.endTime >= target.startTime) {
-          if (prev.startTime <= item.startTime) return;
-          item.endTime = prev.startTime;
-          que.splice(mid, 0, item);
-        } else {
-          item.endTime = target.startTime;
-          if (prev.startTime <= item.startTime) {
-            que.splice(mid, 0, item);
-            return;
-          }
-          item.startTime = prev.endTime;
-          que.splice(mid, 0, item);
-        }
+      // fully covered
+      else if (target.startTime <= item.startTime && target.endTime >= item.endTime) {
+        target.attachments?.push({
+          track,
+          startFrame: (item.startTime - target.startTime) * fps,
+          endFrame: (item.endTime - target.startTime) * fps,
+        });
         return;
-      } else {
-        const next = que[mid + 1];
-        if (!next) {
-          item.startTime = target.endTime;
-          que.splice(mid + 1, 0, item);
-          return;
-        }
-
-        if (next.startTime <= target.endTime) {
-          if (next.endTime >= item.endTime) return;
-          item.startTime = next.endTime;
-          que.splice(mid + 1, 0, item);
-        } else {
-          item.startTime = target.endTime;
-          if (next.endTime >= item.endTime) {
-            que.splice(mid + 1, 0, item);
-            return;
-          }
-          item.endTime = next.startTime;
-          que.splice(mid + 1, 0, item);
-        }
+      }
+      // bilateral slice
+      else if (item.startTime < target.startTime && item.endTime > target.endTime) {
+        this._enque(que, itemLeft);
+        this._enque(que, itemRight);
+        return;
+      }
+      // left slice
+      else if (target.endTime > item.endTime) {
+        this._enque(que, itemLeft);
+        return;
+        // right slice
+      } else if (target.startTime < item.startTime) {
+        this._enque(que, itemRight);
         return;
       }
     }
-    if (l === 0 && r === 0) que.unshift(item);
-    if (l === n && r === n) que.push(item);
+    item.attachments = [{ track, startFrame: item.startTime * fps, endFrame: item.endTime * fps }];
+    item.track = undefined;
+    que.splice(l, 0, item);
   }
+
+  _venque(que: DisplayItem[], item: DisplayItem) {
+    const n = que.length;
+    let l = 0,
+      r = n;
+
+    while (l <= r) {
+      const mid = l + Math.floor((r - l) / 2);
+      const target = que[mid];
+      const itemLeft = Object.assign({}, item, { endTime: target.startTime });
+      const itemRight = Object.assign({}, item, { startTime: target.endTime });
+
+      if (target.endTime <= item.startTime) l = mid + 1;
+      else if (target.startTime >= item.endTime) r = mid - 1;
+      // fully covered
+      else if (target.startTime <= item.startTime && target.endTime >= item.endTime) return;
+      // bilateral slice
+      else if (item.startTime < target.startTime && item.endTime > target.endTime) {
+        this._venque(que, itemLeft);
+        this._venque(que, itemRight);
+        return;
+      }
+      // left slice
+      else if (target.endTime > item.endTime) {
+        this._venque(que, itemLeft);
+        return;
+        // right slice
+      } else if (target.startTime < item.startTime) {
+        this._venque(que, itemRight);
+        return;
+      }
+    }
+    que.splice(l, 0, item);
+  }
+
+  _aenque(que: DisplayItem[], item: DisplayItem) {}
 
   duration() {
     const ends: number[] = [];
@@ -153,9 +204,13 @@ export class TrackManager {
       if (Math.abs(this.currentTime - this.displayed.endTime) < 17) {
         this.displayed.active = false;
         player?.stop();
+        player.attachments = [];
         this.displayed = this.displayQueue.video[++this.displayedIdx];
         if (!this.displayed) {
           this.active = false;
+        } else {
+          this.displayed.startTime *= 1000;
+          this.displayed.endTime *= 1000;
         }
       }
 
@@ -163,9 +218,11 @@ export class TrackManager {
         this.displayed.active = true;
         if (!player) {
           player = new MP4Player({ id: CanvasId, url: this.displayed.track?.src });
+          player.attachments = this.displayed.attachments || [];
         } else {
-          const { source } = this.displayed.track.getProps();
+          const { source } = this.displayed.track?.getProps();
           player.paused = false;
+          player.attachments = this.displayed.attachments || [];
           player.demux(source);
         }
       }
@@ -179,6 +236,8 @@ export class TrackManager {
     this.paused = false;
     this._duration = this.duration() * 1000;
     this.displayed = this.displayQueue.video[this.displayedIdx];
+    this.displayed.startTime *= 1000;
+    this.displayed.endTime *= 1000;
     this.lastTime = performance.now();
     this._play();
   }

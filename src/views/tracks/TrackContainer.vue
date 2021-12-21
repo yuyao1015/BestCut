@@ -25,8 +25,6 @@
   import { ResourceType } from '@/enums/resource';
   // import { getStyle } from '@/utils/dom';
 
-  const NO_SELECT = { i: -1, j: -1 };
-
   export default defineComponent({
     name: 'TrackContainer',
     directives: {
@@ -68,9 +66,8 @@
       const canDrag = ref(true);
       const mtraks: (MouseCtl | null)[][] = getShapedArrary(lists.value, null);
       const trackListsRef = ref<ComponentPublicInstance | null>(null);
-      const di = ref(-1); // dragged i
-      const dj = ref(-1);
-      const activeIdxs = ref(NO_SELECT);
+      const draggedIdxs = ref({ i: -1, j: -1 });
+      const activeIdxs = ref({ i: -1, j: -1 });
       const activeTrak = ref<undefined | TrackItem>(undefined);
       watch(activeIdxs, (idxs: { i: number; j: number }) => {
         const { i, j } = idxs;
@@ -83,12 +80,13 @@
       const shadowDx = ref(0);
       const currentList = ref<TrackItem[]>([]);
       const shadowLeft = computed(() => {
-        if (!currentList.value[dj.value]) return shadowDx.value;
+        const { j } = draggedIdxs.value;
+        if (!currentList.value[j]) return shadowDx.value;
 
         const l = currentList.value
-          .slice(0, dj.value)
+          .slice(0, j)
           .reduce((l, trak) => l + trak.width + trak.marginLeft, 0);
-        const ml = currentList.value[dj.value]?.marginLeft || 0;
+        const ml = currentList.value[j]?.marginLeft || 0;
         return Math.max(l + ml + shadowDx.value, 0);
       });
 
@@ -153,7 +151,7 @@
             tid = window.setTimeout(() => {
               newListLine.value.i = i;
               newListLine.value.top = placeTop;
-              di.value = -1;
+              draggedIdxs.value.i = -1;
             }, 500);
           },
         };
@@ -161,9 +159,7 @@
 
       const onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
         e.stopPropagation();
-        activeIdxs.value = { i, j };
-        di.value = i;
-        dj.value = j;
+        activeIdxs.value = draggedIdxs.value = { i, j };
 
         window.addEventListener('keydown', onShortcut);
         window.addEventListener('keyup', offShortcut);
@@ -196,16 +192,16 @@
           if (dx === 0 && dy === 0 && canRequestNewList) {
             newListRequestor.createNewList(idx, top <= 0);
           } else {
-            di.value = idx;
+            draggedIdxs.value.i = idx;
           }
 
           if (newListVisiable) {
             newListLine.value.i = idx;
             newListLine.value.top = top <= 0;
-            di.value = -1;
+            draggedIdxs.value.i = -1;
           } else {
             newListLine.value.i = -1;
-            di.value = idx;
+            draggedIdxs.value.i = idx;
           }
 
           if (isMain.value && idx === i) {
@@ -217,8 +213,8 @@
               dummyList.unshift(_track);
               const { overlap } = searchRowIdx(dummyList, shadowLeft.value + _track.width, 0);
               if (overlap) {
-                di.value = i;
-              } else di.value = idx;
+                draggedIdxs.value.i = i;
+              } else draggedIdxs.value.i = idx;
             }
           }
 
@@ -290,7 +286,7 @@
           this.element.style.zIndex = '';
           shadowDx.value = 0;
           newListLine.value.i = -1;
-          di.value = dj.value = -1;
+          draggedIdxs.value = { i: -1, j: -1 };
         };
       };
 
@@ -309,8 +305,8 @@
                 deleteTrack(lists.value, i, j, isMain.value);
                 (mtraks[i][j] as MouseCtl).moveCallback = () => {};
                 (mtraks[i][j] as MouseCtl).upCallback = () => {};
-                activeIdxs.value = NO_SELECT;
-                di.value = dj.value = -1;
+                activeIdxs.value = { i: -1, j: -1 };
+                draggedIdxs.value = { i: -1, j: -1 };
                 updateMap(track, lists.value);
               }
             }
@@ -325,7 +321,7 @@
       const onClickOutside = (track: TrackItem) => {
         if (track.active) {
           track.active = false;
-          activeIdxs.value = NO_SELECT;
+          activeIdxs.value = { i: -1, j: -1 };
           window.removeEventListener('keydown', onShortcut);
           window.removeEventListener('keyup', offShortcut);
         }
@@ -335,7 +331,7 @@
         <div
           class={[
             'track-list relative flex w-full my-2',
-            di.value === i || (di.value === -1 && activeIdxs.value.i === i)
+            draggedIdxs.value.i === i || (draggedIdxs.value.i === -1 && activeIdxs.value.i === i)
               ? 'track-list-active'
               : '',
           ]}
@@ -373,7 +369,7 @@
             })
           )}
 
-          {di.value === i && activeTrak.value ? (
+          {draggedIdxs.value.i === i && activeTrak.value ? (
             <div
               class="shadow absolute rounded-sm m-px px-1 bg-gray-300 opacity-10 h-full"
               style={`width: ${Number(activeTrak.value.width)}px;
@@ -416,7 +412,7 @@
         if (enterCnt !== 0) return;
         // console.log('leave');
         activeIdxs.value.i = -1;
-        di.value = -1;
+        draggedIdxs.value.i = -1;
         activeTrak.value = undefined;
 
         if (isMain.value) {
@@ -433,14 +429,14 @@
         const dx = e.pageX - rect.left;
 
         if (props.isMapEmpty) {
-          di.value = activeIdxs.value.i = 0;
+          draggedIdxs.value.i = activeIdxs.value.i = 0;
           return;
         }
 
         if (isMain.value) {
           if (activeTrak.value?.type === ResourceType.Video) {
-            if (dx > 0) di.value = 0;
-            else di.value = -1;
+            if (dx > 0) draggedIdxs.value.i = 0;
+            else draggedIdxs.value.i = -1;
             swapMainTrack(lists.value[0], dx + 20, -1, trackStore.track?.clone());
           }
         } else {
@@ -466,13 +462,13 @@
 
           console.log(dy, _dy, newListVisiable, canRequestNewList);
 
-          di.value = idx;
+          draggedIdxs.value.i = idx;
 
           if (
             lists.value[lists.value.length - 1][0].height < _dy ||
             (props.type === 'video' && dy < mt - mb)
           ) {
-            di.value = -1;
+            draggedIdxs.value.i = -1;
           }
         }
 
@@ -493,7 +489,7 @@
           updateMainOrder(lists.value[0], dx, -1, trackStore.track?.clone());
         }
 
-        di.value = -1;
+        draggedIdxs.value.i = -1;
 
         enterCnt = 0;
         trackStore.setResourceOverState(false);

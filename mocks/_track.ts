@@ -8,16 +8,16 @@ import {
 } from '@/logic/track';
 
 export const videoList = [
-  [new FilterTrack({ name: '原生', duration: '03:00', offset: 150 })],
+  [new FilterTrack({ name: '灰度', duration: '00:04', offset: 1 })],
   [
     new TextTrack({ name: '默认文本1', duration: '02:00', offset: 300 }),
     new TextTrack({ name: '默认文本2', duration: '03:00', offset: 150 }),
     new TextTrack({ name: '默认文本3', duration: '04:00', offset: 400 }),
     new TextTrack({ name: '默认文本4', duration: '01:30', offset: 100 }),
   ],
-  [new TextTrack({ name: '默认文本5', duration: '00:03' })],
+  [new TextTrack({ name: '默认文本5', duration: '00:05', offset: 1 })],
 
-  [new EffectTrack({ name: '渐渐放大', duration: '03:00', offset: 450 })],
+  [new EffectTrack({ name: '渐渐放大', duration: '00:03', offset: 1 })],
   [new EffectTrack({ name: '渐渐放大', duration: '03:00', offset: 450 })],
   [new StickerTrack({ duration: '03:00', sticker: '123', offset: 150 })],
 

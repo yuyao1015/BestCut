@@ -83,7 +83,7 @@
       return () => (
         <div
           class={[
-            'track-item rounded-sm overflow-hidden text-xs mr-px relative px-1',
+            'track-item rounded-sm overflow-hidden text-xs mr-px relative',
             `track-item-${track.value.type}`,
             track.value.active ? 'border-white border' : '',
           ]}

@@ -1,3 +1,6 @@
+import type { Attachment } from './../track-manager';
+import type { TextTrack } from './../track';
+
 import type { MP4PlayerOption } from '#/player';
 import type { DowndloadCallback } from './downloader';
 
@@ -8,6 +11,7 @@ import { Downloader } from './downloader';
 import { isString } from '@/utils/is';
 
 import { Renderer } from '../renderer';
+import { ResourceType } from '@/enums/resource';
 
 export class MP4Source {
   file: any;
@@ -109,6 +113,8 @@ export class MP4Player {
   canPaint = true;
   active = false; // whether video normally decoded
   rAF: number | null = null;
+
+  attachments: Attachment[] = [];
 
   // config
   ratio = 0;
@@ -219,7 +225,14 @@ export class MP4Player {
 
       if (this.canPaint) {
         _ctx?.drawImage(frame, 0, 0, this.canvas.width, this.canvas.height);
-        this.renderer?.draw(_canvas);
+
+        for (const { track, startFrame, endFrame } of this.attachments) {
+          if (track.type !== ResourceType.Text || frameCount < startFrame || frameCount > endFrame)
+            continue;
+          this.drawBottomText(track as TextTrack);
+        }
+
+        this.renderer?.draw(_canvas, this.attachments, frameCount);
       }
 
       frame.close();
@@ -248,6 +261,16 @@ export class MP4Player {
       }
       div.innerHTML = fpsAvg;
     };
+  }
+
+  drawBottomText(track: TextTrack) {
+    const { name, x, y, size, fontFamily } = track;
+    _ctx!.font = `${size}px ${fontFamily}`;
+    _ctx!.fillStyle = '#fff';
+    _ctx!.textAlign = 'center';
+    _ctx!.textBaseline = 'middle';
+    _ctx!.fillText(name, this.canvas.width * x, this.canvas.height * y);
+    _ctx?.stroke();
   }
 
   jumpTo(idx: number) {
