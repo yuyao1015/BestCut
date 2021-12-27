@@ -2953,6 +2953,11 @@ get-symbol-description@^1.0.0:
     call-bind "^1.0.2"
     get-intrinsic "^1.1.1"
 
+gl-transitions@^1.43.0:
+  version "1.43.0"
+  resolved "https://registry.nlark.com/gl-transitions/download/gl-transitions-1.43.0.tgz#790ce78f6713c75caba2b354764d7497971edcfd"
+  integrity sha1-eQznj2cTx1yrorNUdk10l5ce3P0=
+
 glob-parent@^5.1.2, glob-parent@~5.1.2:
   version "5.1.2"
   resolved "https://registry.npmmirror.com/glob-parent/download/glob-parent-5.1.2.tgz#869832c58034fe68a4093c17dc15e8340d8401c4"

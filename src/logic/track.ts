@@ -1,6 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import { FireFilled, FilterOutlined } from '@ant-design/icons-vue';
 import * as THREE from 'three';
+import GLTransitions from 'gl-transitions';
 
 import { Base } from './data';
 import { ResourceType } from '@/enums/resource';
@@ -140,13 +141,13 @@ export class FilterTrack extends AttachmentTrack {
         gl_FragColor =  vec4( cResult, cTextureScreen.a );
       }`,
     };
+    GrayShader.uniforms.tDiffuse.value = buffer.texture;
+    GrayShader.uniforms.time.value = i / e;
     const material = new THREE.ShaderMaterial({
       uniforms: GrayShader.uniforms,
       vertexShader: GrayShader.vertexShader,
       fragmentShader: GrayShader.fragmentShader,
     });
-    GrayShader.uniforms.tDiffuse.value = buffer.texture;
-    GrayShader.uniforms.time.value = i / e;
 
     const mesh = new THREE.Mesh(_geometry, material);
     this.render(mesh, _camera);
@@ -191,6 +192,66 @@ export class TextTrack extends AttachmentTrack {
   // steps = 1;
   constructor(options: Omit<TrackOption, 'type'>) {
     super(Object.assign({ type: ResourceType.Text, height: 20 }, options));
+  }
+}
+
+export class TransitionTrack extends AttachmentTrack {
+  fn = function (this: Renderer, i: number, s: number, e: number, buffer: any) {
+    const transition = GLTransitions[10];
+    const { glsl, name } = transition;
+
+    const TransitionShader = {
+      uniforms: {
+        from: {
+          value: null,
+        },
+        to: {
+          value: null,
+        },
+        progress: {
+          value: 0.0,
+        },
+        ratio: {
+          value: buffer.width / buffer.height,
+        },
+      },
+      vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      }`,
+      fragmentShader: `
+      precision highp float;
+      varying vec2 vUv;
+      uniform float progress, ratio;
+      uniform sampler2D from, to;
+      vec4 getFromColor(vec2 vUv){
+        return texture2D(from, vUv);
+      }
+      vec4 getToColor(vec2 vUv){
+        return texture2D(to, vUv);
+      }
+      ${glsl}
+      void main(){
+        gl_FragColor=transition(vUv);
+      }`,
+    };
+    TransitionShader.uniforms.from.value = buffer.texture;
+    // TODO: frame from next video
+    TransitionShader.uniforms.to.value = buffer.texture;
+    TransitionShader.uniforms.progress.value = (i - s) / e;
+    const material = new THREE.ShaderMaterial({
+      uniforms: TransitionShader.uniforms,
+      vertexShader: TransitionShader.vertexShader,
+      fragmentShader: TransitionShader.fragmentShader,
+    });
+
+    const mesh = new THREE.Mesh(_geometry, material);
+    this.render(mesh, _camera);
+  };
+  constructor(options: Omit<TrackOption, 'type'>) {
+    super(Object.assign({ type: ResourceType.Transition, height: 20 }, options));
   }
 }
 

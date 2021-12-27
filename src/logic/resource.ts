@@ -35,6 +35,7 @@ const TrackCtorMap = {
   [ResourceType.Text]: Track.TextTrack,
   [ResourceType.Effect]: Track.EffectTrack,
   [ResourceType.Filter]: Track.FilterTrack,
+  [ResourceType.Transition]: Track.TransitionTrack,
 };
 export class ResourceItem extends Base {
   src: string;

@@ -1,5 +1,3 @@
-import { any } from 'vue-types';
-
 export {};
 declare global {
   interface ViteEnv {

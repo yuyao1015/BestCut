@@ -12,14 +12,12 @@
   import SectionBox from '@/layouts/SectionBox.vue';
 
   import { useI18n } from '@/hooks/useI18n';
-  import { ClickOutside } from '@/directives';
 
   export default defineComponent({
     name: 'ConfigPanel',
     components: {
       SectionBox,
     },
-    directives: { ClickOutside },
     props: {
       prop: {
         type: String,

@@ -6,6 +6,7 @@ export enum ResourceType {
   Text = 'text',
   Effect = 'effect',
   Filter = 'filter',
+  Transition = 'transition',
 }
 
 export enum ResourceLoc {

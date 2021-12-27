@@ -6,3 +6,19 @@ declare module '*.vue' {
   const component: DefineComponent<{}, {}, any>;
   export default component;
 }
+
+declare module 'gl-transitions' {
+  type GLTransition = {
+    author: string;
+    createdAt: string;
+    defaultParams: { shadow_colour?: number[]; shadow_height?: number; bounces?: number };
+    glsl: string;
+    license: string;
+    name: string;
+    paramsTypes: { shadow_colour?: string; shadow_height?: string; bounces?: number };
+    updatedAt: string;
+  };
+
+  const GLTransitions: GLTransition[];
+  export default GLTransitions;
+}

@@ -78,6 +78,7 @@
         [ResourceType.Text]: attachment,
         [ResourceType.Effect]: attachment,
         [ResourceType.Filter]: attachment,
+        [ResourceType.Transition]: attachment,
       };
 
       return () => (
