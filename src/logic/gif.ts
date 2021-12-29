@@ -1,4 +1,4 @@
-import { ParsedFrame, ParsedGif } from 'gifuct-js';
+import { ParsedFrame } from 'gifuct-js';
 
 // gif patch canvas
 const tempCanvas = document.createElement('canvas');

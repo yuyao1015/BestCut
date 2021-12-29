@@ -286,12 +286,12 @@ export class MP4Player {
     s: number,
     e: number
   ) {
-    const { x, y, r } = track;
+    const { x, y, scale } = track;
     const { frames } = track;
     if (frames.length) {
       const i = (idx - s) % frames.length;
       const c = track.getImageData(_canvas, i);
-      const w = this.canvas.width * r;
+      const w = this.canvas.width * 0.5 * scale;
       const h = (w * c.height) / c.width;
       ctx.drawImage(c, this.canvas.width * x - w / 2, this.canvas.height * y - h / 2, w, h);
     }
