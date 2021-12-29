@@ -61,7 +61,7 @@
           {track instanceof FilterTrack || track instanceof EffectTrack
             ? h(track.icon, { class: 'track-item-title' })
             : null}
-          {track instanceof StickerTrack ? (
+          {track instanceof StickerTrack && track.parse() ? (
             <img class="track-item-title" src={track.sticker} />
           ) : null}
           {track.type !== ResourceType.Sticker ? (

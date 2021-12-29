@@ -71,7 +71,12 @@ export class Renderer {
     let attached = false;
     for (const attachment of attachments) {
       const { startFrame, endFrame, track } = attachment;
-      if (track.type === ResourceType.Text || idx < startFrame || idx > endFrame) continue;
+      if (
+        [ResourceType.Sticker, ResourceType.Text].includes(track.type) ||
+        idx < startFrame ||
+        idx > endFrame
+      )
+        continue;
       attached = true;
 
       this._renderer.setRenderTarget(this.buffer);
@@ -92,4 +97,3 @@ export class Renderer {
     this._renderer.clear();
   }
 }
-THREE.Clock;

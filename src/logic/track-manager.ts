@@ -6,6 +6,7 @@ import { CanvasId } from '@/settings/playerSetting';
 
 export type Attachment = {
   track: AttachmentTrack;
+  // offset: number; // TODO: for segmented attachment
   startFrame: number;
   endFrame: number;
 };

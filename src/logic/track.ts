@@ -2,20 +2,15 @@ import { v4 as uuid } from 'uuid';
 import { FireFilled, FilterOutlined } from '@ant-design/icons-vue';
 import * as THREE from 'three';
 import GLTransitions from 'gl-transitions';
+import { parseGIF, decompressFrames, ParsedFrame, ParsedGif } from 'gifuct-js';
+import axios from 'axios';
 
 import { Base } from './data';
 import { ResourceType } from '@/enums/resource';
 import { deepCopy } from '@/utils';
 import { MP4Source } from './mp4';
 import { Renderer } from './renderer';
-
-const _geometry = new THREE.BufferGeometry();
-_geometry.setAttribute(
-  'position',
-  new THREE.Float32BufferAttribute([-1, 3, 0, -1, -1, 0, 3, -1, 0], 3)
-);
-_geometry.setAttribute('uv', new THREE.Float32BufferAttribute([0, 2, 0, 0, 2, 0], 2));
-const _camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+import GifUtil from './gif';
 
 type ItemOptional = {
   id: string;
@@ -35,6 +30,14 @@ type ItemRequired = {
 };
 
 export type TrackOption = Partial<ItemOptional> & ItemRequired;
+
+const _geometry = new THREE.BufferGeometry();
+_geometry.setAttribute(
+  'position',
+  new THREE.Float32BufferAttribute([-1, 3, 0, -1, -1, 0, 3, -1, 0], 3)
+);
+_geometry.setAttribute('uv', new THREE.Float32BufferAttribute([0, 2, 0, 0, 2, 0], 2));
+const _camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
 export class TrackItem extends Base {
   type: ResourceType;
@@ -106,10 +109,47 @@ export class AttachmentTrack extends TrackItem {
 }
 
 export class StickerTrack extends AttachmentTrack {
+  src: string;
   sticker: string;
-  constructor(options: Omit<TrackOption, 'type'> & { sticker: string }) {
+  x = 0.5;
+  y = 0.5;
+  scale = 1;
+  rotate = 0;
+  frames: ParsedFrame[] = [];
+  gif?: ParsedGif;
+
+  frameImageData?: ImageData;
+  constructor(options: Omit<TrackOption, 'type'> & { src: string; sticker: string }) {
     super(Object.assign({ type: ResourceType.Sticker, height: 20 }, options));
+    this.src = options.src;
     this.sticker = options.sticker;
+  }
+
+  parse() {
+    if (!this.frames.length || !this.gif) {
+      axios.get(this.src, { responseType: 'arraybuffer' }).then((res) => {
+        this.gif = parseGIF(res.data);
+        this.frames = decompressFrames(this.gif, true);
+      });
+    }
+    return true;
+  }
+
+  getProps() {
+    const { gif, frames, x, y, scale, rotate } = this;
+    if (!frames.length || !gif) this.parse();
+    return { gif, frames, x, y, scale, rotate };
+  }
+
+  getImageData(canvas: HTMLCanvasElement, idx: number) {
+    const { frames } = this.getProps();
+
+    if (frames[idx].disposalType === 2) {
+      GifUtil.clearRect(canvas.width, canvas.height);
+    }
+    GifUtil.setSize(frames[0]);
+
+    return GifUtil.drawPatch(frames[idx]);
   }
 }
 
@@ -197,8 +237,9 @@ export class TextTrack extends AttachmentTrack {
 
 export class TransitionTrack extends AttachmentTrack {
   fn = function (this: Renderer, i: number, s: number, e: number, buffer: any) {
-    const transition = GLTransitions[10];
+    const transition = GLTransitions[33];
     const { glsl, name } = transition;
+    // console.log(GLTransitions);
 
     const TransitionShader = {
       uniforms: {

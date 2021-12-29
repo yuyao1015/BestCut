@@ -1,5 +1,5 @@
 import type { Attachment } from './../track-manager';
-import type { TextTrack } from './../track';
+import type { TextTrack, StickerTrack } from './../track';
 
 import type { MP4PlayerOption } from '#/player';
 import type { DowndloadCallback } from './downloader';
@@ -227,9 +227,16 @@ export class MP4Player {
         _ctx?.drawImage(frame, 0, 0, this.canvas.width, this.canvas.height);
 
         for (const { track, startFrame, endFrame } of this.attachments) {
-          if (track.type !== ResourceType.Text || frameCount < startFrame || frameCount > endFrame)
+          if (
+            !_ctx ||
+            ![ResourceType.Sticker, ResourceType.Text].includes(track.type) ||
+            frameCount < startFrame ||
+            frameCount > endFrame
+          )
             continue;
-          this.drawBottomText(track as TextTrack);
+          if (track.type === ResourceType.Text) this.drawText(_ctx, track as TextTrack);
+          if (track.type === ResourceType.Sticker)
+            this.drawSticker(_ctx, track as StickerTrack, frameCount, startFrame, endFrame);
         }
 
         this.renderer?.draw(_canvas, this.attachments, frameCount);
@@ -263,14 +270,31 @@ export class MP4Player {
     };
   }
 
-  drawBottomText(track: TextTrack) {
+  drawText(ctx: CanvasRenderingContext2D, track: TextTrack) {
     const { name, x, y, size, fontFamily } = track;
-    _ctx!.font = `${size}px ${fontFamily}`;
-    _ctx!.fillStyle = '#fff';
-    _ctx!.textAlign = 'center';
-    _ctx!.textBaseline = 'middle';
-    _ctx!.fillText(name, this.canvas.width * x, this.canvas.height * y);
-    _ctx?.stroke();
+    ctx!.font = `${size}px ${fontFamily}`;
+    ctx!.fillStyle = '#fff';
+    ctx!.textAlign = 'center';
+    ctx!.textBaseline = 'middle';
+    ctx!.fillText(name, this.canvas.width * x, this.canvas.height * y);
+    ctx?.stroke();
+  }
+  drawSticker(
+    ctx: CanvasRenderingContext2D,
+    track: StickerTrack,
+    idx: number,
+    s: number,
+    e: number
+  ) {
+    const { x, y, r } = track;
+    const { frames } = track;
+    if (frames.length) {
+      const i = (idx - s) % frames.length;
+      const c = track.getImageData(_canvas, i);
+      const w = this.canvas.width * r;
+      const h = (w * c.height) / c.width;
+      ctx.drawImage(c, this.canvas.width * x - w / 2, this.canvas.height * y - h / 2, w, h);
+    }
   }
 
   jumpTo(idx: number) {
