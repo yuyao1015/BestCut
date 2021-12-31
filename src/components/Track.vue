@@ -11,6 +11,8 @@
 
   import { defineComponent, PropType, h, computed } from 'vue';
 
+  import { RetweetOutlined } from '@ant-design/icons-vue';
+
   export default defineComponent({
     name: 'Track',
     props: {
@@ -32,7 +34,7 @@
       };
 
       const video = (track: VideoTrack) => (
-        <div class="video-track h-full w-full">
+        <div class="video-track h-full w-full relative">
           <div class="track-item-head">
             {(props.isMute ? ['已静音', ...getTrackHead(track)] : getTrackHead(track)).map(
               (title) => (
@@ -42,6 +44,10 @@
           </div>
           <div class="h-10">cover</div>
           <div class="h-5">foot wave</div>
+
+          {track.transition ? (
+            <div class="absolute h-full right-0 top-0">{transition()}</div>
+          ) : null}
         </div>
       );
 
@@ -61,12 +67,25 @@
           {track instanceof FilterTrack || track instanceof EffectTrack
             ? h(track.icon, { class: 'track-item-title' })
             : null}
-          {track instanceof StickerTrack && track.parse() ? (
+          {track instanceof StickerTrack ? (
             <img class="track-item-title" src={track.sticker} />
           ) : null}
           {track.type !== ResourceType.Sticker ? (
             <div class="track-item-title">{track.name}</div>
           ) : null}
+        </div>
+      );
+
+      const transition = () => (
+        <div
+          class={[
+            'flex items-center justify-center',
+            'rounded-sm  border border-white',
+            'w-full h-full',
+          ]}
+          style="background-color: rgba(155, 155, 155, 0.5);"
+        >
+          <RetweetOutlined />
         </div>
       );
 
@@ -78,8 +97,12 @@
         [ResourceType.Text]: attachment,
         [ResourceType.Effect]: attachment,
         [ResourceType.Filter]: attachment,
-        [ResourceType.Transition]: attachment,
+        // [ResourceType.Transition]: attachment,
       };
+
+      if (track.value instanceof StickerTrack) {
+        track.value.parse();
+      }
 
       return () => (
         <div

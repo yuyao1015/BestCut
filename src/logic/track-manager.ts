@@ -25,6 +25,13 @@ type DisplayQueue = {
 };
 
 let player: MP4Player;
+const extractor = new MP4Player({ id: '' });
+
+const canvas = document.createElement('canvas');
+canvas.style.position = 'fixed';
+canvas.style.left = '0';
+canvas.style.top = '0';
+document.body.append(canvas);
 
 export class TrackManager {
   map: TrackMap;
@@ -56,8 +63,39 @@ export class TrackManager {
     const video = this.map.video.slice(idx).concat([this.map.main]);
 
     this.flatten(video);
+    this.addTransition();
+    // console.log(this.displayQueue.video);
     this.flatten(attachment);
     // this.flatten(audio);
+  }
+
+  addTransition() {
+    this.displayQueue.video.reduce((t, item, i) => {
+      if (!item.track) return t;
+
+      if (t) {
+        item.startTime -= t;
+        item.endTime -= t;
+      }
+
+      if (item.track?.transition) {
+        const { fn, duration } = item.track.transition;
+        item.track.transition.fn = function (...args) {
+          return fn.apply(this, [...args, extractor.extract()]);
+        };
+
+        const d = durationString2Sec(duration);
+        t += d;
+        item.endTime -= d;
+        const next = this.displayQueue.video[i + 1];
+        next.attachments?.push({
+          track: item.track.transition,
+          startFrame: 0,
+          endFrame: d * 30,
+        });
+      }
+      return t;
+    }, 0);
   }
 
   flatten(lists: (MediaTrack | AttachmentTrack)[][]) {
@@ -196,7 +234,16 @@ export class TrackManager {
   }
 
   listEnd(list: TrackItem[]) {
-    return list.reduce((t, trak) => t + trak.offset + durationString2Sec(trak.duration), 0);
+    return list.reduce(
+      (t, trak) =>
+        t +
+        trak.offset +
+        durationString2Sec(trak.duration) -
+        (trak instanceof MediaTrack && trak.transition
+          ? durationString2Sec(trak.transition.duration)
+          : 0),
+      0
+    );
   }
 
   private _play() {
@@ -204,8 +251,18 @@ export class TrackManager {
     if (this.displayed && this.currentTime < this._duration) {
       if (Math.abs(this.currentTime - this.displayed.endTime) < 17) {
         this.displayed.active = false;
+
+        if (this.displayed.track?.transition) {
+          extractor.setExtractionOptions({
+            source: player.url || '',
+            // chunkStart: player.chunkStart,
+            chunkStart: 0,
+            canvas: player._canvas.cloneNode() as HTMLCanvasElement,
+            attachments: player.attachments,
+          });
+        }
+
         player?.stop();
-        player.attachments = [];
         this.displayed = this.displayQueue.video[++this.displayedIdx];
         if (!this.displayed) {
           this.active = false;
@@ -219,13 +276,12 @@ export class TrackManager {
         this.displayed.active = true;
         if (!player) {
           player = new MP4Player({ id: CanvasId, url: this.displayed.track?.src });
-          player.attachments = this.displayed.attachments || [];
         } else {
           const { source } = this.displayed.track?.getProps();
           player.paused = false;
-          player.attachments = this.displayed.attachments || [];
           player.demux(source);
         }
+        player.attachments = this.displayed.attachments || [];
       }
     }
 

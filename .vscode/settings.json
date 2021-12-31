@@ -70,7 +70,6 @@
   "stylelint.enable": true,
   "stylelint.packageManager": "yarn",
   "liveServer.settings.donotShowInfoMsg": true,
-  "telemetry.enableCrashReporter": false,
   "workbench.settings.enableNaturalLanguageSearch": false,
   "path-intellisense.mappings": {
     "@/": "${workspaceRoot}/src"

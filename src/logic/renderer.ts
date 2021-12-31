@@ -14,6 +14,7 @@ export class Renderer {
 
   buffer: THREE.WebGLRenderTarget | null = null;
   _renderer: THREE.WebGLRenderer;
+  renderToScreen = true;
 
   constructor(public canvas: HTMLCanvasElement) {
     this._renderer = new THREE.WebGLRenderer({ canvas });
@@ -61,10 +62,7 @@ export class Renderer {
     material.map!.needsUpdate = true;
     this.plane.material = material;
 
-    if (!attachments.length) this._renderer.render(this.scene, this.camera);
-    else {
-      this.attach(attachments, idx);
-    }
+    this.attach(attachments, idx);
   }
 
   attach(attachments: Attachment[], idx: number) {
@@ -79,9 +77,8 @@ export class Renderer {
         continue;
       attached = true;
 
-      this._renderer.setRenderTarget(this.buffer);
       this.render(this.scene, this.camera, false);
-      const fn = track?.fn.bind(this);
+      const fn = track.fn.bind(this);
       fn(idx, startFrame, endFrame, this.buffer);
     }
 
@@ -89,7 +86,8 @@ export class Renderer {
   }
 
   render(obj: THREE.Scene | THREE.Object3D, camera: THREE.Camera, renderToScreen = true) {
-    if (renderToScreen) this._renderer.setRenderTarget(null);
+    if (renderToScreen && this.renderToScreen) this._renderer.setRenderTarget(null);
+    else this._renderer.setRenderTarget(this.buffer);
     this._renderer.render(obj, camera);
   }
 

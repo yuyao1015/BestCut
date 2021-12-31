@@ -1,4 +1,4 @@
-import { TrackItem } from '@/logic/track';
+import { TrackItem, VideoTrack } from '@/logic/track';
 import type { Ref } from 'vue';
 
 import { watch } from 'vue';
@@ -132,6 +132,9 @@ export default (duration: number, fps: number) => {
       }
       ml = (track.offset / unit) * step;
     } else w = (track / unit) * step;
+
+    if (track instanceof VideoTrack && track.transition)
+      w -= durationString2Sec(track.transition.duration) / unit;
 
     return { width: w, marginLeft: ml };
   };

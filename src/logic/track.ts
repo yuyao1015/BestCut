@@ -31,6 +31,14 @@ type ItemRequired = {
 
 export type TrackOption = Partial<ItemOptional> & ItemRequired;
 
+type Shader = {
+  uniforms: {
+    [prop: string]: any;
+  };
+  vertexShader: string;
+  fragmentShader: string;
+};
+
 const _geometry = new THREE.BufferGeometry();
 _geometry.setAttribute(
   'position',
@@ -72,19 +80,27 @@ export class TrackItem extends Base {
 export class MediaTrack extends TrackItem {
   refer?: { from: number; to: number };
   src?: string;
+  transition?: TransitionTrack;
 }
 
 export class VideoTrack extends MediaTrack {
   audio?: AudioTrack;
+
   cover?: string[];
 
   constructor(
-    options: Omit<TrackOption, 'type'> & { src?: string; audio?: AudioTrack; cover?: string[] }
+    options: Omit<TrackOption, 'type'> & {
+      src?: string;
+      audio?: AudioTrack;
+      transition?: TransitionTrack;
+      cover?: string[];
+    }
   ) {
     super(Object.assign({ type: ResourceType.Video, height: 84 }, options));
     this.src = options.src || '';
     this.cover = options.cover;
     this.audio = options.audio;
+    this.transition = options.transition;
   }
 
   getProps() {
@@ -126,11 +142,15 @@ export class StickerTrack extends AttachmentTrack {
   }
 
   parse() {
-    if (!this.frames.length || !this.gif) {
-      axios.get(this.src, { responseType: 'arraybuffer' }).then((res) => {
-        this.gif = parseGIF(res.data);
-        this.frames = decompressFrames(this.gif, true);
-      });
+    try {
+      if (!this.frames.length || !this.gif) {
+        axios.get(this.src, { responseType: 'arraybuffer' }).then((res) => {
+          this.gif = parseGIF(res.data);
+          this.frames = decompressFrames(this.gif, true);
+        });
+      }
+    } catch {
+      return false;
     }
     return true;
   }
@@ -236,12 +256,19 @@ export class TextTrack extends AttachmentTrack {
 }
 
 export class TransitionTrack extends AttachmentTrack {
-  fn = function (this: Renderer, i: number, s: number, e: number, buffer: any) {
+  fn = function (
+    this: Renderer,
+    i: number,
+    s: number,
+    e: number,
+    buffer1: THREE.WebGLRenderTarget,
+    buffer2: THREE.WebGLRenderTarget
+  ) {
     const transition = GLTransitions[33];
     const { glsl, name } = transition;
     // console.log(GLTransitions);
 
-    const TransitionShader = {
+    const TransitionShader: Shader = {
       uniforms: {
         from: {
           value: null,
@@ -253,7 +280,7 @@ export class TransitionTrack extends AttachmentTrack {
           value: 0.0,
         },
         ratio: {
-          value: buffer.width / buffer.height,
+          value: buffer1.width / buffer1.height,
         },
       },
       vertexShader: `
@@ -278,10 +305,10 @@ export class TransitionTrack extends AttachmentTrack {
         gl_FragColor=transition(vUv);
       }`,
     };
-    TransitionShader.uniforms.from.value = buffer.texture;
-    // TODO: frame from next video
-    TransitionShader.uniforms.to.value = buffer.texture;
-    TransitionShader.uniforms.progress.value = (i - s) / e;
+
+    TransitionShader.uniforms.from.value = buffer2.texture;
+    TransitionShader.uniforms.to.value = buffer1.texture;
+    TransitionShader.uniforms.progress.value = (i - s) / (e - s);
     const material = new THREE.ShaderMaterial({
       uniforms: TransitionShader.uniforms,
       vertexShader: TransitionShader.vertexShader,
@@ -292,7 +319,7 @@ export class TransitionTrack extends AttachmentTrack {
     this.render(mesh, _camera);
   };
   constructor(options: Omit<TrackOption, 'type'>) {
-    super(Object.assign({ type: ResourceType.Transition, height: 20 }, options));
+    super(Object.assign({ type: ResourceType.Transition, height: 84 }, options));
   }
 }
 

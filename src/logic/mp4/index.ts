@@ -1,5 +1,5 @@
-import type { Attachment } from './../track-manager';
-import type { TextTrack, StickerTrack } from './../track';
+import type { Attachment } from '../track-manager';
+import type { TextTrack, StickerTrack } from '../track';
 
 import type { MP4PlayerOption } from '#/player';
 import type { DowndloadCallback } from './downloader';
@@ -96,9 +96,6 @@ export class MP4Source {
   }
 }
 
-const _canvas = document.createElement('canvas');
-const _ctx = _canvas.getContext('2d');
-
 export class MP4Player {
   id: string;
   canvas: HTMLCanvasElement;
@@ -131,6 +128,8 @@ export class MP4Player {
   refs = reactive({ current: 0, total: 0 });
 
   renderer?: Renderer;
+  _canvas: HTMLCanvasElement;
+  _ctx: CanvasRenderingContext2D | null = null;
 
   constructor(opts: MP4PlayerOption) {
     if (opts.id) {
@@ -144,6 +143,9 @@ export class MP4Player {
       this.id = '';
     }
 
+    this._canvas = document.createElement('canvas');
+    this._ctx = this._canvas.getContext('2d');
+
     this.url = opts.url;
     this.paused = opts.paused || false;
     opts.url && this.demux(opts.url);
@@ -151,23 +153,21 @@ export class MP4Player {
 
   setCanvas(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    _canvas.width = canvas.width;
-    _canvas.height = canvas.height;
+    this._canvas.width = canvas.width;
+    this._canvas.height = canvas.height;
     this.renderer = new Renderer(canvas);
   }
 
   updateSize() {
-    _canvas.width = this.canvas.width;
-    _canvas.height = this.canvas.height;
+    this._canvas.width = this.canvas.width;
+    this._canvas.height = this.canvas.height;
     this.renderer?.setSize(this.canvas.width, this.canvas.height);
   }
 
   demux(source: string | MP4Source) {
     this.chunkStart = 0;
 
-    _canvas.width = this.canvas.width;
-    _canvas.height = this.canvas.height;
-    this.renderer = new Renderer(this.canvas);
+    this.setCanvas(this.canvas);
 
     this.decoder = new window.VideoDecoder({
       output: this.onFrame(),
@@ -206,6 +206,51 @@ export class MP4Player {
     });
   }
 
+  setExtractionOptions(opts: {
+    source: string | MP4Source;
+    chunkStart: number;
+    canvas: HTMLCanvasElement;
+    attachments: Attachment[];
+  }) {
+    this.chunkStart = opts.chunkStart || 0;
+    this.attachments = opts.attachments || [];
+
+    this.setCanvas(opts.canvas);
+    this.renderer!.renderToScreen = false;
+
+    this.decoder = new window.VideoDecoder({
+      output: this.onFrame(),
+      error: (e: any) => console.error(e),
+    });
+    this.source = isString(opts.source) ? new MP4Source(opts.source) : opts.source;
+    this.source.getConfig().then((config: any) => {
+      const { videoCfg } = config;
+
+      this.decoder.configure(videoCfg);
+      this.samples = this.source?.getSamples(this.source.videoTrack.id);
+      this.source?.start(this.source.videoTrack.id);
+      let i = opts.chunkStart;
+      this.canPaint = false;
+      setTimeout(() => {
+        while (!this.samples[i].is_sync) i--;
+        while (i < opts.chunkStart) {
+          const sample = this.samples[i++];
+          const chunk = this.getChunk(sample);
+          this.decoder.decode(chunk);
+        }
+        this.canPaint = true;
+      }, 10);
+    });
+  }
+
+  extract() {
+    const sample = this.samples[this.chunkStart++];
+    if (!sample) return;
+    const chunk = this.getChunk(sample);
+    this.configured() && this.decoder.decode(chunk);
+    return this.renderer?.buffer;
+  }
+
   onPlayStart() {
     console.log('play start');
   }
@@ -224,22 +269,22 @@ export class MP4Player {
       const now = performance.now();
 
       if (this.canPaint) {
-        _ctx?.drawImage(frame, 0, 0, this.canvas.width, this.canvas.height);
+        this._ctx?.drawImage(frame, 0, 0, this.canvas.width, this.canvas.height);
 
         for (const { track, startFrame, endFrame } of this.attachments) {
           if (
-            !_ctx ||
+            !this._ctx ||
             ![ResourceType.Sticker, ResourceType.Text].includes(track.type) ||
             frameCount < startFrame ||
             frameCount > endFrame
           )
             continue;
-          if (track.type === ResourceType.Text) this.drawText(_ctx, track as TextTrack);
+          if (track.type === ResourceType.Text) this.drawText(this._ctx, track as TextTrack);
           if (track.type === ResourceType.Sticker)
-            this.drawSticker(_ctx, track as StickerTrack, frameCount, startFrame, endFrame);
+            this.drawSticker(this._ctx, track as StickerTrack, frameCount, startFrame, endFrame);
         }
 
-        this.renderer?.draw(_canvas, this.attachments, frameCount);
+        this.renderer?.draw(this._canvas, this.attachments, frameCount);
       }
 
       frame.close();
@@ -290,7 +335,7 @@ export class MP4Player {
     const { frames } = track;
     if (frames.length) {
       const i = (idx - s) % frames.length;
-      const c = track.getImageData(_canvas, i);
+      const c = track.getImageData(this._canvas, i);
       const w = this.canvas.width * 0.5 * scale;
       const h = (w * c.height) / c.width;
       ctx.drawImage(c, this.canvas.width * x - w / 2, this.canvas.height * y - h / 2, w, h);
@@ -396,6 +441,7 @@ export class MP4Player {
     this.refs.total = 0;
     this.paused = true;
     this.active = false;
+    this.attachments = [];
   }
   closed() {
     return this.decoder && this.decoder.state === 'closed';
