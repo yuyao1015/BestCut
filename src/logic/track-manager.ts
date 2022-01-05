@@ -54,11 +54,11 @@ export class TrackManager {
     const idx = this.map.video.findIndex((list) => list[0].type === ResourceType.Video);
     // const { audio } = this.map;
     const attachment = this.map.video.slice(0, idx);
-    const video = this.map.video.slice(idx).concat([this.map.main]);
+    const video = this.map.video.slice(idx).concat(this.map.main.length ? [this.map.main] : []);
 
     this.flatten(video);
     this.flatten(attachment);
-    console.log(this.displayQueue.video);
+    // console.log(this.displayQueue.video);
     this.addTransition();
     // this.flatten(audio);
   }
@@ -101,6 +101,8 @@ export class TrackManager {
   }
 
   flatten(lists: (MediaTrack | AttachmentTrack)[][]) {
+    if (!lists.length) return;
+
     let type: keyof DisplayQueue;
     if (!isMedia(lists[0][0].type)) type = ResourceType.Video;
     else type = lists[0][0].type as keyof DisplayQueue;

@@ -7,7 +7,6 @@
     ]"
     ref="resourceRef"
     @click="play"
-    v-click-outside:[exclude]="onClickOutside"
   >
     <div
       v-if="resource.active"
@@ -72,7 +71,7 @@
 <script lang="ts">
   import { ResourceItem, AudioResource, VideoResource, PictureResource } from '@/logic/resource';
 
-  import { defineComponent, ref, PropType, watch, computed, onBeforeMount } from 'vue';
+  import { defineComponent, ref, PropType, watch, computed } from 'vue';
   import {
     PlusCircleFilled,
     DownloadOutlined,
@@ -86,7 +85,6 @@
   import { usePreviewStore } from '@/store/preview';
   import { useTrackStore } from '@/store/track';
 
-  import { ClickOutside } from '@/directives';
   import { CanvasId } from '@/settings/playerSetting';
 
   export default defineComponent({
@@ -98,9 +96,6 @@
       FileImageOutlined,
       StarFilled,
       // StarOutlined,
-    },
-    directives: {
-      ClickOutside,
     },
     props: {
       usable: {
@@ -198,30 +193,14 @@
         }
       };
 
-      const exclude = ref<Element[]>([]);
-      onBeforeMount(() => {
-        if (!exclude.value.length) {
-          const preview = document.getElementById('preview-box') as HTMLElement;
-          const splitters = document.getElementsByClassName('splitter') as HTMLCollection;
-          exclude.value = [preview, ...Array.from(splitters)];
-        }
-      });
-
-      const onClickOutside = () => {
-        if (active.value) previewStore.player.stop();
-        if (resourceStore.resource) resourceStore.setResource(undefined);
-      };
-
       return {
         usable,
         isLoading,
         ratio,
         active,
-        exclude,
         resourceRef,
 
         play,
-        onClickOutside,
         onChecked,
         add2Track,
 

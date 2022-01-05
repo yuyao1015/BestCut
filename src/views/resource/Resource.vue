@@ -10,7 +10,7 @@
         @pointermove="onResourceMove"
       />
 
-      <div class="resource-box-mask" v-if="maskVisiable">
+      <div class="resource-box-mask" v-show="maskVisiable">
         <ResourceBox
           ref="maskRef"
           draggable="true"
@@ -22,6 +22,7 @@
           @pointerleave="onResourceLeave"
           @dragstart="onDragStart"
           @dragend="onDragEnd"
+          v-click-outside:[exclude]="onClickOutside"
         />
         <Track class="resource-drag-view hidden" ref="trackRef" :track="track" />
       </div>
@@ -45,6 +46,7 @@
     computed,
     onMounted,
     onUnmounted,
+    onBeforeMount,
   } from 'vue';
 
   import ResourceBox from './ResourceBox.vue';
@@ -52,6 +54,10 @@
 
   import { setStyle, toggleClass } from '@/utils/dom';
   import { useTrackStore } from '@/store/track';
+  import { useResourceStore } from '@/store/resource';
+  import { usePreviewStore } from '@/store/preview';
+
+  import { ClickOutside } from '@/directives';
 
   type DragView = {
     el?: HTMLElement;
@@ -64,6 +70,9 @@
     components: {
       ResourceBox,
       Track,
+    },
+    directives: {
+      ClickOutside,
     },
     props: {
       usable: {
@@ -106,6 +115,8 @@
       );
 
       const trackStore = useTrackStore();
+      const resourceStore = useResourceStore();
+      const previewStore = usePreviewStore();
       watch(
         () => trackStore.isResourceOver,
         (val: boolean) => {
@@ -197,12 +208,19 @@
 
       const onResourceLeave = () => {
         maskVisiable.value = false;
+        if (maskView) {
+          maskView.parentNode?.removeChild(maskView);
+          maskView = undefined;
+        }
       };
 
       const onDragStart = () => {
-        if (!maskRef.value) return;
+        if (!maskRef.value || !trackRef.value) return;
         const mask = (maskRef.value.$el || maskRef.value) as HTMLElement;
         mask.style.opacity = '0';
+        const trackView = (trackRef.value.$el || trackRef.value) as HTMLElement;
+        if (maskView) maskView.style.zIndex = '999';
+        trackView.style.zIndex = '999';
 
         window.addEventListener('dragover', onDragOver);
       };
@@ -219,6 +237,7 @@
         if (dragView.el) dragView.el.style.display = 'none';
       };
 
+      // update position when hover in mask
       const updateMaskTop = () => {
         const resourceList = document.getElementById('resource-list') as HTMLElement;
         if (!resourceList || !maskVisiable.value || !maskView) return;
@@ -231,16 +250,32 @@
         window.removeEventListener('mousewheel', updateMaskTop);
       });
 
+      const exclude = ref<Element[]>([]);
+      onBeforeMount(() => {
+        if (!exclude.value.length) {
+          const preview = document.getElementById('preview-box') as HTMLElement;
+          const splitters = document.getElementsByClassName('splitter') as HTMLCollection;
+          exclude.value = [preview, ...Array.from(splitters)];
+        }
+      });
+
+      const onClickOutside = () => {
+        if (props.resource.active) previewStore.player.stop();
+        if (resourceStore.resource) resourceStore.setResource(undefined);
+      };
+
       return {
         maskRef,
         trackRef,
         track,
         maskVisiable,
+        exclude,
 
         onResourceMove,
         onResourceLeave,
         onDragStart,
         onDragEnd,
+        onClickOutside,
       };
     },
   });
@@ -258,7 +293,7 @@
 
     &-view {
       position: fixed;
-      z-index: 9999;
+      z-index: -1;
       pointer-events: none;
     }
   }
