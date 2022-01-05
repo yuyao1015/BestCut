@@ -176,7 +176,7 @@ export class StickerTrack extends AttachmentTrack {
 export class FilterTrack extends AttachmentTrack {
   icon: any;
   fn = function (this: Renderer, i: number, s: number, e: number, buffer: any) {
-    const GrayShader = {
+    const GrayShader: Shader = {
       uniforms: {
         tDiffuse: {
           value: null,

@@ -33,7 +33,7 @@ export const mainList = [
     name: 'out.mp4',
     duration: '00:00:08:03',
     src: '/media/out.mp4',
-    transition: new TransitionTrack({ duration: '00:01' }),
+    transition: new TransitionTrack({ duration: '00:04' }),
   }),
   new VideoTrack({ name: 'g.mp4', duration: '00:00:46:06', src: '/media/g.mp4' }),
   new VideoTrack({ name: 'ccc.mp4', duration: '00:05:30:20', src: '/media/bbb.mp4' }),

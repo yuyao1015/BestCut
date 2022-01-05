@@ -12,8 +12,10 @@ export class Renderer {
   geom = new THREE.PlaneGeometry(1, 1);
   plane = new THREE.Mesh();
 
+  private _renderer: THREE.WebGLRenderer;
   buffer: THREE.WebGLRenderTarget | null = null;
-  _renderer: THREE.WebGLRenderer;
+  buffer1: THREE.WebGLRenderTarget | null = null;
+  buffer2: THREE.WebGLRenderTarget | null = null;
   renderToScreen = true;
 
   constructor(public canvas: HTMLCanvasElement) {
@@ -44,7 +46,12 @@ export class Renderer {
       format: THREE.RGBAFormat,
     };
 
-    this.buffer = new THREE.WebGLRenderTarget(
+    this.buffer = this.buffer1 = new THREE.WebGLRenderTarget(
+      size.width * pixelRatio,
+      size.height * pixelRatio,
+      parameters
+    );
+    this.buffer2 = new THREE.WebGLRenderTarget(
       size.width * pixelRatio,
       size.height * pixelRatio,
       parameters
@@ -62,7 +69,8 @@ export class Renderer {
     material.map!.needsUpdate = true;
     this.plane.material = material;
 
-    this.attach(attachments, idx);
+    const attached = this.attach(attachments, idx);
+    if (!attached) this.render(this.scene, this.camera);
   }
 
   attach(attachments: Attachment[], idx: number) {
@@ -78,11 +86,9 @@ export class Renderer {
       attached = true;
 
       this.render(this.scene, this.camera, false);
-      const fn = track.fn.bind(this);
-      fn(idx, startFrame, endFrame, this.buffer);
+      track.fn.apply(this, [idx, startFrame, endFrame, this.buffer1]);
     }
-
-    if (!attached) this.render(this.scene, this.camera);
+    return attached;
   }
 
   render(obj: THREE.Scene | THREE.Object3D, camera: THREE.Camera, renderToScreen = true) {

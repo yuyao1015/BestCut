@@ -15,19 +15,17 @@ import { ResourceType } from '@/enums/resource';
 
 export class MP4Source {
   file: any;
-  info: any;
-  info_resolver: any;
+  info?: any;
+  info_resolver?: (value?: unknown) => void;
   videoTrack: any;
   audioTrack: any;
   downloader: Downloader;
 
-  constructor(url: string) {
+  constructor(public url: string) {
     this.file = window.MP4Box.createFile();
     this.file.onError = console.error.bind(console);
     this.file.onReady = this.onReady.bind(this);
     this.file.onSamples = this.onSamples.bind(this);
-    this.info = null;
-    this.info_resolver = null;
 
     this.downloader = new Downloader(url);
     this.download();
@@ -52,7 +50,7 @@ export class MP4Source {
     this.info = info;
     if (this.info_resolver) {
       this.info_resolver(info);
-      this.info_resolver = null;
+      this.info_resolver = undefined;
     }
   }
 
@@ -128,6 +126,7 @@ export class MP4Player {
   refs = reactive({ current: 0, total: 0 });
 
   renderer?: Renderer;
+  frame_resolver?: (value?: unknown) => void;
   _canvas: HTMLCanvasElement;
   _ctx: CanvasRenderingContext2D | null = null;
 
@@ -152,9 +151,11 @@ export class MP4Player {
   }
 
   setCanvas(canvas: HTMLCanvasElement) {
+    this.id = canvas.id || '';
     this.canvas = canvas;
     this._canvas.width = canvas.width;
     this._canvas.height = canvas.height;
+    this._ctx = this._canvas.getContext('2d');
     this.renderer = new Renderer(canvas);
   }
 
@@ -216,7 +217,7 @@ export class MP4Player {
     this.attachments = opts.attachments || [];
 
     this.setCanvas(opts.canvas);
-    this.renderer!.renderToScreen = false;
+    // this.renderer!.renderToScreen = false;
 
     this.decoder = new window.VideoDecoder({
       output: this.onFrame(),
@@ -243,12 +244,24 @@ export class MP4Player {
     });
   }
 
-  extract() {
+  frameRendered() {
+    return new Promise((resolve) => {
+      this.frame_resolver = resolve;
+    });
+  }
+
+  async extract() {
     const sample = this.samples[this.chunkStart++];
-    if (!sample) return;
+    if (!sample) return this._canvas;
     const chunk = this.getChunk(sample);
     this.configured() && this.decoder.decode(chunk);
-    return this.renderer?.buffer;
+
+    // console.error('>>>>>', this.chunkStart);
+    await this.frameRendered();
+    // console.error('<<<<<');
+    this.frame_resolver = undefined;
+
+    return this._canvas;
   }
 
   onPlayStart() {
@@ -285,6 +298,7 @@ export class MP4Player {
         }
 
         this.renderer?.draw(this._canvas, this.attachments, frameCount);
+        if (this.frame_resolver) this.frame_resolver();
       }
 
       frame.close();

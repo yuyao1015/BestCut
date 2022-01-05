@@ -25,13 +25,7 @@ type DisplayQueue = {
 };
 
 let player: MP4Player;
-const extractor = new MP4Player({ id: '' });
-
-const canvas = document.createElement('canvas');
-canvas.style.position = 'fixed';
-canvas.style.left = '0';
-canvas.style.top = '0';
-document.body.append(canvas);
+let extractor: MP4Player | undefined;
 
 export class TrackManager {
   map: TrackMap;
@@ -63,9 +57,9 @@ export class TrackManager {
     const video = this.map.video.slice(idx).concat([this.map.main]);
 
     this.flatten(video);
-    this.addTransition();
-    // console.log(this.displayQueue.video);
     this.flatten(attachment);
+    console.log(this.displayQueue.video);
+    this.addTransition();
     // this.flatten(audio);
   }
 
@@ -80,19 +74,27 @@ export class TrackManager {
 
       if (item.track?.transition) {
         const { fn, duration } = item.track.transition;
-        item.track.transition.fn = function (...args) {
-          return fn.apply(this, [...args, extractor.extract()]);
-        };
-
         const d = durationString2Sec(duration);
         t += d;
         item.endTime -= d;
+        let endFrame = d * 30;
         const next = this.displayQueue.video[i + 1];
         next.attachments?.push({
           track: item.track.transition,
           startFrame: 0,
-          endFrame: d * 30,
+          endFrame,
         });
+
+        item.track.transition.fn = async function (...args) {
+          const _canvas = (await extractor!.extract()) as HTMLCanvasElement;
+          this.renderToScreen = false;
+          this.buffer = this.buffer2;
+          this.draw(_canvas, extractor!.attachments, extractor!.chunkStart);
+          this.buffer = this.buffer1;
+          this.renderToScreen = true;
+          if (!endFrame--) extractor = undefined;
+          return fn.apply(this, [...args, this.buffer2]);
+        };
       }
       return t;
     }, 0);
@@ -249,38 +251,33 @@ export class TrackManager {
   private _play() {
     this.currentTime = performance.now() - this.lastTime;
     if (this.displayed && this.currentTime < this._duration) {
-      if (Math.abs(this.currentTime - this.displayed.endTime) < 17) {
-        this.displayed.active = false;
+      const startTime = Math.abs(this.currentTime - this.displayed.startTime);
+      const endTime = Math.abs(this.currentTime - this.displayed.endTime);
 
+      if (endTime < 17) {
+        this.displayed.active = false;
         if (this.displayed.track?.transition) {
-          extractor.setExtractionOptions({
-            source: player.url || '',
-            // chunkStart: player.chunkStart,
-            chunkStart: 0,
-            canvas: player._canvas.cloneNode() as HTMLCanvasElement,
-            attachments: player.attachments,
-          });
+          extractor = player;
+          extractor.setCanvas(extractor.canvas.cloneNode() as HTMLCanvasElement);
+        } else {
+          player?.stop();
         }
 
-        player?.stop();
         this.displayed = this.displayQueue.video[++this.displayedIdx];
         if (!this.displayed) {
           this.active = false;
+          player?.stop();
         } else {
           this.displayed.startTime *= 1000;
           this.displayed.endTime *= 1000;
         }
       }
 
-      if (Math.abs(this.currentTime - this.displayed.startTime) < 17 && !this.displayed.active) {
+      if (startTime < 17 && !this.displayed.active) {
         this.displayed.active = true;
-        if (!player) {
-          player = new MP4Player({ id: CanvasId, url: this.displayed.track?.src });
-        } else {
-          const { source } = this.displayed.track?.getProps();
-          player.paused = false;
-          player.demux(source);
-        }
+
+        player = new MP4Player({ id: CanvasId, url: this.displayed.track?.src });
+        console.log(this.displayed.attachments);
         player.attachments = this.displayed.attachments || [];
       }
     }
