@@ -86,19 +86,19 @@ export class MediaTrack extends TrackItem {
 export class VideoTrack extends MediaTrack {
   audio?: AudioTrack;
 
-  cover?: string[];
+  thumbnail?: string[];
 
   constructor(
     options: Omit<TrackOption, 'type'> & {
       src?: string;
       audio?: AudioTrack;
       transition?: TransitionTrack;
-      cover?: string[];
+      thumbnail?: string[];
     }
   ) {
     super(Object.assign({ type: ResourceType.Video, height: 84 }, options));
     this.src = options.src || '';
-    this.cover = options.cover;
+    this.thumbnail = options.thumbnail;
     this.audio = options.audio;
     this.transition = options.transition;
   }

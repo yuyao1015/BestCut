@@ -16,18 +16,31 @@
 
     <div class="resource-content overflow-hidden absolute h-full w-full">
       <div v-if="resource instanceof AudioResource" class="h-full flex items-center">
-        <img class="rounded-md h-5/6 w-2/5 ml-2 mr-1" draggable="false" :src="resource.cover" />
+        <img class="rounded-md h-5/6 w-2/5 ml-2 mr-1" draggable="false" :src="resource.thumbnail" />
+
         <div class="text-xs flex flex-col justify-between h-5/6">
           <div>
             <div style="color: #999">{{ resource.album }}</div>
             <div style="color: #474747">{{ resource.author }}</div>
           </div>
-          <div v-if="resource.album && resource.author" style="color: #474747">
-            {{ resource.duration }}
-          </div>
+          <div v-if="resource.album && resource.author" style="color: #474747">{{
+            resource.duration
+          }}</div>
         </div>
       </div>
-      <img v-else class="h-full w-full rounded-md" draggable="false" :src="resource.cover" />
+
+      <div
+        v-else
+        class="h-full w-full rounded-md"
+        @pointerover="onPointerOver"
+        @pointerleave="onPointerLeave"
+      >
+        <img
+          class="h-full w-full"
+          draggable="false"
+          :src="isOver && !(resource instanceof VideoResource) ? resource.src : resource.thumbnail"
+        />
+      </div>
     </div>
 
     <!-- tl referenced -->
@@ -36,7 +49,7 @@
       class="absolute top-1 left-1"
       style="background-color: rgb(255, 255, 255, 0.3)"
     >
-      <div class="">已添加</div>
+      <div>已添加</div>
     </div>
 
     <div class="absolute top-1 right-1">
@@ -46,9 +59,8 @@
           resource instanceof VideoResource ||
           (resource instanceof AudioResource && !resource.album && !resource.author)
         "
+        >{{ resource.duration }}</div
       >
-        {{ resource.duration }}
-      </div>
     </div>
 
     <!-- br icons  -->
@@ -124,10 +136,8 @@
       },
     },
 
-    emits: ['update:usable', 'update:checked'],
-    setup(props, { emit }) {
+    setup(props) {
       const checked = ref(props.resource.checked);
-      const active = computed(() => props.resource.active);
       const usable = ref(props.usable);
 
       const resourceStore = useResourceStore();
@@ -144,6 +154,12 @@
         () => props.resource.checked,
         () => {
           checked.value = props.resource.checked;
+        }
+      );
+      watch(
+        () => props.resource.usable,
+        () => {
+          usable.value = props.resource.usable;
         }
       );
 
@@ -180,7 +196,7 @@
             .then((res) => {
               console.log(res);
               usable.value = true;
-              emit('update:usable', true);
+              resourceStore.download(props.resource);
               play(e);
             })
             .catch((err) => {
@@ -193,16 +209,26 @@
         }
       };
 
+      const isOver = ref(false);
+      const onPointerOver = () => {
+        isOver.value = true;
+      };
+      const onPointerLeave = () => {
+        isOver.value = false;
+      };
+
       return {
         usable,
         isLoading,
         ratio,
-        active,
         resourceRef,
+        isOver,
 
         play,
         onChecked,
         add2Track,
+        onPointerOver,
+        onPointerLeave,
 
         AudioResource,
         VideoResource,

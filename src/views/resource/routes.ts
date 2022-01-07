@@ -1,4 +1,4 @@
-import { ResourceLib, ResourceTab } from '@/logic/resource';
+import { ResourceLib, ResourceTab } from '@/logic/resource-tab';
 
 import { h } from 'vue';
 import {

@@ -1,4 +1,5 @@
-import type { ResourceTab, ResourceLib, ResourceFragment, ResourceItem } from '@/logic/resource';
+import type { ResourceFragment, ResourceItem } from '@/logic/resource';
+import type { ResourceTab, ResourceLib } from '@/logic/resource-tab';
 
 import { defineStore } from 'pinia';
 
@@ -24,6 +25,7 @@ const ResourceMap = {
   [ResourceType.Text]: Resource.TextResource,
   [ResourceType.Effect]: Resource.EffectResource,
   [ResourceType.Filter]: Resource.FilterResource,
+  [ResourceType.Transition]: Resource.TransitionResource,
 };
 
 export const useResourceStore = defineStore({
@@ -55,6 +57,8 @@ export const useResourceStore = defineStore({
       data.forEach((fragment) => {
         fragment.list = fragment.list.map((resource) => new ResourceMap[resource.type](resource));
       });
+      if (data[0].name === '收藏') data.splice(1, 0, ...this.currentLib.fragments);
+      else data = this.currentLib.fragments.concat(data);
       this.currentLib.fragments = data;
     },
     switchFragment(idx: number) {
@@ -80,6 +84,9 @@ export const useResourceStore = defineStore({
       if (idx === -1) return;
       this.favoriteList[idx].checked = false;
       this.favoriteList.splice(idx, 1);
+    },
+    download(resource: ResourceItem) {
+      resource.usable = true;
     },
 
     setResource(resource?: ResourceItem) {

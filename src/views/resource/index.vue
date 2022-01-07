@@ -36,11 +36,12 @@
       const currentLib = computed(() => resourceStore.currentLib);
 
       const updateFragments = async () => {
-        if (!currentLib.value.fragments.length) {
-          const { tabName } = tabsData.value[activeTab.value];
-          const { libName } = currentLib.value;
+        const { tabName } = tabsData.value[activeTab.value];
+        const { libName, update } = currentLib.value;
+        if (new Date().getTime() - update > 1e4) {
           const { data } = await axios.get(`/${tabName}/${libName}`);
-          resourceStore.updateFragments(data);
+          data.update > update && resourceStore.updateFragments(data.lib);
+          currentLib.value.update = new Date().getTime();
         }
       };
 

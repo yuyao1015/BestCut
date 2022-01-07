@@ -28,13 +28,14 @@
       </div>
     </div>
 
-    <div v-if="resource.name" class="desc-color text-left text-xs ml-2 mt-1 h-4">
-      {{ resource.name }}
-    </div>
+    <div
+      v-if="showName(resource) && resource.name"
+      class="desc-color text-left text-xs ml-2 mt-1 h-4"
+      >{{ resource.name }}</div
+    >
   </div>
 </template>
 <script lang="ts">
-  import type { ResourceItem } from '@/logic/resource';
   import type { ComponentPublicInstance } from 'vue';
 
   import {
@@ -52,6 +53,7 @@
   import ResourceBox from './ResourceBox.vue';
   import Track from '@/components/Track.vue';
 
+  import { ResourceItem, TextResource, AudioResource, StickerResource } from '@/logic/resource';
   import { setStyle, toggleClass } from '@/utils/dom';
   import { useTrackStore } from '@/store/track';
   import { useResourceStore } from '@/store/resource';
@@ -264,6 +266,13 @@
         if (resourceStore.resource) resourceStore.setResource(undefined);
       };
 
+      const showName = (resource: ResourceItem) => {
+        const b1 = resource instanceof TextResource;
+        const b2 = resource instanceof AudioResource;
+        const b3 = resource instanceof StickerResource;
+        return (!b1 && !b2 && !b3) || props.offline;
+      };
+
       return {
         maskRef,
         trackRef,
@@ -276,6 +285,7 @@
         onDragStart,
         onDragEnd,
         onClickOutside,
+        showName,
       };
     },
   });

@@ -49,11 +49,11 @@ export const usePreviewStore = defineStore({
     next(n = 1) {
       this.player.nextFrame(n);
     },
-    parseInfo(url: string): Promise<{ cover: string; duration: string }> {
+    parseInfo(url: string): Promise<{ thumbnail: string; duration: string }> {
       this.mount({ id: '', url });
 
       return new Promise((resolve) => {
-        let cover = '',
+        let thumbnail = '',
           duration = '';
         this.player.onPlayStart = function () {
           const { samples } = this;
@@ -66,8 +66,8 @@ export const usePreviewStore = defineStore({
 
             this.onPlaying = function () {
               if (i === this.chunkStart - 1) {
-                cover = this.canvas.toDataURL();
-                resolve({ cover, duration });
+                thumbnail = this.canvas.toDataURL();
+                resolve({ thumbnail, duration });
               }
             };
             break;

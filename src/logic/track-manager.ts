@@ -58,9 +58,9 @@ export class TrackManager {
 
     this.flatten(video);
     this.flatten(attachment);
-    // console.log(this.displayQueue.video);
     this.addTransition();
     // this.flatten(audio);
+    // console.log(this.displayQueue.video);
   }
 
   addTransition() {

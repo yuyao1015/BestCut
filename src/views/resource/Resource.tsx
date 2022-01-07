@@ -21,26 +21,26 @@ const loadLocalFile = () => {
     const src = URL.createObjectURL(file);
 
     let type = ResourceType.Video,
-      cover = '',
+      thumbnail = '',
       duration = '03:00';
     if (['.mp4'].includes(suffix)) {
       type = ResourceType.Video;
       const previewStore = usePreviewStoreWithOut();
       const cfg = await previewStore.parseInfo(src);
       previewStore.stop();
-      cover = await stretchImg(cfg.cover, 144, 80);
+      thumbnail = await stretchImg(cfg.thumbnail, 144, 80);
       duration = cfg.duration;
     } else if (['.aac', '.mp3'].includes(suffix)) {
       type = ResourceType.Audio;
     } else if (['.jpg', '.jpeg', '.png'].includes(suffix)) {
       type = ResourceType.Picture;
-      cover = await stretchImg(src, 144, 80);
+      thumbnail = await stretchImg(src, 144, 80);
     } else {
       console.log('illegal file type');
       return;
     }
 
-    const resource = new ResourceItem({ type, src, cover, duration, name: file.name });
+    const resource = new ResourceItem({ type, src, thumbnail, duration, name: file.name });
     useResourceStore().addResource(resource);
   };
   input.click();
@@ -105,9 +105,9 @@ export const resourceList = (
           class="local-resource-list relative m-2 text-xs"
           offline={offline}
           resource={resource}
-          usable={resource.usable ? resource.usable : fragment.usable}
-          favorite={resource.favorite ? resource.favorite : fragment.favorite}
-          showAdd={resource.showAdd ? resource.showAdd : fragment.showAdd}
+          usable={resource.usable || fragment.usable}
+          favorite={resource.favorite || fragment.favorite}
+          showAdd={resource.showAdd || fragment.showAdd}
           // onEvent={offline ? () => {} : () => {}} // TODO: 添加离线资源
         />
       ))}

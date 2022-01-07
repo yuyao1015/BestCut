@@ -42,7 +42,7 @@
               )
             )}
           </div>
-          <div class="h-10">cover</div>
+          <div class="h-10">thumbnail</div>
           <div class="h-5">foot wave</div>
 
           {track.transition ? (
@@ -97,7 +97,7 @@
         [ResourceType.Text]: attachment,
         [ResourceType.Effect]: attachment,
         [ResourceType.Filter]: attachment,
-        // [ResourceType.Transition]: attachment,
+        [ResourceType.Transition]: transition,
       };
 
       if (track.value instanceof StickerTrack) {
