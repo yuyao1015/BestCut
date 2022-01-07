@@ -23,9 +23,9 @@
             <div style="color: #999">{{ resource.album }}</div>
             <div style="color: #474747">{{ resource.author }}</div>
           </div>
-          <div v-if="resource.album && resource.author" style="color: #474747">{{
-            resource.duration
-          }}</div>
+          <div v-if="resource.album && resource.author" style="color: #474747">
+            {{ resource.duration }}
+          </div>
         </div>
       </div>
 
@@ -59,8 +59,9 @@
           resource instanceof VideoResource ||
           (resource instanceof AudioResource && !resource.album && !resource.author)
         "
-        >{{ resource.duration }}</div
       >
+        {{ resource.duration }}
+      </div>
     </div>
 
     <!-- br icons  -->
@@ -98,6 +99,7 @@
   import { useTrackStore } from '@/store/track';
 
   import { CanvasId } from '@/settings/playerSetting';
+  import _ from 'lodash-es';
 
   export default defineComponent({
     name: 'ResourceBox',
@@ -136,9 +138,10 @@
       },
     },
 
-    setup(props) {
+    setup(props, ctx) {
       const checked = ref(props.resource.checked);
       const usable = ref(props.usable);
+      const isMask = computed(() => Boolean(ctx.attrs.draggable));
 
       const resourceStore = useResourceStore();
       const previewStore = usePreviewStore();
@@ -173,6 +176,8 @@
       const isLoading = ref(false);
       const resourceRef = ref<HTMLElement | null>(null);
       const play = (e: MouseEvent) => {
+        // TODO: play twice
+        // console.log('----- play', isMask.value);
         resourceStore.setResource(props.resource);
         if (usable.value) {
           if (previewStore.player.active && previewStore.player.id === CanvasId) {
@@ -186,6 +191,7 @@
           return;
         } else {
           isLoading.value = true;
+          console.log(isLoading.value);
           const download = new Promise((resolve, reject) => {
             setTimeout(() => {
               resolve('success');
@@ -224,11 +230,11 @@
         resourceRef,
         isOver,
 
-        play,
         onChecked,
         add2Track,
         onPointerOver,
         onPointerLeave,
+        play: _.debounce(play, 300),
 
         AudioResource,
         VideoResource,

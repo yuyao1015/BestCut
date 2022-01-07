@@ -22,7 +22,7 @@
           @pointerleave="onResourceLeave"
           @dragstart="onDragStart"
           @dragend="onDragEnd"
-          v-click-outside:[exclude]="onClickOutside"
+          v-click-outside:[exclude]="resource.active ? onClickOutside : () => {}"
         />
         <Track class="resource-drag-view hidden" ref="trackRef" :track="track" />
       </div>
@@ -31,8 +31,9 @@
     <div
       v-if="showName(resource) && resource.name"
       class="desc-color text-left text-xs ml-2 mt-1 h-4"
-      >{{ resource.name }}</div
     >
+      {{ resource.name }}
+    </div>
   </div>
 </template>
 <script lang="ts">
@@ -123,6 +124,11 @@
         () => trackStore.isResourceOver,
         (val: boolean) => {
           if (!trackRef.value || !maskView || !dragView.el) return;
+          if (!props.usable) {
+            trackStore.setResourceOverState(false);
+            return;
+          }
+
           const trackView = (trackRef.value.$el || trackRef.value) as HTMLElement;
           if (val) {
             trackStore.setTrack(track.value);

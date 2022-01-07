@@ -86,7 +86,7 @@ export const useResourceStore = defineStore({
       this.favoriteList.splice(idx, 1);
     },
     download(resource: ResourceItem) {
-      resource.usable = true;
+      resource.active = resource.usable = true;
     },
 
     setResource(resource?: ResourceItem) {

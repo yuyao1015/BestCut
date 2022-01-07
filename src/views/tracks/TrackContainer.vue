@@ -424,6 +424,7 @@
       };
 
       const onResourceOver = (e: DragEvent) => {
+        if (!trackStore.isResourceOver) return;
         const container = (e.currentTarget as HTMLElement).children[1];
         const rect = container.getBoundingClientRect();
         const dx = e.pageX - rect.left;
