@@ -10,7 +10,7 @@
         @pointermove="onResourceMove"
       />
 
-      <div class="resource-box-mask" v-show="maskVisiable">
+      <div class="resource-box-mask absolute top-0 left-0 w-fulll h-full" v-show="maskVisiable">
         <ResourceBox
           ref="maskRef"
           draggable="true"
@@ -162,7 +162,6 @@
       let dragView: DragView = { el: maskView, left: '', top: '' };
 
       const onResourceMove = (e: PointerEvent) => {
-        if (maskVisiable.value) return;
         maskVisiable.value = true;
 
         const resource = e.currentTarget as HTMLElement;

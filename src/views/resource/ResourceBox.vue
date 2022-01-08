@@ -176,8 +176,6 @@
       const isLoading = ref(false);
       const resourceRef = ref<HTMLElement | null>(null);
       const play = (e: MouseEvent) => {
-        // TODO: play twice
-        // console.log('----- play', isMask.value);
         resourceStore.setResource(props.resource);
         if (usable.value) {
           if (previewStore.player.active && previewStore.player.id === CanvasId) {
@@ -191,7 +189,6 @@
           return;
         } else {
           isLoading.value = true;
-          console.log(isLoading.value);
           const download = new Promise((resolve, reject) => {
             setTimeout(() => {
               resolve('success');
