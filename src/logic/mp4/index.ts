@@ -359,11 +359,11 @@ export class MP4Player {
   jumpTo(idx: number) {
     const { paused, samples } = this;
 
-    if (!samples?.length) return;
+    if (!samples?.length || samples?.length < idx - 1) return;
     if (this.configured() && !paused) this.pause();
     let i = idx;
     this.canPaint = false;
-    while (!samples[i].is_sync) i--;
+    while (samples[i] && !samples[i].is_sync) i--;
     while (i < idx) {
       const sample = samples[i++];
       const chunk = this.getChunk(sample);

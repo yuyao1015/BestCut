@@ -23,7 +23,6 @@
   import TrackBorder from './TrackBorder.vue';
   import Track from '@/components/Track.vue';
   import { ResourceType } from '@/enums/resource';
-  // import { getStyle } from '@/utils/dom';
 
   export default defineComponent({
     name: 'TrackContainer',
@@ -480,6 +479,7 @@
         const container = (e.currentTarget as HTMLElement).children[1];
         const dx = e.pageX - container.getBoundingClientRect().left;
 
+        // console.log('drop', props.isMapEmpty, trackStore.track);
         if (props.isMapEmpty && trackStore.track) {
           lists.value[0].push(trackStore.track.clone());
           activeIdxs.value = { i: 0, j: 0 };

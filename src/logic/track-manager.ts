@@ -113,7 +113,7 @@ export class TrackManager {
       list.reduce((endTime, track, j) => {
         let startTime;
         if (track.type === ResourceType.Video && this.map.main.length && i === lists.length - 1) {
-          startTime = durationString2Sec(list[j - 1]?.duration);
+          startTime = endTime; //durationString2Sec(list[j - 1]?.duration);
         } else {
           startTime = track.offset + endTime;
         }
@@ -147,22 +147,20 @@ export class TrackManager {
     }
   }
 
-  _enque(que: DisplayItem[], item: DisplayItem) {
+  _enque(que: DisplayItem[], item: DisplayItem, l = 0, r = 0): void {
     const track = item.track as AttachmentTrack;
-    if (!track) return;
+    if (!track || item.startTime === item.endTime) return;
 
     const fps = player?.fps || 30;
-    const n = que.length - 1;
-    let l = 0,
-      r = n;
+    r = r ? r : que.length - 1;
     while (l <= r) {
       const mid = l + Math.floor((r - l) / 2);
       const target = que[mid];
       const itemLeft = Object.assign({}, item, { endTime: target.startTime });
       const itemRight = Object.assign({}, item, { startTime: target.endTime });
 
-      if (target.endTime <= item.startTime) l = mid < r ? mid + 1 : r;
-      else if (target.startTime >= item.endTime) r = mid > l ? mid - 1 : l;
+      if (target.endTime <= item.startTime) l = mid + 1;
+      else if (target.startTime >= item.endTime) r = mid - 1;
       // fully covered
       else if (target.startTime <= item.startTime && target.endTime >= item.endTime) {
         target.attachments?.push({
@@ -174,18 +172,15 @@ export class TrackManager {
       }
       // bilateral slice
       else if (item.startTime < target.startTime && item.endTime > target.endTime) {
-        this._enque(que, itemLeft);
-        this._enque(que, itemRight);
-        return;
+        this._enque(que, itemLeft, l, mid - 1);
+        return this._enque(que, itemRight, mid + 1, 0);
       }
       // left slice
       else if (target.endTime > item.endTime) {
-        this._enque(que, itemLeft);
-        return;
+        return this._enque(que, itemLeft, l, mid - 1);
         // right slice
       } else if (target.startTime < item.startTime) {
-        this._enque(que, itemRight);
-        return;
+        return this._enque(que, itemRight, mid + 1, r);
       }
     }
     item.attachments = [{ track, startFrame: item.startTime * fps, endFrame: item.endTime * fps }];
@@ -193,11 +188,9 @@ export class TrackManager {
     que.splice(l, 0, item);
   }
 
-  _venque(que: DisplayItem[], item: DisplayItem) {
-    const n = que.length;
-    let l = 0,
-      r = n;
-
+  _venque(que: DisplayItem[], item: DisplayItem, l = 0, r = 0): void {
+    if (item.startTime === item.endTime) return;
+    r = r ? r : que.length - 1;
     while (l <= r) {
       const mid = l + Math.floor((r - l) / 2);
       const target = que[mid];
@@ -209,19 +202,16 @@ export class TrackManager {
       // fully covered
       else if (target.startTime <= item.startTime && target.endTime >= item.endTime) return;
       // bilateral slice
-      else if (item.startTime < target.startTime && item.endTime > target.endTime) {
-        this._venque(que, itemLeft);
-        this._venque(que, itemRight);
-        return;
+      else if (item.startTime <= target.startTime && item.endTime >= target.endTime) {
+        this._venque(que, itemLeft, l, mid - 1);
+        return this._venque(que, itemRight, mid + 1, 0);
       }
       // left slice
-      else if (target.endTime > item.endTime) {
-        this._venque(que, itemLeft);
-        return;
+      else if (target.endTime >= item.endTime) {
+        return this._venque(que, itemLeft, l, mid - 1);
         // right slice
-      } else if (target.startTime < item.startTime) {
-        this._venque(que, itemRight);
-        return;
+      } else if (target.startTime <= item.startTime) {
+        return this._venque(que, itemRight, mid + 1, r);
       }
     }
     que.splice(l, 0, item);
@@ -279,7 +269,6 @@ export class TrackManager {
         this.displayed.active = true;
 
         player = new MP4Player({ id: CanvasId, url: this.displayed.track?.src });
-        console.log(this.displayed.attachments);
         player.attachments = this.displayed.attachments || [];
       }
     }

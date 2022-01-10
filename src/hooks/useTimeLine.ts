@@ -131,7 +131,9 @@ export default (duration: number, fps: number) => {
         w = s * step;
       }
       ml = (track.offset / unit) * step;
-    } else w = (track / unit) * step;
+    } else {
+      w = (track / unit) * step;
+    }
 
     if (track instanceof VideoTrack && track.transition)
       w -= durationString2Sec(track.transition.duration) / unit;
