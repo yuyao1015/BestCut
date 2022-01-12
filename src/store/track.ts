@@ -64,6 +64,18 @@ export const useTrackStore = defineStore({
     current(): string {
       return getDurationString(this.manager.currentTime / 1000, 30);
     },
+    videoIdx(): number {
+      const { video } = this.trackMap;
+      let l = 0,
+        r = video.length - 1;
+      while (l <= r) {
+        const mid = l + Math.floor((r - l) / 2);
+        const { type } = video[mid][0];
+        if (type !== ResourceType.Video) l = mid + 1;
+        else r = mid - 1;
+      }
+      return l;
+    },
   },
   actions: {
     setScroll(bool: boolean) {

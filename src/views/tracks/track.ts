@@ -1,3 +1,4 @@
+import { ResourceType } from '@/enums/resource';
 import { TrackItem } from '@/logic/track';
 import { swap } from '@/utils';
 
@@ -100,37 +101,46 @@ export const updateOrder = (list: TrackItem[], dx: number, j: number) => {
   col
 */
 // TODO: attachment track create new list boundary
-export const searchColIdx = (lists: TrackItem[][], dy: number, my: number, idx: number) => {
+export const searchColIdx = (
+  lists: TrackItem[][],
+  dy: number,
+  my: number,
+  idx: number,
+  type?: ResourceType
+) => {
   let _dy = dy > 0 ? dy : -dy;
-  let newListVisiable = false,
-    canRequestNewList = true;
 
   const sign = dy > 0 ? 1 : -1;
-  const ratio = idx === -1 ? 1 : 2 / 3;
-  idx === -1 && idx++;
-  while (lists[idx + sign] && lists[idx] && _dy > lists[idx][0].height * ratio) {
-    const cur = lists[idx][0];
-    const next = lists[idx + sign][0];
+  const ratio = type ? 1 : 2 / 3;
+  type = type || lists[idx][0].type;
 
-    if (cur.type !== next.type) {
-      newListVisiable = true;
-      break;
-    }
-
-    _dy -= cur.height + my;
+  while (lists[idx + sign] && lists[idx] && _dy - (sign * my) / 2 > lists[idx][0].height * ratio) {
+    _dy -= lists[idx][0].height + sign * my;
     _dy = _dy > 0 ? _dy : 0;
     idx += sign;
-    newListVisiable = false;
   }
+
+  // active track type different with current list or hovering over margin area
+  let newListVisiable = false;
+  // hovering over current list and paused 500ms
+  let canRequestNewList = true;
+
   if (
-    (idx === 0 && _dy > (lists[0][0].height * 2) / 3) ||
+    (lists[idx] && type !== lists[idx][0].type) ||
+    dy < 0 ||
+    (lists[idx] && _dy > (lists[idx][0].height * 2) / 3) ||
     (idx === lists.length - 1 && _dy > (lists[lists.length - 1][0].height * 2) / 3)
   )
     newListVisiable = true;
 
-  if (lists[idx]) canRequestNewList = _dy > lists[idx][0].height / 3;
+  if (lists[idx]) canRequestNewList = dy > 0 && _dy > (lists[idx][0].height * 2) / 3;
 
-  return { idx, newListVisiable, canRequestNewList, dy: _dy };
+  return {
+    idx,
+    newListVisiable,
+    canRequestNewList,
+    dy: _dy,
+  };
 };
 
 export const deleteTrack = (lists: TrackItem[][], i: number, j: number, isMain: boolean) => {

@@ -64,6 +64,7 @@ export class TrackManager {
   }
 
   addTransition() {
+    // TODO: only affect the main container
     this.displayQueue.video.reduce((t, item, i) => {
       if (!item.track) return t;
 
