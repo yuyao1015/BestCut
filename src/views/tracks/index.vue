@@ -117,20 +117,18 @@
       const title = t('components.tracks');
 
       const trackStore = useTrackStore();
-      const trackMap = ref(trackStore.trackMap);
+      const trackMap = computed(() => trackStore.trackMap);
       const isMapEmpty = computed(() => trackStore.isMapEmpty);
 
       watch(
-        () => trackStore.trackMap,
-        (newVal: TrackMap, oldVal: TrackMap) => {
-          newVal;
-          // trackMap.value = newVal;
+        trackMap,
+        (_, oldVal: TrackMap) => {
           if (!oldVal.main.length && !oldVal.audio.length && !oldVal.video.length) {
             // const { _useUnit, _calcTrackWidth } = useTimeLine(600, 30);
             // useUnit = _useUnit
             // calcWidth = _calcTrackWidth
+            // updateTrackWidth();
           }
-          // updateTrackWidth();
         },
         {
           deep: true,
@@ -211,10 +209,11 @@
         const margin = parseInt(getStyle(track, 'marginTop'));
         const pad = parseInt(getStyle(track, 'paddingTop'));
         const max = height - h - margin - pad;
+        const min = parseInt(getStyle(track, 'minHeight'));
 
         const videoContainer = track.children[0] as HTMLElement;
         setStyle(videoContainer, 'max-height', max + 'px');
-        if (track.scrollTop === 0 && main.offsetTop - pad === max) {
+        if (track.scrollTop === 0 && max > min && main.offsetTop - pad === max) {
           isSticky.value = true;
         } else isSticky.value = false;
       };

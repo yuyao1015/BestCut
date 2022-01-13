@@ -120,7 +120,7 @@ export class EffectResource extends ResourceItem {
 
 export class TextResource extends ResourceItem {
   constructor(options: AttachmentOption) {
-    const _opts = { type: ResourceType.Text, duration: '00:03' };
+    const _opts = { type: ResourceType.Text, duration: '03:03' };
     super(Object.assign(_opts, options));
   }
 }

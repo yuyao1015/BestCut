@@ -34,17 +34,18 @@ export const updateMainOrder = (list: TrackItem[], dx: number, j: number, track?
   const { idx, dx: _dx } = searchMainIdx(list, dx, j);
 
   if (track) {
-    if (_dx >= offset) list.splice(idx + 1, 0, track);
-    else list.splice(idx, 0, track);
-    return;
+    const _idx = _dx >= offset ? idx + 1 : idx;
+    list.splice(_idx, 0, track);
+    return _idx;
   }
 
-  if (idx === j) return;
+  if (idx === j) return idx;
 
   const sign = dx > 0 ? 1 : 0;
   list.splice(idx + sign, 0, list[j]);
   list.splice(j + 1 - sign, 1);
   0 && swap<TrackItem>(list, idx, j);
+  return idx;
 };
 
 // non initial trak's marginLeft > 0
@@ -143,9 +144,14 @@ export const searchColIdx = (
   };
 };
 
-export const deleteTrack = (lists: TrackItem[][], i: number, j: number, isMain: boolean) => {
+export const deleteTrack = (
+  lists: TrackItem[][],
+  i: number,
+  j: number,
+  isMainContainer: boolean
+) => {
   const list = lists[i];
-  if (!isMain && list[j + 1]) list[j + 1].marginLeft += list[j].marginLeft + list[j].width;
+  if (!isMainContainer && list[j + 1]) list[j + 1].marginLeft += list[j].marginLeft + list[j].width;
   list.splice(j, 1);
-  if (!isMain && !list.length) lists.splice(i, 1);
+  if (!isMainContainer && !list.length) lists.splice(i, 1);
 };
