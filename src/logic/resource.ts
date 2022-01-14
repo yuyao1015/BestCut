@@ -93,6 +93,9 @@ export class PictureResource extends ResourceItem {
     const _opts = { type: ResourceType.Picture };
     super(Object.assign(_opts, options));
   }
+  toTrack() {
+    return new Track.VideoTrack(this as Track.TrackOption);
+  }
 }
 
 export class StickerResource extends ResourceItem {

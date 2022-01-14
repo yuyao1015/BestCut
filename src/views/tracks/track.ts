@@ -144,14 +144,9 @@ export const searchColIdx = (
   };
 };
 
-export const deleteTrack = (
-  lists: TrackItem[][],
-  i: number,
-  j: number,
-  isMainContainer: boolean
-) => {
+export const deleteTrack = (lists: TrackItem[][], i: number, j: number, inMain: boolean) => {
   const list = lists[i];
-  if (!isMainContainer && list[j + 1]) list[j + 1].marginLeft += list[j].marginLeft + list[j].width;
+  if (!inMain && list[j + 1]) list[j + 1].marginLeft += list[j].marginLeft + list[j].width;
   list.splice(j, 1);
-  if (!isMainContainer && !list.length) lists.splice(i, 1);
+  if (!inMain && !list.length) lists.splice(i, 1);
 };

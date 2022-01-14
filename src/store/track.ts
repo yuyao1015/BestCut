@@ -1,13 +1,13 @@
 import { TrackManager } from '@/logic/track-manager';
 import { TrackMap, TrackItem } from '@/logic/track';
 import { ResourceType } from '@/enums/resource';
+import { ContainerType } from '@/enums/track';
 
 import { defineStore } from 'pinia';
 
 import { store } from '@/store';
 
 import { mainList, audioList, videoList } from '@/../mocks/_track';
-import { forEachValue } from '@/utils';
 import { getDurationString } from '@/utils/player';
 
 const Debug = 0;
@@ -29,13 +29,14 @@ const trackMap = Debug
         // mainList[1],
       ],
       audio: [],
+      // audio: audioList,
     };
 
 type Calculator = (track: TrackItem | number) => { width: number; marginLeft: number };
 
 interface TrackState {
   isScrolling: boolean;
-  isResourceOver: boolean;
+  _area: ContainerType; // current hovered over container
   trackMap: TrackMap;
   track?: TrackItem;
   calcWidth?: Calculator;
@@ -45,18 +46,23 @@ interface TrackState {
 export const useTrackStore = defineStore({
   id: 'app-track',
   state: (): TrackState => ({
-    isScrolling: false,
-    isResourceOver: false,
     trackMap,
+    isScrolling: false,
+    _area: ContainerType.None,
     manager: new TrackManager(trackMap),
   }),
   getters: {
-    isMapEmpty() {
-      let empty = true;
-      forEachValue(this.trackMap, (_, v) => {
-        if (v.length) empty = false;
-      });
-      return empty;
+    isVideoEmpty(): boolean {
+      return !this.trackMap.video.length;
+    },
+    isAudioEmpty(): boolean {
+      return !this.trackMap.audio.length;
+    },
+    isMapEmpty(): boolean {
+      return !this.trackMap.main.length && this.isAudioEmpty && this.isVideoEmpty;
+    },
+    isResourceOver(): boolean {
+      return this._area !== ContainerType.None;
     },
     total(): string {
       return getDurationString(this.manager.duration(), 30);
@@ -81,9 +87,8 @@ export const useTrackStore = defineStore({
     setScroll(bool: boolean) {
       this.isScrolling = bool;
     },
-    setResourceOverState(bool: boolean) {
-      this.isResourceOver = bool;
-      if (!bool) this.track = undefined;
+    setArea(_area: ContainerType) {
+      this._area = _area;
     },
     setTrack(track: TrackItem) {
       this.track = track;

@@ -25,7 +25,7 @@ const audio = (n: number, album = '', author = '') =>
 const picture = (n: number) =>
   new Array(n).fill({
     type: 'picture',
-    duration: '00:03',
+    duration: '03:03',
     name: '@word().png',
     thumbnail: '/media/png.png',
     src: '/media/png.png',

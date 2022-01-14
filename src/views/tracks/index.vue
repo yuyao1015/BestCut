@@ -29,7 +29,7 @@
             <TrackContainer
               :class="['video-container overflow-y-auto', !isMapEmpty ? 'min-h-1/3' : '']"
               :lists="trackMap.video"
-              type="video"
+              :type="ContainerType.Video"
             />
 
             <TrackContainer
@@ -39,13 +39,12 @@
                 isSticky && trackMap.video.length ? 'sticky-track' : '',
                 isMapEmpty ? 'absolute h-full w-full my-auto' : '',
               ]"
-              :isMapEmpty="isMapEmpty"
               :lists="[trackMap.main]"
               :isMute="isMute"
-              type="main"
+              :type="ContainerType.Main"
             >
               <div
-                v-if="trackMap.main.length"
+                v-if="!isMapEmpty || isResourceOver"
                 class="text-lg w-full h-full rounded-xl flex items-center justify-center"
               >
                 <div
@@ -62,7 +61,7 @@
             <TrackContainer
               :class="['audio-container', !isMapEmpty ? 'min-h-1/3' : '']"
               :lists="trackMap.audio"
-              type="audio"
+              :type="ContainerType.Audio"
             />
           </div>
         </div>
@@ -92,6 +91,7 @@
 
   import { forEachValue } from '@/utils';
   import { useTrackStore } from '@/store/track';
+  import { ContainerType } from '@/enums/track';
 
   type TrackStateItem = TrackItem[] | TrackItem[][];
 
@@ -119,6 +119,7 @@
       const trackStore = useTrackStore();
       const trackMap = computed(() => trackStore.trackMap);
       const isMapEmpty = computed(() => trackStore.isMapEmpty);
+      const isResourceOver = computed(() => trackStore.isResourceOver);
 
       watch(
         trackMap,
@@ -241,7 +242,7 @@
       const onResourceLeave = () => {
         enterCnt--;
         if (enterCnt !== 0) return;
-        trackStore.setResourceOverState(false);
+        trackStore.setArea(ContainerType.None);
       };
       const onResourceDrop = () => {
         enterCnt = 0;
@@ -253,9 +254,11 @@
 
         isMute,
         isMapEmpty,
+        isResourceOver,
         isSticky,
         percent,
         trackMap,
+        ContainerType,
 
         footerRef,
         tracksWrapperRef,

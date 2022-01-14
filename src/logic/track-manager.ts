@@ -111,10 +111,10 @@ export class TrackManager {
     const que = this.displayQueue[type];
 
     lists.forEach((list, i) => {
-      list.reduce((endTime, track, j) => {
+      list.reduce((endTime, track) => {
         let startTime;
         if (track.type === ResourceType.Video && this.map.main.length && i === lists.length - 1) {
-          startTime = endTime; //durationString2Sec(list[j - 1]?.duration);
+          startTime = endTime;
         } else {
           startTime = track.offset + endTime;
         }

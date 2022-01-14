@@ -6,11 +6,12 @@ import { parseGIF, decompressFrames, ParsedFrame, ParsedGif } from 'gifuct-js';
 import axios from 'axios';
 
 import { Base } from './data';
-import { ResourceType } from '@/enums/resource';
 import { deepCopy } from '@/utils';
 import { MP4Source } from './mp4';
 import { Renderer } from './renderer';
 import GifUtil from './gif';
+
+import { ResourceType } from '@/enums/resource';
 
 type ItemOptional = {
   id: string;
@@ -96,7 +97,7 @@ export class VideoTrack extends MediaTrack {
       thumbnail?: string[];
     }
   ) {
-    super(Object.assign({ type: ResourceType.Video, height: 84 }, options));
+    super(Object.assign({ height: 84 }, options, { type: ResourceType.Video }));
     this.src = options.src || '';
     this.thumbnail = options.thumbnail;
     this.audio = options.audio;
@@ -114,7 +115,7 @@ export class AudioTrack extends MediaTrack {
   wave?: string;
   muted?: boolean;
   constructor(options: Omit<TrackOption, 'type'> & { src: string; wave?: string }) {
-    super(Object.assign({ type: ResourceType.Audio, height: 60 }, options));
+    super(Object.assign({ height: 60 }, options, { type: ResourceType.Audio }));
     this.src = options.src;
     this.wave = options.wave;
   }
@@ -136,7 +137,7 @@ export class StickerTrack extends AttachmentTrack {
 
   frameImageData?: ImageData;
   constructor(options: Omit<TrackOption, 'type'> & { src: string; sticker: string }) {
-    super(Object.assign({ type: ResourceType.Sticker, height: 20 }, options));
+    super(Object.assign({ height: 20 }, options, { type: ResourceType.Sticker }));
     this.src = options.src;
     this.sticker = options.sticker;
   }
@@ -214,7 +215,7 @@ export class FilterTrack extends AttachmentTrack {
   };
 
   constructor(options: Omit<TrackOption, 'type'> & { icon?: any }) {
-    super(Object.assign({ type: ResourceType.Filter, height: 20 }, options));
+    super(Object.assign({ height: 20 }, options, { type: ResourceType.Filter }));
     this.icon = options.icon || FilterOutlined;
   }
 }
@@ -232,7 +233,7 @@ export class EffectTrack extends AttachmentTrack {
   };
 
   constructor(options: Omit<TrackOption, 'type'> & { icon?: any }) {
-    super(Object.assign({ type: ResourceType.Effect, height: 20 }, options));
+    super(Object.assign({ height: 20 }, options, { type: ResourceType.Effect }));
     this.icon = options.icon || FireFilled;
   }
 }
@@ -251,7 +252,7 @@ export class TextTrack extends AttachmentTrack {
   // curveSegments = 12;
   // steps = 1;
   constructor(options: Omit<TrackOption, 'type'>) {
-    super(Object.assign({ type: ResourceType.Text, height: 20 }, options));
+    super(Object.assign({ height: 20 }, options, { type: ResourceType.Text }));
   }
 }
 
@@ -319,7 +320,7 @@ export class TransitionTrack extends AttachmentTrack {
     this.render(mesh, _camera);
   };
   constructor(options: Omit<TrackOption, 'type'>) {
-    super(Object.assign({ type: ResourceType.Transition, height: 84 }, options));
+    super(Object.assign({ height: 84 }, options, { type: ResourceType.Transition }));
   }
 }
 
@@ -331,4 +332,12 @@ export type TrackMap = {
 
 export function isMedia(type: ResourceType) {
   return [ResourceType.Video, ResourceType.Audio].includes(type);
+}
+
+export function isVideo(type?: ResourceType) {
+  return type === ResourceType.Video || type === ResourceType.Picture;
+}
+
+export function isAudio(type?: ResourceType) {
+  return type === ResourceType.Audio;
 }

@@ -61,6 +61,7 @@
   import { usePreviewStore } from '@/store/preview';
 
   import { ClickOutside } from '@/directives';
+  import { ContainerType } from '@/enums/track';
 
   type DragView = {
     el?: HTMLElement;
@@ -125,7 +126,7 @@
         (val: boolean) => {
           if (!trackRef.value || !maskView || !dragView.el) return;
           if (!props.usable) {
-            trackStore.setResourceOverState(false);
+            trackStore.setArea(ContainerType.None);
             return;
           }
 
