@@ -101,7 +101,6 @@ export const updateOrder = (list: TrackItem[], dx: number, j: number) => {
 /* 
   col
 */
-// TODO: attachment track create new list boundary
 export const searchColIdx = (
   lists: TrackItem[][],
   dy: number,

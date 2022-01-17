@@ -101,7 +101,8 @@
       };
 
       if (track.value instanceof StickerTrack) {
-        track.value.parse();
+        // TODO: to async
+        // track.value.parse();
       }
 
       return () => (
