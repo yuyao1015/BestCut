@@ -33,7 +33,7 @@
         return [track.name, track.duration];
       };
 
-      const video = (track: VideoTrack) => (
+      const Video = (track: VideoTrack) => (
         <div class="video-track h-full w-full relative">
           <div class="track-item-head">
             {(props.isMute ? ['已静音', ...getTrackHead(track)] : getTrackHead(track)).map(
@@ -46,12 +46,12 @@
           <div class="h-5">foot wave</div>
 
           {track.transition ? (
-            <div class="absolute h-full right-0 top-0">{transition()}</div>
+            <div class="absolute h-full right-0 top-0">{Transition()}</div>
           ) : null}
         </div>
       );
 
-      const audio = (track: AudioTrack) => (
+      const Audio = (track: AudioTrack) => (
         <div class="audio-track h-full w-full">
           <div class="track-item-head">
             {getTrackHead(track).map((title) => (
@@ -62,7 +62,7 @@
         </div>
       );
 
-      const attachment = (track: TrackItem) => (
+      const Attachment = (track: TrackItem) => (
         <div class={'attachment-track track-item-head w-full'}>
           {track instanceof FilterTrack || track instanceof EffectTrack
             ? h(track.icon, { class: 'track-item-title' })
@@ -76,7 +76,7 @@
         </div>
       );
 
-      const transition = () => (
+      const Transition = () => (
         <div
           class={[
             'flex items-center justify-center',
@@ -90,14 +90,14 @@
       );
 
       const trackMap = {
-        [ResourceType.Video]: video,
-        [ResourceType.Picture]: video,
-        [ResourceType.Audio]: audio,
-        [ResourceType.Sticker]: attachment,
-        [ResourceType.Text]: attachment,
-        [ResourceType.Effect]: attachment,
-        [ResourceType.Filter]: attachment,
-        [ResourceType.Transition]: transition,
+        [ResourceType.Video]: Video,
+        [ResourceType.Picture]: Video,
+        [ResourceType.Audio]: Audio,
+        [ResourceType.Sticker]: Attachment,
+        [ResourceType.Text]: Attachment,
+        [ResourceType.Effect]: Attachment,
+        [ResourceType.Filter]: Attachment,
+        [ResourceType.Transition]: Transition,
       };
 
       if (track.value instanceof StickerTrack) {

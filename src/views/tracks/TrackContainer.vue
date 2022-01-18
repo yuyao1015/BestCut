@@ -1,8 +1,8 @@
 <script lang="tsx">
-  import { PropType, ComponentPublicInstance, reactive } from 'vue';
+  import type { PropType, ComponentPublicInstance } from 'vue';
 
   import { isMedia, isVideo, isAudio, TrackMap, TrackItem } from '@/logic/track';
-  import { computed, defineComponent, ref, watch, nextTick } from 'vue';
+  import { computed, defineComponent, ref, watch, nextTick, reactive } from 'vue';
 
   import { ClickOutside } from '@/directives';
   import { MouseCtl } from '@/logic/mouse';
@@ -23,6 +23,7 @@
   import TrackBorder from './TrackBorder.vue';
   import Track from '@/components/Track.vue';
   import { ContainerType } from '@/enums/track';
+  import useTrakDrag from '@/hooks/useTrakDrag';
 
   export default defineComponent({
     name: 'TrackContainer',
@@ -65,12 +66,6 @@
         if (activeTrak.value) activeTrak.value.active = false;
         activeTrak.value = lists.value[i][j];
         if (activeTrak.value) activeTrak.value.active = true;
-      });
-
-      watch(lists.value, (newVal: TrackItem[][], oldVal: TrackItem[][]) => {
-        if (oldVal.length === 0 && newVal.length === 1) {
-          activeIdxs.value = { i: 0, j: 0 };
-        }
       });
 
       // new list line for empty container
@@ -120,7 +115,9 @@
       );
 
       const shadowDx = ref(0);
-      const currentList = ref<TrackItem[]>([]);
+      const currentList = computed(() =>
+        activeIdxs.value.i !== -1 ? lists.value[activeIdxs.value.i] : []
+      );
       const shadowLeft = computed(() => {
         const { j } = draggedIdxs.value;
         if (!currentList.value[j]) return shadowDx.value;
@@ -214,6 +211,15 @@
 
       const newListRequestor = requestNewList();
       const onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
+        track;
+        e.stopPropagation();
+        activeIdxs.value = { i, j };
+
+        window.addEventListener('keydown', onShortcut);
+        window.addEventListener('keyup', offShortcut);
+      };
+
+      const _onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
         e.stopPropagation();
         activeIdxs.value = draggedIdxs.value = { i, j };
 
@@ -229,7 +235,7 @@
         let mtrak = mtraks[i][j];
         if (!mtrak) mtraks[i][j] = mtrak = new MouseCtl(trak);
 
-        const currentlist = (currentList.value = lists.value[i]);
+        const currentlist = lists.value[i];
 
         const _track = Object.assign({}, track, { marginLeft: -track.width });
         // drag effect on view
@@ -344,6 +350,7 @@
           draggedIdxs.value = { i: -1, j: -1 };
         };
       };
+      _onTrackDown;
 
       const shortcutEvent = () => {
         let isCtrlPressing = false;
@@ -382,6 +389,25 @@
         }
       };
 
+      const trackDragger = useTrakDrag(draggedIdxs, activeIdxs);
+      const PlaceholderInMain = () => (
+        <div
+          class={[
+            'rounded-md w-full flex items-center justify-start pl-10 opacity-50 mr-2',
+            !trackStore.isMapEmpty || trackStore.isResourceOver
+              ? 'h-24'
+              : 'border border-light-50 border-dashed h-20',
+          ]}
+          style="background-color: rgba(255, 255, 255, 0.1);"
+        >
+          <div>
+            {!trackStore.isMapEmpty || trackStore.isResourceOver ? null : (
+              <span>视频拖拽到这里</span>
+            )}
+          </div>
+        </div>
+      );
+
       const trackList = (tracks: TrackItem[], i: number) => (
         <div
           class={[
@@ -391,44 +417,34 @@
               : '',
           ]}
         >
-          {inMain() && !tracks.length ? (
-            <div
-              class={[
-                'rounded-md w-full flex items-center justify-start pl-10 opacity-50 mr-2',
-                !trackStore.isMapEmpty || trackStore.isResourceOver
-                  ? 'h-24'
-                  : 'border border-light-50 border-dashed h-20',
-              ]}
-              style="background-color: rgba(255, 255, 255, 0.1);"
-            >
-              <div>
-                {!trackStore.isMapEmpty || trackStore.isResourceOver ? null : (
-                  <span>视频拖拽到这里</span>
-                )}
-              </div>
-            </div>
-          ) : (
-            tracks.map((track: TrackItem, j: number) => {
-              return (
-                <Track
-                  track={track}
-                  isMute={attrs.isMute as boolean}
-                  onPointerdown={(e: PointerEvent) => onTrackDown(e, track, i, j)}
-                  v-clickOutside={() => onClickOutside(track)}
-                >
-                  {track.active ? (
-                    <TrackBorder
+          {inMain() && !tracks.length
+            ? PlaceholderInMain()
+            : tracks.map((track: TrackItem, j: number) => {
+                return (
+                  <div
+                    draggable={true}
+                    onDragstart={(e: DragEvent) => trackDragger.dragstart(e, track, i, j)}
+                    onDragend={() => trackDragger.dragend()}
+                    onPointerdown={(e: PointerEvent) => onTrackDown(e, track, i, j)}
+                  >
+                    <Track
                       track={track}
-                      i={i}
-                      j={j}
-                      lists={lists.value}
-                      v-model={[canDrag.value, 'canDrag']}
-                    />
-                  ) : null}
-                </Track>
-              );
-            })
-          )}
+                      isMute={attrs.isMute as boolean}
+                      v-clickOutside={() => onClickOutside(track)}
+                    >
+                      {track.active ? (
+                        <TrackBorder
+                          track={track}
+                          i={i}
+                          j={j}
+                          lists={lists.value}
+                          v-model={[canDrag.value, 'canDrag']}
+                        />
+                      ) : null}
+                    </Track>
+                  </div>
+                );
+              })}
 
           {draggedIdxs.value.i === i && activeTrak.value ? (
             <div
@@ -504,7 +520,6 @@
         const container = (e.currentTarget as HTMLElement).children[1];
         const rect = container.getBoundingClientRect();
         const dx = (dragData.dx = e.pageX - rect.left);
-        let dy = e.pageY - rect.top;
 
         if (inMain()) {
           if (!trackStore.isMapEmpty) newListLine.value.i = -1;
@@ -534,7 +549,7 @@
           const mb = parseInt(style.marginBottom);
           const my = Math.min(mt, mb) * 2;
 
-          dy = dragData.dy = dy - (inVideo() ? mt : my);
+          const dy = (dragData.dy = e.pageY - rect.top - (inVideo() ? mt : my));
           let {
             idx,
             dy: _dy,

@@ -93,6 +93,8 @@
   import { useTrackStore } from '@/store/track';
   import { ContainerType } from '@/enums/track';
 
+  import _ from 'lodash-es';
+
   type TrackStateItem = TrackItem[] | TrackItem[][];
 
   export default defineComponent({
@@ -219,7 +221,7 @@
         } else isSticky.value = false;
       };
       const onStickyTrack = (e: WheelEvent) => {
-        stickyTrack();
+        _.debounce(stickyTrack, 100)();
         e.stopPropagation();
       };
 
@@ -281,7 +283,7 @@
   .sticky-track {
     background-color: rgba(255, 255, 255, 0.08);
     padding-bottom: 15px;
-    transition: 100ms all;
+    // transition: 100ms all;
   }
 
   .sticky-track::after {
