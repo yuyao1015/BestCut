@@ -61,6 +61,12 @@ export default (draggedIdxs: Ref<{ i: number; j: number }>) => {
     i() {
       return idxs.i;
     },
+    j() {
+      return idxs.j;
+    },
+    lastY() {
+      return lastY;
+    },
     getOffset() {
       return offset;
     },
@@ -106,12 +112,12 @@ export default (draggedIdxs: Ref<{ i: number; j: number }>) => {
       window.addEventListener('dragover', onDragOver);
     },
     dragend: () => {
-      // console.log('end');
       trackStore.setOffset(0);
       idxs = { i: -1, j: -1 };
       _area = ContainerType.OutSide;
       draggedIdxs.value = { i: -1, j: -1 };
 
+      trak.style.opacity = '';
       window.removeEventListener('dragover', onDragOver);
 
       if (!dragView.el) return;
@@ -119,7 +125,7 @@ export default (draggedIdxs: Ref<{ i: number; j: number }>) => {
       dragView.el = undefined;
     },
     show() {
-      trak.style.opacity = '';
+      if (trak.style.opacity) trak.style.opacity = '';
     },
   };
 };

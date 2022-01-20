@@ -1,14 +1,12 @@
 <script lang="tsx">
-  import type { PropType, ComponentPublicInstance } from 'vue';
+  import type { PropType } from 'vue';
 
   import { isMedia, isVideo, isAudio, TrackMap, TrackItem } from '@/logic/track';
   import { computed, defineComponent, ref, watch, nextTick, reactive } from 'vue';
 
   import { ClickOutside } from '@/directives';
-  import { MouseCtl } from '@/logic/mouse';
 
   import { trackHeadWidth } from '@/settings/trackSetting';
-  import { getShapedArrary } from '@/utils';
   import { useTrackStore } from '@/store/track';
 
   import {
@@ -55,8 +53,6 @@
       };
 
       const canDrag = ref(true);
-      const mtraks: (MouseCtl | null)[][] = getShapedArrary(lists.value, null);
-      const trackListsRef = ref<ComponentPublicInstance | null>(null);
       const draggedIdxs = ref({ i: -1, j: -1 });
       const activeIdxs = ref({ i: -1, j: -1 });
       const activeTrak = ref<undefined | TrackItem>(undefined);
@@ -69,7 +65,7 @@
       });
 
       const trackDragger = useTrakDrag(draggedIdxs);
-      const isSameArea = () => trackDragger.getArea() === props.type;
+      const inSameArea = () => trackDragger.getArea() === props.type;
 
       const newListLine = ref({ i: -1, top: true });
       const requestNewList = () => {
@@ -151,8 +147,8 @@
                 trackDragger.i() !== -1 &&
                 isVideo(trackStore.track?.type)
               ) {
-                if (trackStore.track?.id === lists.value[0][draggedIdxs.value.j]?.id)
-                  lists.value[0].splice(draggedIdxs.value.j, 1);
+                if (trackStore.track?.id === lists.value[0][trackDragger.j()]?.id)
+                  lists.value[0].splice(trackDragger.j(), 1);
                 trackDragger.show();
                 for (const trak of lists.value[0]) {
                   trak.marginRight = 0;
@@ -163,7 +159,10 @@
               }
             });
           } else {
-            if (newVal === ContainerType.Main) newListRequestor.cancel();
+            if (newVal === ContainerType.Main) {
+              newListRequestor.cancel();
+              draggedIdxs.value.i = -1;
+            }
           }
         }
       );
@@ -171,14 +170,14 @@
       const shadowDx = ref(0);
       const shadowOffset = computed(() => {
         const currentlist = trackDragger.i() === -1 ? [] : lists.value[trackDragger.i()];
-        if (!currentlist.length || !isSameArea()) return 0;
+        if (!currentlist.length || !inSameArea()) return 0;
         return currentlist
-          .slice(0, draggedIdxs.value.j)
+          .slice(0, trackDragger.j())
           .reduce((l, trak) => l + trak.width + (inMain() ? 0 : trak.marginLeft), 0);
       });
       const shadowLeft = computed(() => {
         if (trackDragger.i() === -1) return shadowDx.value;
-        const ml = inMain() ? 0 : lists.value[trackDragger.i()][draggedIdxs.value.j].marginLeft;
+        const ml = inMain() ? 0 : lists.value[trackDragger.i()][trackDragger.j()].marginLeft;
         return Math.max(shadowOffset.value + ml + shadowDx.value, 0);
       });
 
@@ -240,71 +239,6 @@
         window.addEventListener('keyup', offShortcut);
       };
 
-      const _onTrackDown = (track: TrackItem, i: number, j: number) => {
-        const my = 0;
-
-        const mtrak = new MouseCtl(document.createElement('div'));
-        const currentlist = lists.value[i];
-
-        const _track = Object.assign({}, track, { marginLeft: -track.width });
-
-        mtrak.upCallback = function () {
-          let dx = parseInt(this.element.style.left);
-          let dy = parseInt(this.element.style.top);
-
-          const { idx } = searchColIdx(lists.value, dy, my, i);
-          const newListVisiable = newListLine.value.i !== -1;
-          const placeTop = newListLine.value.top;
-
-          if (newListVisiable) {
-            _track.marginLeft = shadowLeft.value;
-            const insertedIdx = idx + 1 - +placeTop;
-            const removedIdx = i + +placeTop;
-            lists.value.splice(insertedIdx, 0, [_track]);
-            activeIdxs.value = {
-              i:
-                insertedIdx > removedIdx && lists.value[removedIdx].length === 1
-                  ? insertedIdx - 1
-                  : insertedIdx,
-              j: 0,
-            };
-            deleteTrack(lists.value, removedIdx, j, inMain());
-            updateMap(_track, lists.value);
-          } else {
-            // horizontal
-            if (idx === i) {
-              if (inMain()) {
-                updateMainOrder(currentlist, dx, j);
-              } else {
-                updateOrder(currentlist, dx, j);
-              }
-              updateMap(lists.value[i][j], lists.value);
-              // vertical
-            } else {
-              const dstList = lists.value[idx];
-              dstList.unshift(_track);
-              const { idx: _j, overlap } = searchRowIdx(
-                dstList,
-                shadowLeft.value + _track.width,
-                0
-              );
-              if (overlap) {
-                dstList.shift();
-              } else {
-                updateOrder(dstList, shadowLeft.value + _track.width, 0);
-                activeIdxs.value = {
-                  i: idx > i && currentlist.length === 1 ? idx - 1 : idx,
-                  j: _j,
-                };
-                deleteTrack(lists.value, i, j, inMain());
-                updateMap(_track, lists.value);
-              }
-            }
-          }
-        };
-      };
-      _onTrackDown;
-
       const shortcutEvent = () => {
         let isCtrlPressing = false;
         return {
@@ -318,8 +252,6 @@
                 const { i, j } = activeIdxs.value;
                 const track = lists.value[i][j];
                 deleteTrack(lists.value, i, j, inMain());
-                (mtraks[i][j] as MouseCtl).moveCallback = () => {};
-                (mtraks[i][j] as MouseCtl).upCallback = () => {};
                 activeIdxs.value = { i: -1, j: -1 };
                 draggedIdxs.value = { i: -1, j: -1 };
                 updateMap(track, lists.value);
@@ -342,82 +274,6 @@
         }
       };
 
-      const PlaceholderInMain = () => (
-        <div
-          class={[
-            'rounded-md w-full flex items-center justify-start pl-10 opacity-50 mr-2',
-            !trackStore.isMapEmpty || trackStore.isResourceOver
-              ? 'h-24'
-              : 'border border-light-50 border-dashed h-20',
-          ]}
-          style="background-color: rgba(255, 255, 255, 0.1);"
-        >
-          <div>
-            {!trackStore.isMapEmpty || trackStore.isResourceOver ? null : (
-              <span>视频拖拽到这里</span>
-            )}
-          </div>
-        </div>
-      );
-
-      const TrackList = (tracks: TrackItem[], i: number) => (
-        <div
-          class={[
-            'track-list relative flex w-full my-2',
-            draggedIdxs.value.i === i || (draggedIdxs.value.i === -1 && activeIdxs.value.i === i)
-              ? 'track-list-active'
-              : '',
-          ]}
-        >
-          {inMain() && !tracks.length
-            ? PlaceholderInMain()
-            : tracks.map((track: TrackItem, j: number) => {
-                return (
-                  <div
-                    draggable={true}
-                    onDragstart={(e: DragEvent) =>
-                      trackDragger.dragstart(e, track, i, j, props.type)
-                    }
-                    onDragend={() => trackDragger.dragend()}
-                    onPointerdown={(e: PointerEvent) => onTrackDown(e, track, i, j)}
-                  >
-                    <Track
-                      track={track}
-                      isMute={attrs.isMute as boolean}
-                      v-clickOutside={() => onClickOutside(track)}
-                    >
-                      {track.active ? (
-                        <TrackBorder
-                          track={track}
-                          i={i}
-                          j={j}
-                          lists={lists.value}
-                          v-model={[canDrag.value, 'canDrag']}
-                        />
-                      ) : null}
-                    </Track>
-                  </div>
-                );
-              })}
-
-          {draggedIdxs.value.i === i && activeTrak.value ? (
-            <div
-              class="shadow absolute rounded-sm m-px px-1 bg-gray-300 opacity-10 h-full pointer-events-none"
-              style={`width: ${Number(activeTrak.value.width)}px;
-                      top:0; left: ${shadowLeft.value}px;`}
-            />
-          ) : null}
-
-          {newListLine.value.i === i ? (
-            <div
-              class="new-list-line absolute w-full h-0.5 left-0 pointer-events-none"
-              style={`transform: translateY(${newListLine.value.top ? '-' : ''}0.6rem);
-                        ${newListLine.value.top ? 'top' : 'bottom'}: 0;`}
-            ></div>
-          ) : null}
-        </div>
-      );
-
       let enterCnt = 0;
       const onTrackEnter = () => {
         if (enterCnt === 0) {
@@ -425,16 +281,14 @@
         }
         enterCnt++;
 
-        const type = inMain()
-          ? ContainerType.Main
-          : inVideo()
-          ? ContainerType.Video
-          : ContainerType.Audio;
+        let type = ContainerType.Main;
+        if (inVideo()) type = ContainerType.Video;
+        if (inAudio()) type = ContainerType.Audio;
         trackStore.setArea(type);
+
         nextTick(() => {
           activeTrak.value = trackStore.track?.clone();
         });
-        // if (enterCnt !== 1) return;
       };
 
       const onTrackLeave = () => {
@@ -482,11 +336,13 @@
           if (dx > 0) draggedIdxs.value.i = 0;
           else draggedIdxs.value.i = -1;
 
-          dragData.j = isSameArea()
-            ? swapMainTrack(lists.value[0], dx - shadowOffset.value, draggedIdxs.value.j)
+          dragData.j = inSameArea()
+            ? swapMainTrack(lists.value[0], dx - shadowOffset.value, trackDragger.j())
             : swapMainTrack(lists.value[0], dx + 20, -1, trackStore.track.clone());
           return;
         }
+
+        shadowDx.value = dx - shadowOffset.value;
 
         if (
           !lists.value.length &&
@@ -562,7 +418,6 @@
 
         if (draggedIdxs.value.i === -1) return;
 
-        shadowDx.value = dx - shadowOffset.value;
         if (idx !== trackDragger.i()) {
           const dummyList = lists.value[idx].map((track) => Object.assign({}, track));
           dummyList.unshift(trackStore.track);
@@ -572,26 +427,23 @@
             draggedIdxs.value.i = trackDragger.i();
           }
 
-          dragData.j = j;
-          dragData.overlap = overlap;
+          Object.assign(dragData, { j, overlap });
         } else {
           const { idx: j, overlap } = searchRowIdx(
             lists.value[trackDragger.i()],
             dx - shadowOffset.value,
-            draggedIdxs.value.j
+            trackDragger.j()
           );
           if (overlap) {
             draggedIdxs.value.i = -1;
           }
-
-          dragData.j = j;
-          dragData.overlap = overlap;
+          Object.assign(dragData, { j, overlap });
         }
       };
 
       // update change after dragging
-      const onTrackDrop = () => {
-        if (!trackStore.track) return onDrop();
+      const onTrackDrop = (e: DragEvent) => {
+        if (!trackStore.track) return;
         const { dx, idx, j, overlap } = dragData;
         const track = trackStore.track.clone();
 
@@ -603,75 +455,164 @@
             track.marginLeft = dx;
             updateMap(track, [[track]]);
           }
-          return onDrop();
+          return;
         }
 
         // const { i, j } = trackDragger.getIdxs();
 
         if (inMain() && isVideo(track.type)) {
-          const j = isSameArea()
-            ? updateMainOrder(lists.value[0], dx, draggedIdxs.value.j)
-            : updateMainOrder(lists.value[0], dx, -1, track);
-          activeIdxs.value = { i: 0, j };
+          inSameArea()
+            ? updateMainOrder(lists.value[0], dx, trackDragger.j())
+            : updateMainOrder(lists.value[0], dx + 20, -1, track);
+          activeIdxs.value = { i: 0, j: dragData.j };
+          draggedIdxs.value.i = -1;
         }
 
+        if (inMain()) return;
+
+        let removedIdx = trackDragger.i();
         // create new track list
-        const removedIdx = trackDragger.i() + +newListLine.value.top;
-        if (!inMain() && newListLine.value.i !== -1) {
-          track.marginLeft = dx;
+        if (newListLine.value.i !== -1) {
+          track.marginLeft = shadowLeft.value;
           const offset = trackStore.isVideoEmpty ? idx >= newListLine.value.i : 1;
           const insertedIdx = newListLine.value.i + +offset - +newListLine.value.top;
 
-          // console.log(insertedIdx, idx, newListLine.value);
           lists.value.splice(insertedIdx, 0, [track]);
 
           let i = insertedIdx;
           if (
-            isSameArea() &&
-            trackDragger.i() === -1 &&
-            idx !== trackDragger.i() &&
             insertedIdx > removedIdx &&
+            trackDragger.i() !== -1 &&
             lists.value[removedIdx].length === 1
           )
             i--;
-
           activeIdxs.value = { i, j: 0 };
+          removedIdx += +(e.pageY <= trackDragger.lastY());
+          // console.log(i, idx, newListLine.value);
         }
 
+        const currentlist = lists.value[trackDragger.i()];
         // insert into exist track list
-        if (!inMain() && newListLine.value.i === -1 && draggedIdxs.value.i !== -1) {
-          track.marginLeft = -track.width;
-          const dstList = lists.value[draggedIdxs.value.i];
-          dstList.unshift(track);
-          if (overlap) {
-            dstList.shift();
+        if (newListLine.value.i === -1 && draggedIdxs.value.i !== -1) {
+          let i = idx;
+          if (trackDragger.i() === idx) {
+            updateOrder(currentlist, dx - shadowOffset.value, trackDragger.j());
+            updateMap(currentlist[0], lists.value);
+            removedIdx = -1;
           } else {
-            updateOrder(dstList, dx + track.width, 0);
-            activeIdxs.value = { i: draggedIdxs.value.i, j };
+            track.marginLeft = -track.width;
+            const dstList = lists.value[draggedIdxs.value.i];
+            dstList.unshift(track);
+            if (overlap) {
+              dstList.shift();
+            } else {
+              updateOrder(dstList, shadowLeft.value + track.width, 0);
+              i = idx > trackDragger.i() && currentlist.length === 1 ? idx - 1 : idx;
+            }
           }
+          activeIdxs.value = { i, j };
         }
-        // if (idx !== i) {
-        //   const removedIdx = i + +newListLine.value.top;
-        //   activeIdxs.value = {
-        //     i:
-        //       insertedIdx > removedIdx && lists.value[removedIdx].length === 1
-        //         ? insertedIdx - 1
-        //         : insertedIdx,
-        //     j: 0,
-        //   };
-        // deleteTrack(lists.value, removedIdx, j, inMain());
-        // }
 
-        onDrop();
+        // console.log(removedIdx, trackDragger.j(), +(e.pageY <= trackDragger.lastY()));
+        if (trackDragger.i() !== -1 && removedIdx >= 0) {
+          deleteTrack(lists.value, removedIdx, trackDragger.j(), false);
+          updateMap(track, lists.value);
+        }
+        draggedIdxs.value.i = -1;
       };
 
-      const onDrop = () => {
-        // console.log('drop');
+      const onTrackend = () => {
+        if (inVideo() && trackStore._area === ContainerType.Main) {
+          deleteTrack(lists.value, trackDragger.i(), trackDragger.j(), false);
+        }
         enterCnt = 0;
         newListRequestor.cancel();
         trackStore.setArea(ContainerType.OutSide);
-        draggedIdxs.value.i = -1;
+        trackDragger.dragend();
       };
+
+      /* ************************************************************************
+                              Component
+      ************************************************************************ */
+      const PlaceholderInMain = () => (
+        <div
+          class={[
+            'rounded-md w-full flex items-center justify-start pl-10 opacity-50 mr-2',
+            !trackStore.isMapEmpty || trackStore.isResourceOver
+              ? 'h-24'
+              : 'border border-light-50 border-dashed h-20',
+          ]}
+          style="background-color: rgba(255, 255, 255, 0.1);"
+        >
+          <div>
+            {!trackStore.isMapEmpty || trackStore.isResourceOver ? null : (
+              <span>视频拖拽到这里</span>
+            )}
+          </div>
+        </div>
+      );
+      const Shadow = (i: number) =>
+        draggedIdxs.value.i === i && activeTrak.value ? (
+          <div
+            class="shadow absolute rounded-sm m-px px-1 bg-gray-300 opacity-10 h-full pointer-events-none"
+            style={`width: ${Number(activeTrak.value.width)}px;
+                      top:0; left: ${shadowLeft.value}px;`}
+          />
+        ) : null;
+
+      const NewTrackList = (i: number) =>
+        newListLine.value.i === i ? (
+          <div
+            class="new-list-line absolute w-full h-0.5 left-0 pointer-events-none"
+            style={`transform: translateY(${newListLine.value.top ? '-' : ''}0.6rem);
+                        ${newListLine.value.top ? 'top' : 'bottom'}: 0;`}
+          ></div>
+        ) : null;
+
+      const TrackList = (tracks: TrackItem[], i: number) => (
+        <div
+          class={[
+            'track-list relative flex w-full my-2',
+            draggedIdxs.value.i === i || (draggedIdxs.value.i === -1 && activeIdxs.value.i === i)
+              ? 'track-list-active'
+              : '',
+          ]}
+        >
+          {inMain() && !tracks.length
+            ? PlaceholderInMain()
+            : tracks.map((track: TrackItem, j: number) => {
+                return (
+                  <div
+                    draggable={true}
+                    onDragstart={(e: DragEvent) =>
+                      trackDragger.dragstart(e, track, i, j, props.type)
+                    }
+                    onPointerdown={(e: PointerEvent) => onTrackDown(e, track, i, j)}
+                  >
+                    <Track
+                      track={track}
+                      isMute={attrs.isMute as boolean}
+                      v-clickOutside={() => onClickOutside(track)}
+                    >
+                      {track.active ? (
+                        <TrackBorder
+                          track={track}
+                          i={i}
+                          j={j}
+                          lists={lists.value}
+                          v-model={[canDrag.value, 'canDrag']}
+                        />
+                      ) : null}
+                    </Track>
+                  </div>
+                );
+              })}
+
+          {Shadow(i)}
+
+          {NewTrackList(i)}
+        </div>
+      );
 
       return () => (
         <div
@@ -679,13 +620,14 @@
           onDragenter={onTrackEnter}
           onDragover={onTrackOver}
           onDragleave={onTrackLeave}
+          onDragend={onTrackend}
           onDrop={onTrackDrop}
         >
           <div class="track-container-head h-full" style={`flex:0 0 ${trackHeadWidth}px;`}>
             {slots.default ? slots.default() : null}
           </div>
 
-          <div ref={trackListsRef} class="list w-full h-full flex flex-col justify-center">
+          <div class="list w-full h-full flex flex-col justify-center">
             {lists.value.map((tracks, i) => TrackList(tracks, i))}
           </div>
         </div>

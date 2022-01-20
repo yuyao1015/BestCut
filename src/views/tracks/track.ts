@@ -26,26 +26,26 @@ export const searchMainIdx = (list: TrackItem[], dx: number, idx: number) => {
 };
 
 export const updateMainOrder = (list: TrackItem[], dx: number, j: number, track?: TrackItem) => {
+  const { idx, dx: _dx } = searchMainIdx(list, dx, j);
+
   for (const trak of list) {
     trak.marginRight = 0;
     trak.marginLeft = 0;
   }
 
-  const { idx, dx: _dx } = searchMainIdx(list, dx, j);
-
   if (track) {
+    track.marginLeft = track.marginRight = 0;
     const _idx = _dx >= offset ? idx + 1 : idx;
     list.splice(_idx, 0, track);
-    return _idx;
+    return;
   }
 
-  if (idx === j) return idx;
+  if (idx === j) return;
 
   const sign = dx > 0 ? 1 : 0;
   list.splice(idx + sign, 0, list[j]);
   list.splice(j + 1 - sign, 1);
   0 && swap<TrackItem>(list, idx, j);
-  return idx;
 };
 
 // non initial trak's marginLeft > 0
