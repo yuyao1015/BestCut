@@ -39,17 +39,7 @@
 <script lang="ts">
   import type { ComponentPublicInstance } from 'vue';
 
-  import {
-    defineComponent,
-    ref,
-    PropType,
-    watch,
-    nextTick,
-    computed,
-    onMounted,
-    onUnmounted,
-    onBeforeMount,
-  } from 'vue';
+  import { defineComponent, ref, PropType, watch, nextTick, computed, onBeforeMount } from 'vue';
 
   import ResourceBox from './ResourceBox.vue';
   import Track from '@/components/Track.vue';
@@ -65,8 +55,8 @@
 
   type DragView = {
     el?: HTMLElement;
-    left: string;
-    top: string;
+    left: number;
+    top: number;
   };
 
   export default defineComponent({
@@ -126,7 +116,7 @@
         (val: boolean) => {
           if (!trackRef.value || !maskView || !dragView.el) return;
           if (!props.usable) {
-            trackStore.setArea(ContainerType.None);
+            trackStore.setArea(ContainerType.OutSide);
             return;
           }
 
@@ -134,14 +124,14 @@
           if (val) {
             trackStore.setTrack(track.value);
 
-            trackView.style.left = dragView.left;
-            trackView.style.top = dragView.top;
+            trackView.style.left = `${dragView.left}px`;
+            trackView.style.top = `${dragView.top}px`;
             trackView.style.display = 'block';
             dragView.el.style.display = 'none';
             dragView.el = trackView;
           } else {
-            maskView.style.left = dragView.left;
-            maskView.style.top = dragView.top;
+            maskView.style.left = `${dragView.left}px`;
+            maskView.style.top = `${dragView.top}px`;
             maskView.style.display = 'block';
             dragView.el.style.display = 'none';
             dragView.el = maskView;
@@ -158,9 +148,8 @@
         return trak;
       });
 
-      let maskTop = 0;
       let maskView: HTMLElement | undefined;
-      let dragView: DragView = { el: maskView, left: '', top: '' };
+      let dragView: DragView = { el: maskView, left: 0, top: 0 };
 
       const onResourceMove = (e: PointerEvent) => {
         maskVisiable.value = true;
@@ -177,10 +166,7 @@
           width: rect.width + 'px',
           height: rect.height + 'px',
         });
-        dragView.el = maskView;
-        dragView.top = top + 'px';
-        dragView.left = left + 'px';
-        maskTop = (document.getElementById('resource-list') as HTMLElement).scrollTop || 0;
+        dragView = { el: maskView, top, left };
 
         let container = (resource.parentNode || document.body) as HTMLElement;
         do {
@@ -244,19 +230,6 @@
         maskVisiable.value = false;
         if (dragView.el) dragView.el.style.display = 'none';
       };
-
-      // update position when hover in mask
-      const updateMaskTop = () => {
-        const resourceList = document.getElementById('resource-list') as HTMLElement;
-        if (!resourceList || !maskVisiable.value || !maskView) return;
-        maskView.style.top = parseInt(dragView.top) + maskTop - resourceList.scrollTop + 'px';
-      };
-      onMounted(() => {
-        window.addEventListener('mousewheel', updateMaskTop, { passive: false });
-      });
-      onUnmounted(() => {
-        window.removeEventListener('mousewheel', updateMaskTop);
-      });
 
       const exclude = ref<Element[]>([]);
       onBeforeMount(() => {

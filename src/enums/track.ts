@@ -1,5 +1,5 @@
 export enum ContainerType {
-  None = 'outside',
+  OutSide = 'outside',
   Audio = 'audio',
   Main = 'main',
   Video = 'video',

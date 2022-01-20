@@ -1,31 +1,31 @@
-import type { Ref } from 'vue';
+import { Ref } from 'vue';
 import type { TrackItem } from '@/logic/track';
 
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import _ from 'lodash-es';
 
 import { setStyle } from '@/utils/dom';
 import { useTrackStoreWithOut } from '@/store/track';
+import { ContainerType } from '@/enums/track';
 
-type DragView = {
-  el?: HTMLElement;
-  left: number;
-  top: number;
-};
-
-type Idxes = Ref<{ i: number; j: number }>;
-
-export default (draggedIdxs: Idxes, activeIdxs: Idxes) => {
+export default (draggedIdxs: Ref<{ i: number; j: number }>) => {
   let lastX = 0;
   let lastY = 0;
+  const offset = 0;
+  let trak: HTMLElement;
   let traks: HTMLElement;
+  let footerContent: HTMLElement;
+  let idxs = { i: -1, j: -1 };
+  let _area = ContainerType.OutSide;
+
   const scrollTop = ref(0);
+  const scrollLeft = ref(0);
   const trackStore = useTrackStoreWithOut();
   const dragView: DragView = { el: undefined, left: 0, top: 0 };
 
   const onDragOver = (e: DragEvent) => {
     if (!dragView.el) return;
-    dragView.el.style.left = `${dragView.left + e.pageX - lastX}px`;
+    dragView.el.style.left = `${dragView.left + scrollLeft.value + e.pageX - lastX}px`;
     dragView.el.style.top = `${dragView.top + scrollTop.value + e.pageY - lastY}px`;
   };
   const updateScrollTop = () => {
@@ -38,19 +38,50 @@ export default (draggedIdxs: Idxes, activeIdxs: Idxes) => {
     };
     _.debounce(fn, 100)();
   };
+  const updateScrollLeft = () => {
+    const fn = () => {
+      scrollLeft.value = footerContent.scrollLeft;
+    };
+    _.debounce(fn, 100)();
+  };
+
+  onMounted(() => {
+    traks = document.getElementById('tracks-wrapper')?.children[0] as HTMLElement;
+    traks.addEventListener('scroll', updateScrollTop, true);
+
+    footerContent = document.getElementsByClassName('footer-content')[0]?.parentNode as HTMLElement;
+    footerContent.addEventListener('scroll', updateScrollLeft, true);
+  });
+  onUnmounted(() => {
+    traks.removeEventListener('scroll', updateScrollTop);
+    footerContent.removeEventListener('scroll', updateScrollLeft);
+  });
 
   return {
-    dragstart: (e: DragEvent, track: TrackItem, i: number, j: number) => {
+    i() {
+      return idxs.i;
+    },
+    getOffset() {
+      return offset;
+    },
+    getArea() {
+      return _area;
+    },
+    setArea(area: ContainerType) {
+      _area = area;
+    },
+    lastX() {
+      return lastX;
+    },
+    dragstart: (e: DragEvent, track: TrackItem, i: number, j: number, type: ContainerType) => {
       // console.log('start');
-      traks = document.getElementById('tracks-wrapper')?.children[0] as HTMLElement;
       if (!traks) return;
       (lastX = e.pageX), (lastY = e.pageY);
-      draggedIdxs.value = { i, j };
-      activeIdxs.value = { i, j };
 
-      const trak = e.currentTarget as HTMLElement;
+      trak = e.currentTarget as HTMLElement;
       const rect = trak.getBoundingClientRect();
       const { top, left } = rect;
+      trackStore.setOffset(e.pageX - left - 8);
 
       dragView.el = trak.cloneNode(true) as HTMLElement;
       dragView.left = left;
@@ -67,22 +98,28 @@ export default (draggedIdxs: Idxes, activeIdxs: Idxes) => {
       trak.style.opacity = '0';
       traks.appendChild(dragView.el);
 
+      _area = type;
+      idxs = { i, j };
+      draggedIdxs.value = { i, j };
       trackStore.setTrack(track);
 
-      traks.addEventListener('scroll', updateScrollTop, true);
       window.addEventListener('dragover', onDragOver);
     },
     dragend: () => {
       // console.log('end');
-
+      trackStore.setOffset(0);
+      idxs = { i: -1, j: -1 };
+      _area = ContainerType.OutSide;
       draggedIdxs.value = { i: -1, j: -1 };
 
       window.removeEventListener('dragover', onDragOver);
-      traks.removeEventListener('scroll', updateScrollTop);
 
       if (!dragView.el) return;
       dragView.el.parentNode?.removeChild(dragView.el);
       dragView.el = undefined;
+    },
+    show() {
+      trak.style.opacity = '';
     },
   };
 };

@@ -34,6 +34,12 @@ declare global {
     setTimeout: (callback: any, ms: number) => number;
   }
 
+  type DragView = {
+    el?: HTMLElement;
+    left: number;
+    top: number;
+  };
+
   type FirstArgument<T> = T extends (arg1: infer A, ...args: any[]) => any ? A : never;
   type SecondArgument<T> = T extends (arg1: any, arg2: infer A, ...args: any[]) => any ? A : never;
   type ThirdArgument<T> = T extends (arg1: any, arg2: any, arg3: infer A, ...args: any[]) => any

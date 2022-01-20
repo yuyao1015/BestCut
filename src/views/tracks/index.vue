@@ -6,7 +6,7 @@
 
     <template #content>
       <div
-        class="h-full relative"
+        class="footer-content h-full relative"
         :style="`width: ${wrapperWidth}px`"
         @pointerover="move"
         @pointerdown="down"
@@ -244,7 +244,7 @@
       const onResourceLeave = () => {
         enterCnt--;
         if (enterCnt !== 0) return;
-        trackStore.setArea(ContainerType.None);
+        trackStore.setArea(ContainerType.OutSide);
       };
       const onResourceDrop = () => {
         enterCnt = 0;

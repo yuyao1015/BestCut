@@ -39,6 +39,7 @@ interface TrackState {
   _area: ContainerType; // current hovered over container
   trackMap: TrackMap;
   track?: TrackItem;
+  offset: number;
   calcWidth?: Calculator;
   manager: TrackManager;
 }
@@ -47,8 +48,9 @@ export const useTrackStore = defineStore({
   id: 'app-track',
   state: (): TrackState => ({
     trackMap,
+    offset: 0,
     isScrolling: false,
-    _area: ContainerType.None,
+    _area: ContainerType.OutSide,
     manager: new TrackManager(trackMap),
   }),
   getters: {
@@ -62,7 +64,7 @@ export const useTrackStore = defineStore({
       return !this.trackMap.main.length && this.isAudioEmpty && this.isVideoEmpty;
     },
     isResourceOver(): boolean {
-      return this._area !== ContainerType.None;
+      return this._area !== ContainerType.OutSide;
     },
     total(): string {
       return getDurationString(this.manager.duration(), 30);
@@ -93,6 +95,9 @@ export const useTrackStore = defineStore({
     setTrack(track: TrackItem) {
       this.track = track;
     },
+    setOffset(offset: number) {
+      this.offset = offset;
+    },
     setCalculator(calc: Calculator) {
       this.calcWidth = calc;
     },
@@ -104,11 +109,7 @@ export const useTrackStore = defineStore({
     addTrack(track: TrackItem) {
       if (track.type === ResourceType.Video) this.trackMap.main.push(track);
       else if (track.type === ResourceType.Audio) this.trackMap.audio.push([track]);
-      else {
-        const idx = this.trackMap.video.findIndex((traks) => traks[0].type === ResourceType.Video);
-        if (idx === -1) this.trackMap.video.push([track]);
-        else this.trackMap.video.splice(idx, 0, [track]);
-      }
+      else this.trackMap.video.splice(this.videoIdx, 0, [track]);
     },
 
     pauseResume() {
