@@ -81,179 +81,152 @@
     <LoadingOutlined v-if="!usable && isLoading" class="downloading absolute bottom-1 right-1" />
   </div>
 </template>
-<script lang="ts">
-  import { ResourceItem, AudioResource, VideoResource, PictureResource } from '@/logic/resource';
+<script lang="ts" setup>
+import { ResourceItem, AudioResource, VideoResource, PictureResource } from '@/logic/resource';
 
-  import { defineComponent, ref, PropType, watch, computed } from 'vue';
-  import {
-    PlusCircleFilled,
-    DownloadOutlined,
-    LoadingOutlined,
-    FileImageOutlined,
-    StarFilled,
-    // StarOutlined,
-  } from '@ant-design/icons-vue';
+import { PropType, ref, watch, computed } from 'vue';
+import {
+  PlusCircleFilled,
+  DownloadOutlined,
+  LoadingOutlined,
+  FileImageOutlined,
+  StarFilled,
+  // StarOutlined,
+} from '@ant-design/icons-vue';
 
-  import { useResourceStore } from '@/store/resource';
-  import { usePreviewStore } from '@/store/preview';
-  import { useTrackStore } from '@/store/track';
+import { useResourceStore } from '@/store/resource';
+import { usePreviewStore } from '@/store/preview';
+import { useTrackStore } from '@/store/track';
 
-  import { CanvasId } from '@/settings/playerSetting';
-  import _ from 'lodash-es';
+import { CanvasId } from '@/settings/playerSetting';
+import _ from 'lodash-es';
+import _default from 'ant-design-vue/lib/affix';
 
-  export default defineComponent({
-    name: 'ResourceBox',
-    components: {
-      PlusCircleFilled,
-      DownloadOutlined,
-      LoadingOutlined,
-      FileImageOutlined,
-      StarFilled,
-      // StarOutlined,
-    },
-    props: {
-      usable: {
-        type: Boolean,
-        default: false,
-      },
-      showAdd: {
-        type: Boolean,
-        default: false,
-      },
-      favorite: {
-        type: Boolean,
-        default: false,
-      },
-      referenced: {
-        type: Boolean,
-        default: false,
-      },
-      offline: {
-        type: Boolean,
-        default: false,
-      },
-      resource: {
-        type: Object as PropType<ResourceItem>,
-        default: {},
-      },
-    },
+const props = defineProps({
+  usable: {
+    type: Boolean,
+    default: false,
+  },
+  showAdd: {
+    type: Boolean,
+    default: false,
+  },
+  favorite: {
+    type: Boolean,
+    default: false,
+  },
+  referenced: {
+    type: Boolean,
+    default: false,
+  },
+  offline: {
+    type: Boolean,
+    default: false,
+  },
+  resource: {
+    type: Object as PropType<ResourceItem>,
+    default: {},
+  },
+});
 
-    setup(props, ctx) {
-      const checked = ref(props.resource.checked);
-      const usable = ref(props.usable);
-      const isMask = computed(() => Boolean(ctx.attrs.draggable));
+const checked = ref(props.resource.checked);
+const usable = ref(props.usable);
+// const isMask = computed(() => Boolean(ctx.attrs.draggable));
 
-      const resourceStore = useResourceStore();
-      const previewStore = usePreviewStore();
-      const ratio = computed(() => previewStore.ratio);
+const resourceStore = useResourceStore();
+const previewStore = usePreviewStore();
+const ratio = computed(() => previewStore.ratio);
 
-      const onChecked = () => {
-        checked.value = !checked.value;
-        checked.value
-          ? resourceStore.addFavorite(props.resource)
-          : resourceStore.removeFavorite(props.resource);
-      };
-      watch(
-        () => props.resource.checked,
-        () => {
-          checked.value = props.resource.checked;
-        }
-      );
-      watch(
-        () => props.resource.usable,
-        () => {
-          usable.value = props.resource.usable;
-        }
-      );
+const onChecked = () => {
+  checked.value = !checked.value;
+  checked.value
+    ? resourceStore.addFavorite(props.resource)
+    : resourceStore.removeFavorite(props.resource);
+};
+watch(
+  () => props.resource.checked,
+  () => {
+    checked.value = props.resource.checked;
+  }
+);
+watch(
+  () => props.resource.usable,
+  () => {
+    usable.value = props.resource.usable;
+  }
+);
 
-      const trackStore = useTrackStore();
-      const add2Track = () => {
-        const track = props.resource.toTrack();
-        if (trackStore.calcWidth) track.width = trackStore.calcWidth(track).width;
-        trackStore.addTrack(track);
-      };
+const trackStore = useTrackStore();
+const add2Track = () => {
+  const track = props.resource.toTrack();
+  if (trackStore.calcWidth) track.width = trackStore.calcWidth(track).width;
+  trackStore.addTrack(track);
+};
 
-      const isLoading = ref(false);
-      const resourceRef = ref<HTMLElement | null>(null);
-      const play = (e: MouseEvent) => {
-        resourceStore.setResource(props.resource);
-        if (usable.value) {
-          if (previewStore.player.active && previewStore.player.id === CanvasId) {
-            if (!resourceRef.value) return;
-            const left = resourceRef.value?.getBoundingClientRect().left || 0;
-            const width = parseInt(getComputedStyle(resourceRef.value).width);
-            const w = e.pageX - left - scrollX;
-            const ratio = w / width;
-            previewStore.jumpTo(ratio);
-          } else previewStore.mount({ id: CanvasId, url: props.resource.src || '' });
-          return;
-        } else {
-          isLoading.value = true;
-          const download = new Promise((resolve, reject) => {
-            setTimeout(() => {
-              resolve('success');
-              reject('error');
-            }, 500);
-          });
-          download
-            .then((res) => {
-              console.log(res);
-              usable.value = true;
-              resourceStore.download(props.resource);
-              play(e);
-            })
-            .catch((err) => {
-              resourceStore.setResource(undefined);
-              console.log(err);
-            })
-            .then(() => {
-              isLoading.value = false;
-            });
-        }
-      };
+const isLoading = ref(false);
+const resourceRef = ref<HTMLElement | null>(null);
+const play = (e: MouseEvent) => {
+  const fn = (e: MouseEvent) => {
+    resourceStore.setResource(props.resource);
+    if (usable.value) {
+      if (previewStore.player.active && previewStore.player.id === CanvasId) {
+        if (!resourceRef.value) return;
+        const left = resourceRef.value?.getBoundingClientRect().left || 0;
+        const width = parseInt(getComputedStyle(resourceRef.value).width);
+        const w = e.pageX - left - scrollX;
+        const ratio = w / width;
+        previewStore.jumpTo(ratio);
+      } else previewStore.mount({ id: CanvasId, url: props.resource.src || '' });
+      return;
+    } else {
+      isLoading.value = true;
+      const download = new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve('success');
+          reject('error');
+        }, 500);
+      });
+      download
+        .then((res) => {
+          console.log(res);
+          usable.value = true;
+          resourceStore.download(props.resource);
+          play(e);
+        })
+        .catch((err) => {
+          resourceStore.setResource(undefined);
+          console.log(err);
+        })
+        .then(() => {
+          isLoading.value = false;
+        });
+    }
+  };
+  _.debounce(fn, 300)(e);
+};
 
-      const isOver = ref(false);
-      const onPointerOver = () => {
-        isOver.value = true;
-      };
-      const onPointerLeave = () => {
-        isOver.value = false;
-      };
-
-      return {
-        usable,
-        isLoading,
-        ratio,
-        resourceRef,
-        isOver,
-
-        onChecked,
-        add2Track,
-        onPointerOver,
-        onPointerLeave,
-        play: _.debounce(play, 300),
-
-        AudioResource,
-        VideoResource,
-        PictureResource,
-      };
-    },
-  });
+const isOver = ref(false);
+const onPointerOver = () => {
+  isOver.value = true;
+};
+const onPointerLeave = () => {
+  isOver.value = false;
+};
 </script>
 
 <style lang="less" scoped>
-  .resource-box {
-    background-color: #070709;
-  }
+.resource-box {
+  background-color: #070709;
+}
 
-  .resource-box:hover {
-    .add {
-      color: aqua;
-      display: block;
-    }
+.resource-box:hover {
+  .add {
+    color: aqua;
+    display: block;
   }
+}
 
-  .active-border {
-    border: solid 2px aqua;
-  }
+.active-border {
+  border: solid 2px aqua;
+}
 </style>

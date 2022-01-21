@@ -1,5 +1,13 @@
 import { ResourceType } from '@/enums/resource';
-import { TrackMap, TrackItem, AttachmentTrack, MediaTrack, isMedia } from '@/logic/track';
+import {
+  TrackMap,
+  TrackItem,
+  AttachmentTrack,
+  MediaTrack,
+  isMedia,
+  isVideo,
+  isAudio,
+} from '@/logic/track';
 import { durationString2Sec } from '@/utils/player';
 import { MP4Player } from '@/logic/mp4';
 import { CanvasId } from '@/settings/playerSetting';
@@ -51,7 +59,7 @@ export class TrackManager {
 
   // media track overlap on timeline, upper layer display first
   updateQueue() {
-    const idx = this.map.video.findIndex((list) => list[0].type === ResourceType.Video);
+    const idx = this.map.video.findIndex((list) => isVideo(list[0].type));
     // const { audio } = this.map;
     const attachment = this.map.video.slice(0, idx);
     const video = this.map.video.slice(idx).concat(this.map.main.length ? [this.map.main] : []);
@@ -64,9 +72,9 @@ export class TrackManager {
   }
 
   addTransition() {
-    // TODO: only affect the main container
+    const ids = this.map.main.map((item) => item.id);
     this.displayQueue.video.reduce((t, item, i) => {
-      if (!item.track) return t;
+      if (!item.track || !ids.includes(item.track.id)) return t;
 
       if (t) {
         item.startTime -= t;
@@ -113,7 +121,7 @@ export class TrackManager {
     lists.forEach((list, i) => {
       list.reduce((endTime, track) => {
         let startTime;
-        if (track.type === ResourceType.Video && this.map.main.length && i === lists.length - 1) {
+        if (isVideo(track.type) && this.map.main.length && i === lists.length - 1) {
           startTime = endTime;
         } else {
           startTime = track.offset + endTime;
@@ -131,7 +139,7 @@ export class TrackManager {
         );
 
         // first video row has always been displayed
-        if (i === 0 && track.type === ResourceType.Video) que.push(item);
+        if (i === 0 && isVideo(track.type)) que.push(item);
         else this.enque(que, item);
         return endTime;
       }, 0);
@@ -139,9 +147,9 @@ export class TrackManager {
   }
 
   enque(que: DisplayItem[], item: DisplayItem) {
-    if (item.track?.type === ResourceType.Video) {
+    if (isVideo(item.track?.type)) {
       this._venque(que, item);
-    } else if (item.track?.type === ResourceType.Audio) {
+    } else if (isAudio(item.track?.type)) {
       this._aenque(que, item);
     } else {
       this._enque(que, item);

@@ -7,7 +7,7 @@
         </div>
 
         <div class="right">
-          <a-button class="absolute right-36"> </a-button>
+          <a-button class="absolute right-36"></a-button>
 
           <a-button class="export h-8 px-2" @click="exportWorkspace">
             <ExportOutlined class="text-md" />
@@ -35,59 +35,34 @@
   </Layout>
 </template>
 
-<script lang="ts">
-  import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import { ExportOutlined } from '@ant-design/icons-vue';
 
-  import { ExportOutlined } from '@ant-design/icons-vue';
+import Layout from '@/layouts/index.vue';
+import Preview from '@/views/preview/index.vue';
+import ResourceBox from '@/views/resource/index.vue';
+import Tracks from '@/views/tracks/index.vue';
+import ConfigPanel from '@/views/config-panel/index.vue';
 
-  import Layout from '@/layouts/index.vue';
-  import SectionBox from '@/layouts/SectionBox.vue';
+import { useI18n } from '@/hooks/useI18n';
+import { useTrackStore } from '@/store/track';
 
-  import Preview from '@/views/preview/index.vue';
-  import ResourceBox from '@/views/resource/index.vue';
-  import Tracks from '@/views/tracks/index.vue';
-  import ConfigPanel from '@/views/config-panel/index.vue';
+const { t } = useI18n();
 
-  import { useI18n } from '@/hooks/useI18n';
+const trackStore = useTrackStore();
 
-  import { useTrackStore } from '@/store/track';
-
-  export default defineComponent({
-    name: 'Editor',
-    components: {
-      Layout,
-      SectionBox,
-      Preview,
-      ResourceBox,
-      Tracks,
-      ConfigPanel,
-      ExportOutlined,
-    },
-    emits: [],
-    setup() {
-      const { t } = useI18n();
-
-      const trackStore = useTrackStore();
-
-      const exportWorkspace = () => {
-        trackStore.export();
-      };
-
-      return {
-        t,
-        exportWorkspace,
-      };
-    },
-  });
+const exportWorkspace = () => {
+  trackStore.export();
+};
 </script>
 
 <style scoped>
-  .export {
-    background-color: #6dced7;
-    outline: 0;
-    border: 0;
-    color: #fff;
-    display: flex;
-    align-items: center;
-  }
+.export {
+  background-color: #6dced7;
+  outline: 0;
+  border: 0;
+  color: #fff;
+  display: flex;
+  align-items: center;
+}
 </style>

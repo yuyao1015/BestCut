@@ -6,34 +6,13 @@
   </SectionBox>
 </template>
 
-<script lang="ts">
-  import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import SectionBox from '@/layouts/SectionBox.vue';
 
-  import SectionBox from '@/layouts/SectionBox.vue';
+import { useI18n } from '@/hooks/useI18n';
 
-  import { useI18n } from '@/hooks/useI18n';
-
-  export default defineComponent({
-    name: 'ConfigPanel',
-    components: {
-      SectionBox,
-    },
-    props: {
-      prop: {
-        type: String,
-        default: '',
-      },
-    },
-    emits: [],
-    setup() {
-      const { t } = useI18n();
-      const title = t('components.config');
-
-      return {
-        title,
-      };
-    },
-  });
+const { t } = useI18n();
+const title = t('components.config');
 </script>
 
 <style scoped></style>

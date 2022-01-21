@@ -1,6 +1,5 @@
 import { TrackManager } from '@/logic/track-manager';
-import { TrackMap, TrackItem } from '@/logic/track';
-import { ResourceType } from '@/enums/resource';
+import { TrackMap, TrackItem, isVideo, isAudio } from '@/logic/track';
 import { ContainerType } from '@/enums/track';
 
 import { defineStore } from 'pinia';
@@ -15,18 +14,18 @@ const trackMap = Debug
   ? { video: videoList, main: mainList, audio: audioList }
   : {
       video: [
-        // videoList[0],
-        // videoList[2],
-        // videoList[3],
-        // videoList[5],
-        // videoList[6],
-        // videoList[8],
-        // videoList[9],
+        videoList[0],
+        videoList[2],
+        videoList[3],
+        videoList[5],
+        videoList[6],
+        videoList[8],
+        videoList[9],
       ],
       main: [
         //
-        // mainList[0],
-        // mainList[1],
+        mainList[0],
+        mainList[1],
       ],
       audio: [],
       // audio: audioList,
@@ -79,7 +78,7 @@ export const useTrackStore = defineStore({
       while (l <= r) {
         const mid = l + Math.floor((r - l) / 2);
         const { type } = video[mid][0];
-        if (type !== ResourceType.Video) l = mid + 1;
+        if (!isVideo(type)) l = mid + 1;
         else r = mid - 1;
       }
       return l;
@@ -107,8 +106,8 @@ export const useTrackStore = defineStore({
       this.trackMap[type] = lists;
     },
     addTrack(track: TrackItem) {
-      if (track.type === ResourceType.Video) this.trackMap.main.push(track);
-      else if (track.type === ResourceType.Audio) this.trackMap.audio.push([track]);
+      if (isVideo(track.type)) this.trackMap.main.push(track);
+      else if (isAudio(track.type)) this.trackMap.audio.push([track]);
       else this.trackMap.video.splice(this.videoIdx, 0, [track]);
     },
 

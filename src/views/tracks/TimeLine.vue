@@ -27,126 +27,126 @@
 </template>
 
 <script lang="ts">
-  import type { ComponentPublicInstance } from 'vue';
-  import { defineComponent, ref, onMounted, onUnmounted, watch } from 'vue';
+import type { ComponentPublicInstance } from 'vue';
+import { defineComponent, ref, onMounted, onUnmounted, watch } from 'vue';
 
-  import { trackHeadWidth as lmin } from '@/settings/trackSetting';
+import { trackHeadWidth as lmin } from '@/settings/trackSetting';
 
-  import { on, off } from '@/utils/dom';
-  import { MouseCtl } from '@/logic/mouse';
+import { on, off } from '@/utils/dom';
+import { MouseCtl } from '@/logic/mouse';
 
-  import { useTrackStore } from '@/store/track';
+import { useTrackStore } from '@/store/track';
 
-  export default defineComponent({
-    name: 'TimeLine',
-    props: {
-      prop: {
-        type: Number,
-        default: 0,
-      },
+export default defineComponent({
+  name: 'TimeLine',
+  props: {
+    prop: {
+      type: Number,
+      default: 0,
     },
+  },
 
-    setup() {
-      const hover = ref(false);
-      const hoverX = ref(lmin);
-      const locatorX = ref(lmin);
-      const locator = ref<HTMLElement | null>(null);
+  setup() {
+    const hover = ref(false);
+    const hoverX = ref(lmin);
+    const locatorX = ref(lmin);
+    const locator = ref<HTMLElement | null>(null);
 
-      const trackStore = useTrackStore();
-      watch(
-        () => trackStore.manager.currentTime,
-        (val: number) => {
-          if (!trackStore.calcWidth) return;
-          const x = trackStore.calcWidth(val / 1000).width;
-          locatorX.value = lmin + x;
-        }
-      );
+    const trackStore = useTrackStore();
+    watch(
+      () => trackStore.manager.currentTime,
+      (val: number) => {
+        if (!trackStore.calcWidth) return;
+        const x = trackStore.calcWidth(val / 1000).width;
+        locatorX.value = lmin + x;
+      }
+    );
 
-      const timelineRef = ref<ComponentPublicInstance | null>(null);
-      let mLocator: MouseCtl | null = null;
+    const timelineRef = ref<ComponentPublicInstance | null>(null);
+    let mLocator: MouseCtl | null = null;
 
-      // TODO: conflict between pointermove & vertical scroll
-      const onMouse = (e: PointerEvent) => {
-        const timeline = timelineRef.value?.$el || timelineRef.value;
-        if (!e || !timeline) return;
-        const left = timeline.getBoundingClientRect().left || 0;
-        let x = e.pageX - left - scrollX;
-        x = Math.max(lmin, x);
-        if (e.type === 'pointerdown') {
-          locatorX.value = x;
-          hoverX.value = x;
-        } else if (e.type === 'pointermove') {
-          hoverX.value = x;
-        }
-        if (hoverX.value === locatorX.value) hover.value = false;
-      };
+    // TODO: conflict between pointermove & vertical scroll
+    const onMouse = (e: PointerEvent) => {
+      const timeline = timelineRef.value?.$el || timelineRef.value;
+      if (!e || !timeline) return;
+      const left = timeline.getBoundingClientRect().left || 0;
+      let x = e.pageX - left - scrollX;
+      x = Math.max(lmin, x);
+      if (e.type === 'pointerdown') {
+        locatorX.value = x;
+        hoverX.value = x;
+      } else if (e.type === 'pointermove') {
+        hoverX.value = x;
+      }
+      if (hoverX.value === locatorX.value) hover.value = false;
+    };
 
-      const events: string[] = ['pointermove', 'pointerdown'];
-      const onTimeline = () => {
-        console.log('over');
-        events.forEach((event) => on(window, event, onMouse));
-        hover.value = true;
-      };
-      const offTimeline = () => {
-        console.log('leave');
-        events.forEach((event) => off(window, event, onMouse));
+    const events: string[] = ['pointermove', 'pointerdown'];
+    const onTimeline = () => {
+      console.log('over');
+      events.forEach((event) => on(window, event, onMouse));
+      hover.value = true;
+    };
+    const offTimeline = () => {
+      console.log('leave');
+      events.forEach((event) => off(window, event, onMouse));
+      hover.value = false;
+    };
+
+    const isDragging = ref(false);
+    const dragLocator = () => {
+      if (!locator.value) return;
+
+      mLocator = new MouseCtl(locator.value);
+      mLocator.moveCallback = function () {
+        const dx = this.x - this.lastX;
+        const x = Math.max(lmin, locatorX.value + dx);
+        locatorX.value = x;
+        isDragging.value = true;
         hover.value = false;
       };
-
-      const isDragging = ref(false);
-      const dragLocator = () => {
-        if (!locator.value) return;
-
-        mLocator = new MouseCtl(locator.value);
-        mLocator.moveCallback = function () {
-          const dx = this.x - this.lastX;
-          const x = Math.max(lmin, locatorX.value + dx);
-          locatorX.value = x;
-          isDragging.value = true;
-          hover.value = false;
-        };
-        mLocator.upCallback = function () {
-          isDragging.value = false;
-          if (hoverX.value === locatorX.value) hover.value = false;
-        };
+      mLocator.upCallback = function () {
+        isDragging.value = false;
+        if (hoverX.value === locatorX.value) hover.value = false;
       };
+    };
 
-      onMounted(() => {
-        dragLocator();
-      });
+    onMounted(() => {
+      dragLocator();
+    });
 
-      onUnmounted(() => {
-        mLocator && mLocator.stopAllListeners();
-      });
+    onUnmounted(() => {
+      mLocator && mLocator.stopAllListeners();
+    });
 
-      return {
-        lmin,
-        locator,
-        locatorX,
-        hover,
-        hoverX,
-        isDragging,
-        timelineRef,
-        onTimeline,
-        offTimeline,
-      };
-    },
-  });
+    return {
+      lmin,
+      locator,
+      locatorX,
+      hover,
+      hoverX,
+      isDragging,
+      timelineRef,
+      onTimeline,
+      offTimeline,
+    };
+  },
+});
 </script>
 
 <style lang="less" scoped>
-  .timeline-locator {
-    &-head {
-      width: 10px;
-      height: 15px;
-      transform: translateX(-50%);
-      border: solid 2px #fff;
-      border-bottom-left-radius: 50%;
-      border-bottom-right-radius: 50%;
-    }
-
-    &-body {
-      height: calc(100% - 15px);
-    }
+.timeline-locator {
+  &-head {
+    width: 10px;
+    height: 15px;
+    transform: translateX(-50%);
+    border: solid 2px #fff;
+    border-bottom-left-radius: 50%;
+    border-bottom-right-radius: 50%;
   }
+
+  &-body {
+    height: calc(100% - 15px);
+  }
+}
 </style>

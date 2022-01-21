@@ -17,10 +17,15 @@ module.exports = {
       jsx: true,
     },
   },
+  globals: {
+    defineProps: 'readonly',
+    defineEmits: 'readonly',
+    withDefaults: 'readonly',
+  },
 
   extends: [
-    'eslint:recommended',
     'prettier',
+    'eslint:recommended',
     'plugin:prettier/recommended',
     'plugin:@typescript-eslint/recommended',
   ],
@@ -50,5 +55,7 @@ module.exports = {
 
     'max-classes-per-file': 'off',
     'class-methods-use-this': 'off',
+
+    'max-attributes-per-line': 'off',
   },
 };

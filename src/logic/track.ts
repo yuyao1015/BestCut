@@ -6,7 +6,6 @@ import { parseGIF, decompressFrames, ParsedFrame, ParsedGif } from 'gifuct-js';
 import axios from 'axios';
 
 import { Base } from './data';
-import { deepCopy } from '@/utils';
 import { MP4Source } from './mp4';
 import { Renderer } from './renderer';
 import GifUtil from './gif';
