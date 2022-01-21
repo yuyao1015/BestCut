@@ -120,8 +120,7 @@ export default (draggedIdxs: Ref<{ i: number; j: number }>) => {
       trak.style.opacity = '';
       window.removeEventListener('dragover', onDragOver);
 
-      if (!dragView.el) return;
-      dragView.el.parentNode?.removeChild(dragView.el);
+      dragView.el?.parentNode?.removeChild(dragView.el);
       dragView.el = undefined;
     },
     show() {

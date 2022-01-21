@@ -12,6 +12,7 @@ import { Renderer } from './renderer';
 import GifUtil from './gif';
 
 import { ResourceType } from '@/enums/resource';
+import { Constructor } from 'three';
 
 type ItemOptional = {
   id: string;
@@ -72,7 +73,8 @@ export class TrackItem extends Base {
   }
 
   clone() {
-    const clone = deepCopy(this);
+    const clone = new (this.constructor as Constructor<TrackItem>)(this);
+    Object.assign(clone, this);
     clone.id = uuid();
     return clone;
   }

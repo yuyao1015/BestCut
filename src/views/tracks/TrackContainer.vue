@@ -286,6 +286,7 @@
         if (inAudio()) type = ContainerType.Audio;
         trackStore.setArea(type);
 
+        if (enterCnt !== 1) return;
         nextTick(() => {
           activeTrak.value = trackStore.track?.clone();
         });

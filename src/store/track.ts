@@ -10,7 +10,7 @@ import { store } from '@/store';
 import { mainList, audioList, videoList } from '@/../mocks/_track';
 import { getDurationString } from '@/utils/player';
 
-const Debug = 1;
+const Debug = 0;
 const trackMap = Debug
   ? { video: videoList, main: mainList, audio: audioList }
   : {
