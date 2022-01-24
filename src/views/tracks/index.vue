@@ -64,7 +64,7 @@
 
 <script lang="ts" setup>
 import { ComponentPublicInstance, onUnmounted } from 'vue';
-import { TrackMap, TrackItem } from '@/logic/track';
+import { TrackMap, TrackItem } from '@/logic/tracks';
 
 import { ref, onMounted, watch, nextTick, computed } from 'vue';
 

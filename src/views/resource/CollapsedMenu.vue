@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { ResourceLib } from '@/logic/resource-tab';
+import type { ResourceLib } from '@/logic/resource/tab';
 
 import { computed, h, ref, watch } from 'vue';
 import { Collapse, CollapsePanel } from 'ant-design-vue';

@@ -1,5 +1,5 @@
 import type { ResourceFragment, ResourceItem } from '@/logic/resource';
-import type { ResourceTab, ResourceLib } from '@/logic/resource-tab';
+import type { ResourceTab, ResourceLib } from '@/logic/resource/tab';
 
 import { defineStore } from 'pinia';
 

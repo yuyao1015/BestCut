@@ -5,10 +5,10 @@ import GLTransitions from 'gl-transitions';
 import { parseGIF, decompressFrames, ParsedFrame, ParsedGif } from 'gifuct-js';
 import axios from 'axios';
 
-import { Base } from './data';
-import { MP4Source } from './mp4';
-import { Renderer } from './renderer';
-import GifUtil from './gif';
+import { Base } from '@/logic/data';
+import { MP4Source } from '@/logic/mp4';
+import { Renderer } from '@/logic/renderer';
+import GifUtil from '@/logic/gif';
 
 import { ResourceType } from '@/enums/resource';
 import { Constructor } from 'three';

@@ -7,7 +7,7 @@ import {
   isMedia,
   isVideo,
   isAudio,
-} from '@/logic/track';
+} from '@/logic/tracks';
 import { durationString2Sec } from '@/utils/player';
 import { MP4Player } from '@/logic/mp4';
 import { CanvasId } from '@/settings/playerSetting';

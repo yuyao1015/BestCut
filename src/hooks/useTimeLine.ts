@@ -1,4 +1,4 @@
-import { TrackItem, VideoTrack } from '@/logic/track';
+import { TrackItem, VideoTrack } from '@/logic/tracks';
 import type { Ref } from 'vue';
 
 import { watch } from 'vue';

@@ -22,7 +22,7 @@
 <script lang="ts">
 import type { ComponentPublicInstance, PropType } from 'vue';
 
-import { isMedia, TrackItem } from '@/logic/track';
+import { isMedia, TrackItem } from '@/logic/tracks';
 import { defineComponent, ref } from 'vue';
 import { MoreOutlined } from '@ant-design/icons-vue';
 

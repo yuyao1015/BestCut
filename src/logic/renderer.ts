@@ -1,7 +1,7 @@
 import { ResourceType } from '@/enums/resource';
 import * as THREE from 'three';
 
-import { Attachment } from './track-manager';
+import { Attachment } from '@/logic/tracks/manager';
 
 const FRUSTUM = 0.5;
 

@@ -1,4 +1,4 @@
-import type { ResourceFragment } from '../src/logic/resource';
+import type { ResourceFragment } from '@/logic/resource';
 
 const video = (n: number) =>
   new Array(n).fill({

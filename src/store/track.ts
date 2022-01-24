@@ -1,13 +1,12 @@
-import { TrackManager } from '@/logic/track-manager';
-import { TrackMap, TrackItem, isVideo, isAudio } from '@/logic/track';
-import { ContainerType } from '@/enums/track';
-
 import { defineStore } from 'pinia';
 
 import { store } from '@/store';
+import { TrackManager } from '@/logic/tracks/manager';
+import { TrackMap, TrackItem, isVideo, isAudio } from '@/logic/tracks';
 
-import { mainList, audioList, videoList } from '@/../mocks/_track';
+import { ContainerType } from '@/enums/track';
 import { getDurationString } from '@/utils/player';
+import { mainList, audioList, videoList } from '@/../mocks/_track';
 
 const Debug = 0;
 const trackMap = Debug

@@ -7,7 +7,7 @@ import {
   FilterTrack,
   EffectTrack,
   TrackItem,
-} from '@/logic/track';
+} from '@/logic/tracks';
 
 import { defineComponent, PropType, h, computed } from 'vue';
 

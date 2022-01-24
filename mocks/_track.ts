@@ -6,7 +6,7 @@ import {
   TextTrack,
   FilterTrack,
   TransitionTrack,
-} from '@/logic/track';
+} from '@/logic/tracks';
 
 export const videoList = [
   [new FilterTrack({ name: '灰度', duration: '00:04', offset: 1 })],

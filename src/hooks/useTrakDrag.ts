@@ -1,5 +1,5 @@
 import { Ref } from 'vue';
-import type { TrackItem } from '@/logic/track';
+import type { TrackItem } from '@/logic/tracks';
 
 import { ref, onMounted, onUnmounted } from 'vue';
 import _ from 'lodash-es';

@@ -1,5 +1,5 @@
 import { ResourceType } from '@/enums/resource';
-import { TrackItem } from '@/logic/track';
+import { TrackItem } from '@/logic/tracks';
 import { swap } from '@/utils';
 
 export const offset = 20;

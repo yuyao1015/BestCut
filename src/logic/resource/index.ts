@@ -1,7 +1,7 @@
-import { Base } from './data';
+import { Base } from '@/logic/data';
 import { ResourceType } from '@/enums/resource';
 
-import * as Track from './track';
+import * as Track from '@/logic/tracks';
 
 type ItemOptional = {
   id: string;

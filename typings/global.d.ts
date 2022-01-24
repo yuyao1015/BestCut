@@ -63,4 +63,9 @@ declare global {
   type XOR<T, U> = T | U extends Record<string, unknown>
     ? (Without<T, U> & U) | (Without<U, T> & T)
     : T | U;
+
+  interface Constructor<T = Record<string, unknown>> {
+    new (...args: any[]): T;
+    prototype: T;
+  }
 }

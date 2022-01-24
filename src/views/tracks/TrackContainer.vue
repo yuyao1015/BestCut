@@ -1,7 +1,7 @@
 <script lang="tsx">
 import type { PropType } from 'vue';
 
-import { isMedia, isVideo, isAudio, TrackMap, TrackItem } from '@/logic/track';
+import { isMedia, isVideo, isAudio, TrackMap, TrackItem } from '@/logic/tracks';
 import { computed, defineComponent, ref, watch, nextTick, reactive } from 'vue';
 
 import { ClickOutside } from '@/directives';
@@ -16,7 +16,7 @@ import {
   searchRowIdx,
   searchColIdx,
   deleteTrack,
-} from './track';
+} from '@/logic/tracks/op';
 
 import TrackBorder from './TrackBorder.vue';
 import Track from '@/components/Track.vue';
