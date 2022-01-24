@@ -5,21 +5,13 @@
     </template>
 
     <template #content>
-      <div
-        class="footer-content h-full relative"
-        :style="`width: ${wrapperWidth}px`"
-        @pointerover="move"
-        @pointerdown="down"
-      >
-        <TimeLine ref="timelineRef" class="timeline absolute w-full h-full"></TimeLine>
-
+      <TimeLine class="timeline relative h-full" :style="`width: ${wrapperWidth}px`">
         <div
           ref="tracksWrapperRef"
           id="tracks-wrapper"
           class="tracks-wrapper absolute h-full w-full select-none"
         >
           <div
-            ref="tracksRef"
             class="tracks absolute w-full mt-2.5 overflow-y-scroll"
             :style="`height: calc(100% - 0.625rem);`"
             @dragenter="onResourceEnter"
@@ -65,7 +57,7 @@
             />
           </div>
         </div>
-      </div>
+      </TimeLine>
     </template>
   </SectionBox>
 </template>
@@ -169,23 +161,13 @@ const onMute = (e: MouseEvent) => {
   isMute.value = !isMute.value;
 };
 
-// let showTimeline = true;
-const timelineRef = ref<typeof TimeLine | null>(null);
-const move = () => {
-  // timelineRef.value && timelineRef.value.onTimeline();
-};
-const down = () => {
-  // console.log('1');
-};
-
 const isSticky = ref(false);
 const mainTrackRef = ref<ComponentPublicInstance | null>(null);
 const tracksWrapperRef = ref<ComponentPublicInstance | null>(null);
-const tracksRef = ref<ComponentPublicInstance | null>(null);
 const stickyTrack = () => {
   const main = mainTrackRef.value?.$el || mainTrackRef.value;
-  const track = tracksRef.value?.$el || tracksRef.value;
   const wrapper = tracksWrapperRef.value?.$el || tracksWrapperRef.value;
+  const track = wrapper.children[0] as HTMLElement;
   if (!track || !wrapper || !main) return;
 
   const h = parseInt(getStyle(main, 'height'));

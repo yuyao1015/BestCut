@@ -49,7 +49,7 @@ export default (draggedIdxs: Ref<{ i: number; j: number }>) => {
     traks = document.getElementById('tracks-wrapper')?.children[0] as HTMLElement;
     traks.addEventListener('scroll', updateScrollTop, true);
 
-    footerContent = document.getElementsByClassName('footer-content')[0]?.parentNode as HTMLElement;
+    footerContent = document.getElementsByClassName('timeline')[0]?.parentNode as HTMLElement;
     footerContent.addEventListener('scroll', updateScrollLeft, true);
   });
   onUnmounted(() => {

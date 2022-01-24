@@ -131,7 +131,7 @@ const props = defineProps({
 
 const checked = ref(props.resource.checked);
 const usable = ref(props.usable);
-// const isMask = computed(() => Boolean(ctx.attrs.draggable));
+// const isMask = computed(() => Boolean(useAttrs().draggable));
 
 const resourceStore = useResourceStore();
 const previewStore = usePreviewStore();

@@ -34,7 +34,6 @@ const trackMap = Debug
 type Calculator = (track: TrackItem | number) => { width: number; marginLeft: number };
 
 interface TrackState {
-  isScrolling: boolean;
   _area: ContainerType; // current hovered over container
   trackMap: TrackMap;
   track?: TrackItem;
@@ -48,7 +47,6 @@ export const useTrackStore = defineStore({
   state: (): TrackState => ({
     trackMap,
     offset: 0,
-    isScrolling: false,
     _area: ContainerType.OutSide,
     manager: new TrackManager(trackMap),
   }),
@@ -85,9 +83,6 @@ export const useTrackStore = defineStore({
     },
   },
   actions: {
-    setScroll(bool: boolean) {
-      this.isScrolling = bool;
-    },
     setArea(_area: ContainerType) {
       this._area = _area;
     },
