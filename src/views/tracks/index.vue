@@ -5,10 +5,15 @@
     </template>
 
     <template #content>
-      <TimeLine class="timeline relative h-full" :style="`width: ${wrapperWidth}px`">
+      <TimeLine
+        id="timeline"
+        class="relative h-full"
+        :draw="drawTimeline"
+        :style="`width: ${wrapperWidth}px`"
+      >
         <div
-          ref="tracksWrapperRef"
           id="tracks-wrapper"
+          ref="tracksWrapperRef"
           class="tracks-wrapper absolute h-full w-full select-none"
         >
           <div
@@ -75,7 +80,7 @@ import TrackContainer from './TrackContainer.vue';
 import TimeLine from './TimeLine.vue';
 import TrackHead from './TrackHead.vue';
 
-import { trackHeadWidth } from '@/settings/trackSetting';
+import { TrackHeadWidth } from '@/settings/tracksSetting';
 
 import { useI18n } from '@/hooks/useI18n';
 import useTimeLine from '@/hooks/useTimeLine';
@@ -94,13 +99,13 @@ const title = t('components.tracks');
 
 const trackStore = useTrackStore();
 const trackMap = computed(() => trackStore.trackMap);
-const isMapEmpty = computed(() => trackStore.isMapEmpty);
+const isMapEmpty = computed(() => trackStore.isMapEmpty());
 const isResourceOver = computed(() => trackStore.isResourceOver);
 
 watch(
   trackMap,
-  (_, oldVal: TrackMap) => {
-    if (!oldVal.main.length && !oldVal.audio.length && !oldVal.video.length) {
+  (_, oldMap: TrackMap) => {
+    if (trackStore.isMapEmpty(oldMap)) {
       // const { _useUnit, _calcTrackWidth } = useTimeLine(600, 30);
       // useUnit = _useUnit
       // calcWidth = _calcTrackWidth
@@ -113,7 +118,7 @@ watch(
 );
 
 const wrapperWidth = ref(0);
-const { useUnit, initTimeLine, calcWidth } = useTimeLine(600, 30);
+const { useUnit, initTimeLine, calcWidth, drawTimeline } = useTimeLine(600, 30);
 trackStore.setCalculator(calcWidth);
 const footerRef = ref<ComponentPublicInstance | null>(null);
 const updateTrackWidth = () => {
@@ -145,7 +150,7 @@ const updateTrackWidth = () => {
   if (!footer) return;
 
   const rawW = parseInt(getStyle(footer, 'width'));
-  const w = trackWidth + trackHeadWidth + 100;
+  const w = trackWidth + TrackHeadWidth + 100;
   wrapperWidth.value = rawW > w ? rawW : w;
 };
 

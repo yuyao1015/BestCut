@@ -50,15 +50,6 @@ export const useTrackStore = defineStore({
     manager: new TrackManager(trackMap),
   }),
   getters: {
-    isVideoEmpty(): boolean {
-      return !this.trackMap.video.length;
-    },
-    isAudioEmpty(): boolean {
-      return !this.trackMap.audio.length;
-    },
-    isMapEmpty(): boolean {
-      return !this.trackMap.main.length && this.isAudioEmpty && this.isVideoEmpty;
-    },
     isResourceOver(): boolean {
       return this._area !== ContainerType.OutSide;
     },
@@ -82,6 +73,19 @@ export const useTrackStore = defineStore({
     },
   },
   actions: {
+    isVideoEmpty(map?: TrackMap): boolean {
+      map = map || this.trackMap;
+      return !map?.video?.length;
+    },
+    isAudioEmpty(map?: TrackMap): boolean {
+      map = map || this.trackMap;
+      return !map?.video?.length;
+    },
+    isMapEmpty(map?: TrackMap): boolean {
+      map = map || this.trackMap;
+      return !map.main.length && this.isAudioEmpty(map) && this.isVideoEmpty(map);
+    },
+
     setArea(_area: ContainerType) {
       this._area = _area;
     },

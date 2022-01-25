@@ -1,8 +1,12 @@
 <template>
-  <!-- TODO: fixed canvas width -->
-  <div ref="timelineRef" @pointerover="onTimelineOver" @pointerleave="onTimelineLeave">
-    <div class="absolute h-2.5 w-full">
-      <canvas id="timeline" class="scale h-full w-full" :style="`padding-left: ${lmin}px;`" />
+  <div
+    ref="timelineRef"
+    @pointerover="onTimelineOver"
+    @pointerleave="onTimelineLeave"
+    @mousewheel="onTimelineScroll"
+  >
+    <div class="absolute h-2.5 w-screen" :style="`margin-left: ${marginLeft}px;`">
+      <canvas id="scaler" class="h-full w-full m-0" />
     </div>
     <div
       v-show="hover"
@@ -27,14 +31,21 @@
 
 <script lang="ts" setup>
 import type { ComponentPublicInstance } from 'vue';
-import { ref, onMounted, onUnmounted, watch } from 'vue';
 
-import { trackHeadWidth as lmin } from '@/settings/trackSetting';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 
 import { on, off } from '@/utils/dom';
 import { MouseCtl } from '@/logic/mouse';
-
 import { useTrackStore } from '@/store/track';
+import { TrackHeadWidth as lmin } from '@/settings/tracksSetting';
+
+type Props = {
+  draw: (x?: number) => void;
+};
+
+const props = withDefaults(defineProps<Props>(), {
+  draw: () => undefined,
+});
 
 const hover = ref(false);
 const hoverX = ref(lmin);
@@ -56,7 +67,7 @@ let mLocator: MouseCtl | null = null;
 
 const onMouse = (e: PointerEvent) => {
   const timeline = timelineRef.value?.$el || timelineRef.value;
-  if (!e || !timeline) return;
+  if (!timeline) return;
   const left = timeline.getBoundingClientRect().left || 0;
   let x = e.pageX - left - scrollX;
   x = Math.max(lmin, x);
@@ -79,6 +90,15 @@ const onTimelineLeave = () => {
   // console.log('leave');
   events.forEach((event) => off(window, event, onMouse));
   hover.value = false;
+};
+
+const marginLeft = ref(lmin);
+const onTimelineScroll = (e: WheelEvent) => {
+  const timeline = (e.currentTarget as HTMLElement).parentNode as HTMLElement;
+  const { scrollLeft } = timeline;
+  marginLeft.value = lmin > scrollLeft ? lmin : scrollLeft;
+  console.log(marginLeft.value);
+  // props.draw(timeline.scrollLeft);
 };
 
 const isDragging = ref(false);

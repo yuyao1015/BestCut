@@ -100,7 +100,6 @@ import { useTrackStore } from '@/store/track';
 
 import { CanvasId } from '@/settings/playerSetting';
 import _ from 'lodash-es';
-import _default from 'ant-design-vue/lib/affix';
 
 const props = defineProps({
   usable: {

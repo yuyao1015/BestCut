@@ -6,7 +6,7 @@ import { computed, defineComponent, ref, watch, nextTick, reactive } from 'vue';
 
 import { ClickOutside } from '@/directives';
 
-import { trackHeadWidth } from '@/settings/trackSetting';
+import { TrackHeadWidth } from '@/settings/tracksSetting';
 import { useTrackStore } from '@/store/track';
 
 import {
@@ -109,7 +109,7 @@ export default defineComponent({
             activeTrak.value.active = false;
             activeIdxs.value = { i: -1, j: -1 };
           }
-          if (trackStore.isMapEmpty) {
+          if (trackStore.isMapEmpty()) {
             nextTick(() => {
               if (isVideo(trackStore.track?.type)) draggedIdxs.value.i = 0;
               else if (isAudio(trackStore.track?.type)) newListLine.value = { i: 0, top: false };
@@ -125,7 +125,7 @@ export default defineComponent({
           nextTick(() => {
             if (
               newVal === ContainerType.Video &&
-              trackStore.isVideoEmpty &&
+              trackStore.isVideoEmpty() &&
               !isAudio(trackStore.track?.type)
             ) {
               setTimeout(() => {
@@ -134,7 +134,7 @@ export default defineComponent({
             }
             if (
               newVal === ContainerType.Audio &&
-              trackStore.isAudioEmpty &&
+              trackStore.isAudioEmpty() &&
               isAudio(trackStore.track?.type)
             ) {
               setTimeout(() => {
@@ -332,7 +332,7 @@ export default defineComponent({
       let dx = (dragData.dx = e.pageX - rect.left - trackStore.offset);
 
       if (inMain()) {
-        if (!trackStore.isMapEmpty) newListLine.value.i = -1;
+        if (!trackStore.isMapEmpty()) newListLine.value.i = -1;
         if (!isVideo(activeTrak.value?.type)) return;
         if (dx > 0) draggedIdxs.value.i = 0;
         else draggedIdxs.value.i = -1;
@@ -448,7 +448,7 @@ export default defineComponent({
       const { dx, idx, j, overlap } = dragData;
       const track = trackStore.track.clone();
 
-      if (trackStore.isMapEmpty) {
+      if (trackStore.isMapEmpty()) {
         if (isVideo(trackStore.track.type)) {
           lists.value[0].push(trackStore.track.clone());
           activeIdxs.value = { i: 0, j: lists.value[0].length - 1 };
@@ -475,7 +475,7 @@ export default defineComponent({
       // create new track list
       if (newListLine.value.i !== -1) {
         track.marginLeft = shadowLeft.value;
-        const offset = trackStore.isVideoEmpty ? idx >= newListLine.value.i : 1;
+        const offset = trackStore.isVideoEmpty() ? idx >= newListLine.value.i : 1;
         const insertedIdx = newListLine.value.i + +offset - +newListLine.value.top;
 
         lists.value.splice(insertedIdx, 0, [track]);
@@ -539,14 +539,16 @@ export default defineComponent({
       <div
         class={[
           'rounded-md w-full flex items-center justify-start pl-10 opacity-50 mr-2',
-          !trackStore.isMapEmpty || trackStore.isResourceOver
+          !trackStore.isMapEmpty() || trackStore.isResourceOver
             ? 'h-24'
             : 'border border-light-50 border-dashed h-20',
         ]}
         style="background-color: rgba(255, 255, 255, 0.1);"
       >
         <div>
-          {!trackStore.isMapEmpty || trackStore.isResourceOver ? null : <span>视频拖拽到这里</span>}
+          {!trackStore.isMapEmpty() || trackStore.isResourceOver ? null : (
+            <span>视频拖拽到这里</span>
+          )}
         </div>
       </div>
     );
@@ -584,12 +586,12 @@ export default defineComponent({
                 <div
                   draggable={true}
                   onDragstart={(e: DragEvent) => trackDragger.dragstart(e, track, i, j, props.type)}
-                  onPointerdown={(e: PointerEvent) => onTrackDown(e, track, i, j)}
                 >
                   <Track
                     track={track}
                     isMute={attrs.isMute as boolean}
                     v-clickOutside={() => onClickOutside(track)}
+                    onPointerdown={(e: PointerEvent) => onTrackDown(e, track, i, j)}
                   >
                     {track.active ? (
                       <TrackBorder
@@ -620,7 +622,7 @@ export default defineComponent({
         onDragend={onTrackend}
         onDrop={onTrackDrop}
       >
-        <div class="track-container-head h-full" style={`flex:0 0 ${trackHeadWidth}px;`}>
+        <div class="track-container-head h-full" style={`flex:0 0 ${TrackHeadWidth}px;`}>
           {slots.default ? slots.default() : null}
         </div>
 

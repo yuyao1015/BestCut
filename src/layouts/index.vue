@@ -112,7 +112,7 @@ const canvasSizeChange = () => {
 
   useResourceStore().onPreviewCanvasSizeChange(resizeProportion);
   if (useResourceStore().resource) previewStore.player.updateSize();
-  if (!trackStore.isMapEmpty) return trackStore.manager.updateSize();
+  if (!trackStore.isMapEmpty()) return trackStore.manager.updateSize();
 };
 const canvasSizeChangeDebounce = _.debounce(canvasSizeChange, 10);
 

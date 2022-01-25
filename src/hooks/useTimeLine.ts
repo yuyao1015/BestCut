@@ -1,18 +1,17 @@
-import { TrackItem, VideoTrack } from '@/logic/tracks';
 import type { Ref } from 'vue';
 
 import { watch } from 'vue';
 
 import { setDPI } from '@/utils';
+import { TrackItem, VideoTrack } from '@/logic/tracks';
+import { TimelineScale, TrackHeadWidth } from '@/settings/tracksSetting';
 import { clipDurationString, getDurationString, durationString2Sec } from '@/utils/player';
-
-const SCALE = 5;
-// const SCALE = 1;
 
 export default (duration: number, fps: number) => {
   let step = 15; // px
   let gap = 10;
   let unit = 30; // s
+  let _scrollLeft = 0;
   let ctx: CanvasRenderingContext2D | null = null;
 
   function getScaleUnit(duration: number, fps: number) {
@@ -49,27 +48,31 @@ export default (duration: number, fps: number) => {
   }
 
   const initTimeLine = () => {
-    const canvas = document.getElementById('timeline') as HTMLCanvasElement;
+    const canvas = document.getElementById('scaler') as HTMLCanvasElement;
     ctx = canvas.getContext('2d');
     const { clientHeight, clientWidth } = canvas;
-    canvas.width = clientWidth;
+    canvas.width = clientWidth + TrackHeadWidth + 100;
     canvas.height = clientHeight;
-    setDPI(canvas, SCALE);
+    setDPI(canvas, TimelineScale);
 
     calcUnit(0);
-    drawTimeline();
+    drawTimeline(_scrollLeft);
   };
 
-  const drawTimeline = () => {
+  const drawTimeline = (scrollLeft?: number) => {
     if (!ctx) return;
-    let drawLen = 0;
+    const { canvas } = ctx;
+    const { width, height } = canvas;
+    _scrollLeft = scrollLeft || 0;
+
     let count = 0;
-    const { width, height } = ctx.canvas;
+    let drawLen = _scrollLeft;
+
     ctx.clearRect(0, 0, width, height);
 
     ctx.lineWidth = 1;
     ctx.fillStyle = '#aaa';
-    while (drawLen <= width) {
+    while (drawLen <= width + _scrollLeft) {
       ctx.beginPath();
       let y = height / 2;
       ctx.strokeStyle = '#777';
@@ -85,10 +88,10 @@ export default (duration: number, fps: number) => {
 
         const ds = getDurationString(d, fps);
         const durationText = clipDurationString(ds);
-        ctx.fillText(durationText, drawLen + 5, y / SCALE - 1);
+        ctx.fillText(durationText, drawLen + 5, y / TimelineScale - 1);
       }
       ctx.moveTo(drawLen, 0);
-      ctx.lineTo(drawLen, y / SCALE);
+      ctx.lineTo(drawLen, y / TimelineScale);
       ctx.stroke();
       drawLen += step;
       count++;
@@ -116,13 +119,13 @@ export default (duration: number, fps: number) => {
   const useUnit = (percent: Ref<number>) => {
     watch(percent, (val: number) => {
       calcUnit(val);
-      drawTimeline();
+      drawTimeline(_scrollLeft);
     });
   };
 
   const calcWidth = (track: TrackItem | number) => {
-    let w,
-      ml = 0;
+    let w;
+    let ml = 0;
     if (track instanceof TrackItem) {
       if (!track.duration) {
         w = track.width ? track.width : 50;
@@ -141,5 +144,5 @@ export default (duration: number, fps: number) => {
     return { width: w, marginLeft: ml };
   };
 
-  return { initTimeLine, useUnit, calcWidth };
+  return { initTimeLine, useUnit, calcWidth, drawTimeline };
 };

@@ -44,17 +44,17 @@ export default defineComponent({
     });
 
     const active = computed(() => {
-      return Boolean(resourceStore.resource) || !trackStore.isMapEmpty;
+      return Boolean(resourceStore.resource) || !trackStore.isMapEmpty();
     });
     const total = computed(() => {
       let _total = '00:00:00:00';
-      if (!trackStore.isMapEmpty) _total = trackStore.total;
+      if (!trackStore.isMapEmpty()) _total = trackStore.total;
       if (resourceStore.resource) _total = previewStore.total;
       return _total;
     });
     const current = computed(() => {
       let _current = '00:00:00:00';
-      if (!trackStore.isMapEmpty) _current = trackStore.current;
+      if (!trackStore.isMapEmpty()) _current = trackStore.current;
       if (resourceStore.resource) _current = previewStore.current;
       return _current;
     });
@@ -62,7 +62,7 @@ export default defineComponent({
     const paused = computed(() => {
       if (!active.value) return true;
       if (resourceStore.resource) return previewStore.player.paused;
-      if (!trackStore.isMapEmpty) return trackStore.manager.paused;
+      if (!trackStore.isMapEmpty()) return trackStore.manager.paused;
       return true;
     });
     const pauseResume = () => {

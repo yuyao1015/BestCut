@@ -45,7 +45,9 @@ export default defineComponent({
         <div class="h-10">thumbnail</div>
         <div class="h-5">foot wave</div>
 
-        {track.transition ? <div class="absolute h-full right-0 top-0">{Transition()}</div> : null}
+        {
+          //track.transition ? <div class="absolute h-full right-0 top-0">{Transition()}</div> : null
+        }
       </div>
     );
 
