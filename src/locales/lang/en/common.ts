@@ -1,5 +1,5 @@
 export default {
-  title: 'best cut',
+  title: 'chiulipine',
   header: 'header',
   resource: 'resource panel',
   preview: 'preview panel',

@@ -150,7 +150,7 @@ export class TrackManager {
     if (isVideo(item.track?.type)) {
       this._venque(que, item);
     } else if (isAudio(item.track?.type)) {
-      this._aenque(que, item);
+      // this._aenque(que, item);
     } else {
       this._enque(que, item);
     }
@@ -226,7 +226,7 @@ export class TrackManager {
     que.splice(l, 0, item);
   }
 
-  _aenque(que: DisplayItem[], item: DisplayItem) {}
+  // _aenque(que: DisplayItem[], item: DisplayItem) {}
 
   duration() {
     const ends: number[] = [];

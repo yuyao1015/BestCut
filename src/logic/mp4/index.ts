@@ -1,5 +1,5 @@
-import type { Attachment } from '../track-manager';
-import type { TextTrack, StickerTrack } from '../track';
+import type { Attachment } from '../tracks/manager';
+import type { TextTrack, StickerTrack } from '../tracks';
 
 import type { MP4PlayerOption } from '#/player';
 import type { DowndloadCallback } from './downloader';
@@ -66,7 +66,11 @@ export class MP4Source {
     return this.file.moov.traks[0].mdia.minf.stbl.stsd.entries[0].avcC;
   }
 
-  onSamples(track_id: string, ref: any, samples: any[]) {}
+  onSamples(track_id: string, ref: any, samples: any[]) {
+    track_id;
+    ref;
+    samples;
+  }
 
   async getConfig() {
     const info = await this.getInfo();
@@ -345,6 +349,7 @@ export class MP4Player {
     s: number,
     e: number
   ) {
+    e;
     const { x, y, scale } = track;
     const { frames } = track;
     if (frames.length) {

@@ -37,7 +37,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { on, off } from '@/utils/dom';
 import { MouseCtl } from '@/logic/mouse';
 import { useTrackStore } from '@/store/track';
-import { TrackHeadWidth as lmin } from '@/settings/tracksSetting';
+import { TrackHeadWidth, TimelineTailWidth } from '@/settings/tracksSetting';
 
 type Props = {
   draw: (x?: number) => void;
@@ -48,8 +48,8 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const hover = ref(false);
-const hoverX = ref(lmin);
-const locatorX = ref(lmin);
+const hoverX = ref(TrackHeadWidth);
+const locatorX = ref(TrackHeadWidth);
 const locator = ref<HTMLElement | null>(null);
 
 const trackStore = useTrackStore();
@@ -58,7 +58,7 @@ watch(
   (val: number) => {
     if (!trackStore.calcWidth) return;
     const x = trackStore.calcWidth(val / 1000).width;
-    locatorX.value = lmin + x;
+    locatorX.value = TrackHeadWidth + x;
   }
 );
 
@@ -70,7 +70,7 @@ const onMouse = (e: PointerEvent) => {
   if (!timeline) return;
   const left = timeline.getBoundingClientRect().left || 0;
   let x = e.pageX - left - scrollX;
-  x = Math.max(lmin, x);
+  x = Math.max(TrackHeadWidth, x);
   if (e.type === 'pointerdown') {
     locatorX.value = x;
     hoverX.value = x;
@@ -92,13 +92,17 @@ const onTimelineLeave = () => {
   hover.value = false;
 };
 
-const marginLeft = ref(lmin);
+const marginLeft = ref(TrackHeadWidth);
 const onTimelineScroll = (e: WheelEvent) => {
-  const timeline = (e.currentTarget as HTMLElement).parentNode as HTMLElement;
-  const { scrollLeft } = timeline;
-  marginLeft.value = lmin > scrollLeft ? lmin : scrollLeft;
-  console.log(marginLeft.value);
-  // props.draw(timeline.scrollLeft);
+  const main = (e.currentTarget as HTMLElement).parentNode as HTMLElement;
+  const { scrollLeft } = main;
+  const diff = scrollLeft - TrackHeadWidth;
+  const threshold = TimelineTailWidth / 2;
+  marginLeft.value = diff < threshold ? TrackHeadWidth : scrollLeft - threshold;
+  props.draw(diff < threshold ? scrollLeft - diff : scrollLeft - threshold);
+
+  const timeline = timelineRef.value?.$el || timelineRef.value;
+  main.scrollLeft = Math.min(scrollLeft, parseFloat(timeline.style.width) - main.offsetWidth);
 };
 
 const isDragging = ref(false);
@@ -108,7 +112,7 @@ const dragLocator = () => {
   mLocator = new MouseCtl(locator.value);
   mLocator.moveCallback = function () {
     const dx = this.x - this.lastX;
-    const x = Math.max(lmin, locatorX.value + dx);
+    const x = Math.max(TrackHeadWidth, locatorX.value + dx);
     locatorX.value = x;
     isDragging.value = true;
     hover.value = false;

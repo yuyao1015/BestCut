@@ -203,7 +203,7 @@ export class FilterTrack extends AttachmentTrack {
       }`,
     };
     GrayShader.uniforms.tDiffuse.value = buffer.texture;
-    GrayShader.uniforms.time.value = i / e;
+    GrayShader.uniforms.time.value = (i - s) / (e - s);
     const material = new THREE.ShaderMaterial({
       uniforms: GrayShader.uniforms,
       vertexShader: GrayShader.vertexShader,
@@ -266,7 +266,7 @@ export class TransitionTrack extends AttachmentTrack {
     buffer2: THREE.WebGLRenderTarget
   ) {
     const transition = GLTransitions[33];
-    const { glsl, name } = transition;
+    const { glsl } = transition;
     // console.log(GLTransitions);
 
     const TransitionShader: Shader = {

@@ -80,7 +80,7 @@ import TrackContainer from './TrackContainer.vue';
 import TimeLine from './TimeLine.vue';
 import TrackHead from './TrackHead.vue';
 
-import { TrackHeadWidth } from '@/settings/tracksSetting';
+import { TrackHeadWidth, TimelineTailWidth } from '@/settings/tracksSetting';
 
 import { useI18n } from '@/hooks/useI18n';
 import useTimeLine from '@/hooks/useTimeLine';
@@ -150,7 +150,7 @@ const updateTrackWidth = () => {
   if (!footer) return;
 
   const rawW = parseInt(getStyle(footer, 'width'));
-  const w = trackWidth + TrackHeadWidth + 100;
+  const w = trackWidth + TrackHeadWidth + TimelineTailWidth;
   wrapperWidth.value = rawW > w ? rawW : w;
 };
 

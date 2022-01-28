@@ -4,14 +4,14 @@ import { watch } from 'vue';
 
 import { setDPI } from '@/utils';
 import { TrackItem, VideoTrack } from '@/logic/tracks';
-import { TimelineScale, TrackHeadWidth } from '@/settings/tracksSetting';
+import { TimelineScale, TrackHeadWidth, TimelineTailWidth } from '@/settings/tracksSetting';
 import { clipDurationString, getDurationString, durationString2Sec } from '@/utils/player';
 
 export default (duration: number, fps: number) => {
-  let step = 15; // px
-  let gap = 10;
-  let unit = 30; // s
-  let _scrollLeft = 0;
+  let step = 15; // px per interval
+  let gap = 10; // intervals
+  let unit = 30; // seconds per interval
+  let _scrollLeft = 0; // scrollLeft offset
   let ctx: CanvasRenderingContext2D | null = null;
 
   function getScaleUnit(duration: number, fps: number) {
@@ -51,7 +51,7 @@ export default (duration: number, fps: number) => {
     const canvas = document.getElementById('scaler') as HTMLCanvasElement;
     ctx = canvas.getContext('2d');
     const { clientHeight, clientWidth } = canvas;
-    canvas.width = clientWidth + TrackHeadWidth + 100;
+    canvas.width = clientWidth + TrackHeadWidth + TimelineTailWidth;
     canvas.height = clientHeight;
     setDPI(canvas, TimelineScale);
 
@@ -59,20 +59,19 @@ export default (duration: number, fps: number) => {
     drawTimeline(_scrollLeft);
   };
 
-  const drawTimeline = (scrollLeft?: number) => {
+  const drawTimeline = (scrollLeft = 0) => {
     if (!ctx) return;
     const { canvas } = ctx;
     const { width, height } = canvas;
-    _scrollLeft = scrollLeft || 0;
-
-    let count = 0;
-    let drawLen = _scrollLeft;
+    _scrollLeft = scrollLeft > TrackHeadWidth ? scrollLeft - TrackHeadWidth : 0;
 
     ctx.clearRect(0, 0, width, height);
-
     ctx.lineWidth = 1;
     ctx.fillStyle = '#aaa';
-    while (drawLen <= width + _scrollLeft) {
+
+    let count = Math.floor(_scrollLeft / step); // index of tick marks
+    let drawLen = step * count - _scrollLeft;
+    while (drawLen <= width) {
       ctx.beginPath();
       let y = height / 2;
       ctx.strokeStyle = '#777';

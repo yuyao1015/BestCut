@@ -85,7 +85,9 @@ export default defineComponent({
         createNewList: (i: number, placeTop: boolean) => {
           if (tid) {
             clearTimeout(tid);
-            // if (last !== -1) draggedIdxs.value.i = last;
+            if (last !== -1) {
+              // draggedIdxs.value.i = last;
+            }
             last = -1;
           }
           tid = window.setTimeout(() => {
