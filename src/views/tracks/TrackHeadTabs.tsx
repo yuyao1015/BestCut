@@ -31,7 +31,9 @@ export const Mouse = () => (
 export const Undo = () => <UndoOutlined class="tab hover:alpha" />;
 export const Redo = () => <RedoOutlined class="tab hover:alpha" />;
 export const Split = () => <SplitCellsOutlined class="tab hover:alpha" />;
-export const Del = () => <DeleteOutlined class="tab hover:alpha" />;
+export const Del = () => (
+  <DeleteOutlined class="tab hover:alpha" onClick={() => trackStore.delete()} />
+);
 export const Ding = () => <div class="tab hover:alpha">定格</div>;
 export const Revert = () => <LeftSquareOutlined class="tab hover:alpha" />;
 export const Mirror = () => <div class="tab hover:alpha">镜像</div>;

@@ -119,7 +119,6 @@ watch(
 
 const wrapperWidth = ref(0);
 const { useUnit, initTimeLine, calcWidth, drawTimeline } = useTimeLine(600, 30);
-trackStore.setCalculator(calcWidth);
 const footerRef = ref<ComponentPublicInstance | null>(null);
 const updateTrackWidth = () => {
   let trackWidth = 0;
@@ -220,7 +219,7 @@ const onResourceDrop = () => {
 };
 
 setTimeout(() => {
-  // percent.value = 89;
+  percent.value = 89;
 }, 0);
 </script>
 

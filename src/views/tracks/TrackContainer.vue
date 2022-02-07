@@ -17,9 +17,7 @@
         :key="i"
         :class="[
           'track-list relative flex w-full my-2',
-          draggedIdxs.i === i || (draggedIdxs.i === -1 && activeIdxs.i === i)
-            ? 'track-list-active'
-            : '',
+          draggedIdxs.i === i || activeIdxs.i === i ? 'track-list-active' : '',
         ]"
       >
         <!-- PlaceholderInMain -->
@@ -42,26 +40,29 @@
         </div>
 
         <!-- TrackList -->
-        <Track
+        <div
           v-else
           v-for="(track, j) in tracks"
           :key="j"
-          :track="track"
-          :isMute="isMute"
           draggable="true"
           @dragstart="(e: DragEvent) => trackDragger.dragstart(e, track, i, j, props.type)"
-          @pointerdown="(e: PointerEvent) => onTrackDown(e, track, i, j)"
-          v-click-outside:[exclude]="() => onClickOutside(track)"
         >
-          <TrackBorder
-            v-if="track.active"
+          <Track
             :track="track"
-            :i="i"
-            :j="j"
-            :lists="lists"
-            v-model:canDrag="canDrag"
-          />
-        </Track>
+            :isMute="isMute"
+            @pointerdown="(e: PointerEvent) => onTrackDown(e, track, i, j)"
+            v-click-outside:[exclude]="() => onClickOutside(track)"
+          >
+            <TrackBorder
+              v-if="track.active"
+              :track="track"
+              :i="i"
+              :j="j"
+              :lists="lists"
+              v-model:canDrag="canDrag"
+            />
+          </Track>
+        </div>
 
         <!-- Shadow -->
         <div
@@ -136,6 +137,12 @@ watch(activeIdxs, (idxs: { i: number; j: number }) => {
   activeTrak.value = lists.value[i][j];
   if (activeTrak.value) activeTrak.value.active = true;
 });
+watch(
+  () => trackStore.track,
+  () => {
+    if (!trackStore.track) activeIdxs.value = { i: -1, j: -1 };
+  }
+);
 
 const trackDragger = useTrakDrag(draggedIdxs);
 const inSameArea = () => trackDragger.getArea() === props.type;
@@ -308,7 +315,7 @@ const swapMainTrack = (list: TrackItem[], dx: number, j: number, track?: TrackIt
 const onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
   e.stopPropagation();
   setTimeout(() => {
-    trackStore.setTrack(track);
+    trackStore.setTrack(track, i, j, props.type as keyof TrackMap);
   }, 0);
   activeIdxs.value = { i, j };
 

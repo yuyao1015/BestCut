@@ -7,6 +7,8 @@ import { TrackItem, VideoTrack } from '@/logic/tracks';
 import { TimelineScale, TrackHeadWidth, TimelineTailWidth } from '@/settings/tracksSetting';
 import { clipDurationString, getDurationString, durationString2Sec } from '@/utils/player';
 
+import { useTrackStore } from '@/store/track';
+
 export default (duration: number, fps: number) => {
   let step = 15; // px per interval
   let gap = 10; // intervals
@@ -14,6 +16,7 @@ export default (duration: number, fps: number) => {
   let _scrollLeft = 0; // scrollLeft offset
   let ctx: CanvasRenderingContext2D | null = null;
 
+  const trackStore = useTrackStore();
   function getScaleUnit(duration: number, fps: number) {
     let ret = 30;
     const half = duration / 2;
@@ -56,6 +59,7 @@ export default (duration: number, fps: number) => {
     setDPI(canvas, TimelineScale);
 
     calcUnit(0);
+    trackStore.setTinfo({ unit, step, gap });
     drawTimeline(_scrollLeft);
   };
 
@@ -118,24 +122,22 @@ export default (duration: number, fps: number) => {
   const useUnit = (percent: Ref<number>) => {
     watch(percent, (val: number) => {
       calcUnit(val);
+      trackStore.setTinfo({ unit, step, gap });
       drawTimeline(_scrollLeft);
     });
   };
 
-  const calcWidth = (track: TrackItem | number) => {
+  const calcWidth = (track: TrackItem) => {
     let w;
     let ml = 0;
-    if (track instanceof TrackItem) {
-      if (!track.duration) {
-        w = track.width ? track.width : 50;
-      } else {
-        const s = durationString2Sec(track.duration) / unit;
-        w = s * step;
-      }
-      ml = (track.offset / unit) * step;
+
+    if (!track.duration) {
+      w = track.width ? track.width : 50;
     } else {
-      w = (track / unit) * step;
+      const s = durationString2Sec(track.duration) / unit;
+      w = s * step;
     }
+    ml = (track.offset / unit) * step;
 
     if (track instanceof VideoTrack && track.transition)
       w -= durationString2Sec(track.transition.duration) / unit;

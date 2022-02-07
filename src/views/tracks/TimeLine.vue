@@ -65,9 +65,8 @@ const trackStore = useTrackStore();
 const isMapEmpty = computed(() => trackStore.isMapEmpty());
 watch(
   () => trackStore.manager.currentTime,
-  (val: number) => {
-    if (!trackStore.calcWidth) return;
-    const x = trackStore.calcWidth(val / 1000).width;
+  (tp: number) => {
+    const x = trackStore.tp2x(tp / 1000);
     locatorX.value = TrackHeadWidth + x;
   }
 );
@@ -82,7 +81,10 @@ const onMouse = (e: PointerEvent) => {
   let x = e.pageX - left - scrollX;
   x = Math.max(TrackHeadWidth, x);
   if (e.type === 'pointerdown') {
-    if (!isMapEmpty.value) locatorX.value = x;
+    if (!isMapEmpty.value) {
+      locatorX.value = x;
+      trackStore.jumpTo(x - TrackHeadWidth);
+    }
     hoverX.value = x;
   } else if (e.type === 'pointermove') {
     hoverX.value = x;
@@ -118,6 +120,7 @@ const onTimelineScroll = (e: WheelEvent) => {
 const isDragging = ref(false);
 const dragLocator = () => {
   if (!locator.value) return;
+  const { paused } = trackStore.manager;
 
   mLocator = new MouseCtl(locator.value);
   mLocator.moveCallback = function () {
@@ -126,10 +129,15 @@ const dragLocator = () => {
     locatorX.value = x;
     isDragging.value = true;
     hover.value = false;
+
+    if (!paused) trackStore.pauseResume();
+    trackStore.jumpTo(x - TrackHeadWidth);
   };
   mLocator.upCallback = function () {
     isDragging.value = false;
     if (hoverX.value === locatorX.value) hover.value = false;
+
+    if (!paused) trackStore.pauseResume();
   };
 };
 

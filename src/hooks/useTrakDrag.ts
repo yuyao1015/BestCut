@@ -5,7 +5,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import _ from 'lodash-es';
 
 import { setStyle } from '@/utils/dom';
-import { useTrackStoreWithOut } from '@/store/track';
+import { useTrackStore } from '@/store/track';
 import { ContainerType } from '@/enums/track';
 
 export default (draggedIdxs: Ref<{ i: number; j: number }>) => {
@@ -20,7 +20,7 @@ export default (draggedIdxs: Ref<{ i: number; j: number }>) => {
 
   const scrollTop = ref(0);
   const scrollLeft = ref(0);
-  const trackStore = useTrackStoreWithOut();
+  const trackStore = useTrackStore();
   const dragView: DragView = { el: undefined, left: 0, top: 0 };
 
   const onDragOver = (e: DragEvent) => {

@@ -296,6 +296,11 @@ export class TrackManager {
     this._play();
   }
 
+  jumpTo(tp: number) {
+    console.log('jump');
+    this.lastTime = this.currentTime = tp;
+  }
+
   pauseResume() {
     if (this.paused) this.resume();
     else this.pause();

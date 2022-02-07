@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 
 import { store } from '@/store';
+import { deleteTrack } from '@/logic/tracks/op';
 import { TrackManager } from '@/logic/tracks/manager';
 import { TrackMap, TrackItem, isVideo, isAudio } from '@/logic/tracks';
 
@@ -8,37 +9,38 @@ import { ContainerType } from '@/enums/track';
 import { getDurationString } from '@/utils/player';
 import { mainList, audioList, videoList } from '@/../mocks/_track';
 
-const Debug = 1;
-const trackMap = Debug
-  ? { video: videoList, main: mainList, audio: audioList }
-  : {
-      video: [
-        // videoList[0],
-        // videoList[2],
-        // videoList[3],
-        // videoList[5],
-        // videoList[6],
-        // videoList[8],
-        // videoList[9],
-      ],
-      main: [
-        //
-        // mainList[0],
-        // mainList[1],
-      ],
-      audio: [],
-      // audio: audioList,
-    };
+const Flag = 2;
+const mocks = [
+  { video: [], main: [], audio: [] }, // empty
+  { video: videoList, main: mainList, audio: audioList }, // full
+  // transition
+  {
+    video: [
+      videoList[0],
+      videoList[2],
+      videoList[3],
+      videoList[5],
+      videoList[6],
+      videoList[8],
+      videoList[9],
+    ],
+    main: [mainList[0], mainList[1]],
+    audio: [],
+  },
+];
+const trackMap = mocks[Flag];
 
-type Calculator = (track: TrackItem | number) => { width: number; marginLeft: number };
+type Minfo = { i: number; j: number; type?: keyof TrackMap };
+type Tinfo = { step: number; gap: number; unit: number };
 
 interface TrackState {
   _area: ContainerType; // current hovered over container
-  trackMap: TrackMap;
-  track?: TrackItem;
-  offset: number;
-  hoverVisiable: boolean;
-  calcWidth?: Calculator;
+  trackMap: TrackMap; // data of timeline
+  minfo: Minfo; // map
+  tinfo: Tinfo; // timeline
+  track?: TrackItem; // active track
+  offset: number; // for dx of dragger
+  hoverVisiable: boolean; // timeline hover
   manager: TrackManager;
 }
 
@@ -49,7 +51,8 @@ export const useTrackStore = defineStore({
     offset: 0,
     track: undefined,
     hoverVisiable: true,
-    calcWidth: undefined,
+    minfo: { i: -1, j: -1 },
+    tinfo: { step: 0, gap: 0, unit: 0 },
     _area: ContainerType.OutSide,
     manager: new TrackManager(trackMap),
   }),
@@ -93,15 +96,38 @@ export const useTrackStore = defineStore({
     setArea(_area: ContainerType) {
       this._area = _area;
     },
-    setTrack(track?: TrackItem) {
+    setTrack(track?: TrackItem, i = -1, j = -1, type?: keyof TrackMap) {
       this.track = track;
+      this.minfo = { i, j, type };
+    },
+    delete() {
+      const { i, j, type } = this.minfo;
+      if (!this.track || !type) return;
+      const inMain = type === 'main';
+      let lists = this.trackMap[type];
+      lists = (inMain ? [lists] : lists) as TrackItem[][];
+      deleteTrack(lists, i, j, inMain);
+      this.track = undefined;
+      // this.minfo = { i: -1, j: -1 };
     },
     setOffset(offset: number) {
       this.offset = offset;
     },
-    setCalculator(calc: Calculator) {
-      this.calcWidth = calc;
+
+    setTinfo(info: Tinfo) {
+      this.tinfo = info;
     },
+    tp2x(tp: number) {
+      const { unit, step } = this.tinfo;
+      if (unit === 0 || step === 0) return 0;
+      return (tp / unit) * step;
+    },
+    x2tp(x: number) {
+      const { unit, step } = this.tinfo;
+      if (unit === 0 || step === 0) return 0;
+      return (x / step) * unit;
+    },
+
     switchHover() {
       this.hoverVisiable = !this.hoverVisiable;
     },
@@ -114,6 +140,11 @@ export const useTrackStore = defineStore({
       if (isVideo(track.type)) this.trackMap.main.push(track);
       else if (isAudio(track.type)) this.trackMap.audio.push([track]);
       else this.trackMap.video.splice(this.videoIdx, 0, [track]);
+    },
+
+    jumpTo(x: number) {
+      const tp = this.x2tp(x) * 1000;
+      this.manager.jumpTo(tp);
     },
 
     pauseResume() {
