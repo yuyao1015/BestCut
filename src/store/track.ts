@@ -8,23 +8,23 @@ import { ContainerType } from '@/enums/track';
 import { getDurationString } from '@/utils/player';
 import { mainList, audioList, videoList } from '@/../mocks/_track';
 
-const Debug = 0;
+const Debug = 1;
 const trackMap = Debug
   ? { video: videoList, main: mainList, audio: audioList }
   : {
       video: [
-        videoList[0],
-        videoList[2],
-        videoList[3],
-        videoList[5],
-        videoList[6],
-        videoList[8],
-        videoList[9],
+        // videoList[0],
+        // videoList[2],
+        // videoList[3],
+        // videoList[5],
+        // videoList[6],
+        // videoList[8],
+        // videoList[9],
       ],
       main: [
         //
-        mainList[0],
-        mainList[1],
+        // mainList[0],
+        // mainList[1],
       ],
       audio: [],
       // audio: audioList,
@@ -37,6 +37,7 @@ interface TrackState {
   trackMap: TrackMap;
   track?: TrackItem;
   offset: number;
+  hoverVisiable: boolean;
   calcWidth?: Calculator;
   manager: TrackManager;
 }
@@ -46,6 +47,9 @@ export const useTrackStore = defineStore({
   state: (): TrackState => ({
     trackMap,
     offset: 0,
+    track: undefined,
+    hoverVisiable: true,
+    calcWidth: undefined,
     _area: ContainerType.OutSide,
     manager: new TrackManager(trackMap),
   }),
@@ -89,7 +93,7 @@ export const useTrackStore = defineStore({
     setArea(_area: ContainerType) {
       this._area = _area;
     },
-    setTrack(track: TrackItem) {
+    setTrack(track?: TrackItem) {
       this.track = track;
     },
     setOffset(offset: number) {
@@ -97,6 +101,9 @@ export const useTrackStore = defineStore({
     },
     setCalculator(calc: Calculator) {
       this.calcWidth = calc;
+    },
+    switchHover() {
+      this.hoverVisiable = !this.hoverVisiable;
     },
 
     updateMap<K extends keyof TrackMap>(lists: TrackMap[K], type?: K) {

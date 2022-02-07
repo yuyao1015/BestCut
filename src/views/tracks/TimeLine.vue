@@ -16,12 +16,21 @@
 
     <div
       ref="locator"
-      class="timeline-locator absolute h-full w-px z-10"
-      :style="`left: ${locatorX}px`"
+      :class="[
+        'timeline-locator absolute h-full w-px z-10',
+        isMapEmpty ? 'pointer-events-none' : '',
+      ]"
+      :style="`left: ${locatorX}px;${''}`"
     >
-      <div :class="['timeline-locator-head', isDragging ? 'bg-white' : '']"></div>
+      <div
+        :class="[
+          'timeline-locator-head border-2',
+          isDragging ? 'bg-white' : '',
+          isMapEmpty ? 'border-gray-400' : 'border-white',
+        ]"
+      ></div>
       <div class="timeline-locator-body">
-        <div class="h-full w-px bg-white top-0" />
+        <div :class="['h-full w-px top-0', isMapEmpty ? 'bg-gray-500' : 'bg-white']" />
       </div>
     </div>
 
@@ -32,7 +41,7 @@
 <script lang="ts" setup>
 import type { ComponentPublicInstance } from 'vue';
 
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 
 import { on, off } from '@/utils/dom';
 import { MouseCtl } from '@/logic/mouse';
@@ -53,6 +62,7 @@ const locatorX = ref(TrackHeadWidth);
 const locator = ref<HTMLElement | null>(null);
 
 const trackStore = useTrackStore();
+const isMapEmpty = computed(() => trackStore.isMapEmpty());
 watch(
   () => trackStore.manager.currentTime,
   (val: number) => {
@@ -72,7 +82,7 @@ const onMouse = (e: PointerEvent) => {
   let x = e.pageX - left - scrollX;
   x = Math.max(TrackHeadWidth, x);
   if (e.type === 'pointerdown') {
-    locatorX.value = x;
+    if (!isMapEmpty.value) locatorX.value = x;
     hoverX.value = x;
   } else if (e.type === 'pointermove') {
     hoverX.value = x;
@@ -84,7 +94,7 @@ const events: string[] = ['pointermove', 'pointerdown'];
 const onTimelineOver = () => {
   // console.log('over');
   events.forEach((event) => on(window, event, onMouse));
-  hover.value = true;
+  if (trackStore.hoverVisiable) hover.value = true;
 };
 const onTimelineLeave = () => {
   // console.log('leave');
@@ -138,7 +148,6 @@ onUnmounted(() => {
     width: 10px;
     height: 15px;
     transform: translateX(-50%);
-    border: solid 2px #fff;
     border-bottom-left-radius: 50%;
     border-bottom-right-radius: 50%;
   }

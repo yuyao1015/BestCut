@@ -36,6 +36,7 @@
     </div>
   </div>
 </template>
+
 <script lang="ts" setup>
 import type { ComponentPublicInstance } from 'vue';
 

@@ -1,18 +1,33 @@
 <script lang="tsx">
-import { defineComponent, ref, h, computed } from 'vue';
+import { defineComponent, ref, h, computed, Ref } from 'vue';
 
 import { Tooltip, Slider } from 'ant-design-vue';
-import {
-  DownOutlined,
-  UndoOutlined,
-  RedoOutlined,
-  SplitCellsOutlined,
-  DeleteOutlined,
-  LeftSquareOutlined,
-  RotateLeftOutlined,
-  ZoomInOutlined,
-  ZoomOutOutlined,
-} from '@ant-design/icons-vue';
+import { ZoomInOutlined, ZoomOutOutlined } from '@ant-design/icons-vue';
+
+import { useTrackStore } from '@/store/track';
+
+import * as Tabs from './TrackHeadTabs';
+import { isVideo, isAudio, isPicture } from '@/logic/tracks';
+
+type Tab = {
+  component: any;
+  tip?: string;
+  active: Ref<boolean>;
+  show: Ref<boolean>;
+  placement?:
+    | 'left'
+    | 'right'
+    | 'bottom'
+    | 'top'
+    | 'bottomRight'
+    | 'bottomLeft'
+    | 'topLeft'
+    | 'topRight'
+    | 'leftTop'
+    | 'leftBottom'
+    | 'rightTop'
+    | 'rightBottom';
+};
 
 export default defineComponent({
   name: 'TrackHead',
@@ -24,167 +39,177 @@ export default defineComponent({
   },
   emits: ['update:percent'],
   setup(props, { emit }) {
-    const active = ref(true);
+    const trackStore = useTrackStore();
     const percent = computed(() => props.percent);
-
-    const mouse = () => (
-      <div class="h-2/5 border-r border-gray-400">
-        <div
-          class="flex items-center px-1 rounded-md leading-loose w-16"
-          style="background-color: #515154"
-        >
-          <span class="mr-4">鼠标</span>
-          <DownOutlined class="text-xs" />
-        </div>
-      </div>
+    const active = computed(() => !!trackStore.track);
+    const isv = computed(() => isVideo(trackStore.track?.type));
+    const isa = computed(() => isAudio(trackStore.track?.type));
+    const isnp = computed(
+      () => isVideo(trackStore.track?.type) && !isPicture(trackStore.track?.type)
     );
-    const left = [
+    const isMapNotEmpty = computed(() => !trackStore.isMapEmpty());
+
+    const left: Tab[] = [
       {
-        component: mouse,
+        component: Tabs.Mouse,
         tip: '切换鼠标选择状态或切割状态',
-        active: true,
-        show: true,
+        active: ref(true),
+        show: ref(true),
         placement: 'bottomRight',
       },
       {
-        component: () => UndoOutlined,
+        component: Tabs.Undo,
         tip: '撤销',
-        active: false,
-        show: true,
+        active: ref(false),
+        show: ref(true),
         placement: 'bottomRight',
       },
       {
-        component: () => RedoOutlined,
+        component: Tabs.Redo,
         tip: '恢复',
-        active: false,
-        show: true,
+        active: ref(false),
+        show: ref(true),
         placement: 'bottomRight',
       },
       {
-        component: () => SplitCellsOutlined,
+        component: Tabs.Split,
         tip: '分割',
-        active: active.value,
-        show: true,
+        active,
+        show: ref(true),
         placement: 'bottomRight',
       },
       {
-        component: () => DeleteOutlined,
+        component: Tabs.Del,
         tip: '删除',
-        active: active.value,
-        show: true,
+        active,
+        show: ref(true),
         placement: 'bottomRight',
       },
       {
-        component: () => <div>定格</div>,
+        component: Tabs.Ding,
         tip: '定格',
-        active: active.value,
-        show: active.value,
+        active: isnp,
+        show: isv,
         placement: 'bottomRight',
       },
       {
-        component: () => LeftSquareOutlined,
+        component: Tabs.Revert,
         tip: '倒放',
-        active: active.value,
-        show: active.value,
+        active: isnp,
+        show: isv,
         placement: 'bottomRight',
       },
       {
-        component: () => <div>镜像</div>,
+        component: Tabs.Mirror,
         tip: '镜像',
-        active: active.value,
-        show: active.value,
+        active: isv,
+        show: isv,
         placement: 'bottomRight',
       },
       {
-        component: () => RotateLeftOutlined,
+        component: Tabs.Rotate,
         tip: '旋转',
-        active: active.value,
-        show: active.value,
+        active: isv,
+        show: isv,
         placement: 'bottomRight',
       },
       {
-        component: () => <div>裁剪</div>,
+        component: Tabs.Clip,
         tip: '裁剪',
-        active: active.value,
-        show: active.value,
+        active: isv,
+        show: isv,
+        placement: 'bottomRight',
+      },
+      {
+        component: Tabs.Point,
+        tip: '手动踩点',
+        active: isa,
+        show: isa,
         placement: 'bottomRight',
       },
     ];
 
-    const scaleChange = (value: number) => {
-      emit('update:percent', value);
-    };
-    const progress = (prop: { disabled: boolean }) => (
+    const zoomout = () => (
+      <ZoomOutOutlined
+        onClick={() => {
+          const value = Math.max(0, percent.value - 1);
+          emit('update:percent', value);
+        }}
+      />
+    );
+
+    const scaler = (prop: { disabled: boolean }) => (
       <div class="w-1/3">
         <Slider
           class="w-full m-0 mx-1"
           value={percent.value}
-          onChange={scaleChange}
+          onChange={(value: number) => {
+            emit('update:percent', value);
+          }}
           tooltipVisible={false}
           disabled={!prop.disabled}
         />
       </div>
     );
-    const right = [
-      {
-        component: () => <div class="h-full">吸附</div>,
-        tip: '打开自动吸附',
-        active: true,
-        show: true,
-        placement: 'bottomRight',
-      },
-      {
-        component: () => <div class="h-2/5 mr-3 pr-3 border-r border-black">预览轴</div>,
-        tip: '打开预览轴',
-        active: true,
-        show: true,
-        placement: 'bottomRight',
-      },
-      {
-        component: () => ZoomOutOutlined,
-        tip: '时间线缩小',
-        active: active.value,
-        show: true,
-        placement: 'bottomRight',
-        onClick: () => {
-          const value = Math.max(0, percent.value - 1);
-          emit('update:percent', value);
-        },
-      },
-      {
-        component: progress,
-        tip: '',
-        active: active.value,
-        show: true,
-        placement: '',
-      },
-      {
-        component: () => ZoomInOutlined,
-        tip: '时间线放大',
-        active: active.value,
-        show: true,
-        placement: 'bottomLeft',
-        onClick: () => {
+
+    const zoomin = () => (
+      <ZoomInOutlined
+        onClick={() => {
           const value = Math.min(100, percent.value + 1);
           emit('update:percent', value);
-        },
+        }}
+      />
+    );
+
+    const right: Tab[] = [
+      {
+        component: Tabs.AutoAttach,
+        tip: '打开自动吸附',
+        active: ref(true),
+        show: ref(true),
+        placement: 'bottomRight',
+      },
+      {
+        component: Tabs.TimelineHover,
+        tip: '打开预览轴',
+        active: ref(true),
+        show: ref(true),
+        placement: 'bottomRight',
+      },
+      {
+        component: zoomout,
+        tip: '时间线缩小',
+        active: isMapNotEmpty,
+        show: ref(true),
+        placement: 'bottomRight',
+      },
+      {
+        component: scaler,
+        active: isMapNotEmpty,
+        show: ref(true),
+      },
+      {
+        component: zoomin,
+        tip: '时间线放大',
+        active: isMapNotEmpty,
+        show: ref(true),
+        placement: 'bottomLeft',
       },
     ];
 
-    const getTabs = (list: any, style = '') =>
-      list.map((tab: any) => {
+    const getTabs = (list: Tab[], style = '') =>
+      list.map((tab) => {
         const component = h(tab.component({ disabled: tab.active }), {
           class: [
-            'flex items-center cursor-pointer leading-tight',
             style,
-            tab.show ? 'block' : 'hidden',
-            tab.active ? '' : 'opacity-50',
+            tab.show.value ? 'block' : 'hidden',
+            tab.active.value ? '' : 'opacity-50 pointer-events-none',
+            'flex items-center cursor-pointer leading-tight select-none',
           ],
-          onClick: tab.onClick ? tab.onClick : () => {},
         });
 
         return tab.tip ? (
-          <Tooltip class="" placement={tab.placement} title={tab.tip}>
+          <Tooltip placement={tab.placement} title={tab.tip} mouseLeaveDelay={0}>
             {component}
           </Tooltip>
         ) : (
@@ -236,5 +261,15 @@ export default defineComponent({
 :deep(.ant-slider-disabled),
 :deep(.ant-slider-disabled .ant-slider-handle) {
   cursor: pointer;
+}
+
+.tab {
+  @apply ml-1 p-1 rounded-md;
+}
+
+@variants hover {
+  .alpha {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
 }
 </style>

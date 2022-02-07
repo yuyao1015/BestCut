@@ -220,7 +220,7 @@ const onResourceDrop = () => {
 };
 
 setTimeout(() => {
-  percent.value = 89;
+  // percent.value = 89;
 }, 0);
 </script>
 

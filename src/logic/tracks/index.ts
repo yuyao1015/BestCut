@@ -341,3 +341,7 @@ export function isVideo(type?: ResourceType) {
 export function isAudio(type?: ResourceType) {
   return type === ResourceType.Audio;
 }
+
+export function isPicture(type?: ResourceType) {
+  return type === ResourceType.Picture;
+}

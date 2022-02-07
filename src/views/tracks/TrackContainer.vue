@@ -233,8 +233,10 @@ export default defineComponent({
     };
 
     const onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
-      track;
       e.stopPropagation();
+      setTimeout(() => {
+        trackStore.setTrack(track);
+      }, 0);
       activeIdxs.value = { i, j };
 
       window.addEventListener('keydown', onShortcut);
@@ -270,6 +272,7 @@ export default defineComponent({
     const onClickOutside = (track: TrackItem) => {
       if (track.active) {
         track.active = false;
+        trackStore.setTrack(undefined);
         activeIdxs.value = { i: -1, j: -1 };
         window.removeEventListener('keydown', onShortcut);
         window.removeEventListener('keyup', offShortcut);

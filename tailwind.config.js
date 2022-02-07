@@ -1,5 +1,8 @@
 module.exports = {
+  purge: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
+  darkMode: false, // or 'media' or 'class'
   theme: {
+    extend: {},
     minHeight: {
       0: '0',
       '1/3': '33%',
@@ -10,4 +13,8 @@ module.exports = {
       full: '100%',
     },
   },
+  variants: {
+    extend: {},
+  },
+  plugins: [],
 };
