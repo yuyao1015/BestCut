@@ -8,7 +8,7 @@ import { clipDurationString, getDurationString } from '@/utils/player';
 
 import { useTrackStore } from '@/store/track';
 
-export default (duration: number, fps: number) => {
+export const useTimeLine = (duration: number, fps: number) => {
   let step = 15; // px per interval
   let gap = 10; // intervals
   let unit = 30; // seconds per interval

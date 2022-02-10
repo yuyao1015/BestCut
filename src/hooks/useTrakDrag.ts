@@ -8,7 +8,7 @@ import { setStyle } from '@/utils/dom';
 import { useTrackStore } from '@/store/track';
 import { ContainerType } from '@/enums/track';
 
-export default (draggedIdxs: Ref<{ i: number; j: number }>) => {
+export const useTrakDrag = (draggedIdxs: Ref<{ i: number; j: number }>) => {
   let lastX = 0;
   let lastY = 0;
   const offset = 0;

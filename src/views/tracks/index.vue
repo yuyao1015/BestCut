@@ -83,7 +83,7 @@ import TrackHead from './TrackHead.vue';
 import { TrackHeadWidth, TimelineTailWidth } from '@/settings/tracksSetting';
 
 import { useI18n } from '@/hooks/useI18n';
-import useTimeLine from '@/hooks/useTimeLine';
+import { useTimeLine } from '@/hooks/useTimeLine';
 import { getStyle, setStyle } from '@/utils/dom';
 
 import { forEachValue } from '@/utils';

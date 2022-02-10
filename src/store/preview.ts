@@ -11,7 +11,7 @@ interface PreviewState {
 }
 
 export const usePreviewStore = defineStore({
-  id: 'app-player',
+  id: 'app-preview',
   state: (): PreviewState => ({
     player: new MP4Player({ id: '' }),
   }),
@@ -75,9 +75,6 @@ export const usePreviewStore = defineStore({
           duration = clipDurationString(getDurationString(this.refs.total, this.fps));
         };
       });
-    },
-    export() {
-      this.player.remux();
     },
   },
 });

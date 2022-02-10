@@ -1,5 +1,5 @@
 <script lang="tsx">
-import { defineComponent, ref, watch, computed, h, onMounted, onUnmounted } from 'vue';
+import { defineComponent, ref, watch, computed, h } from 'vue';
 import {
   CaretRightOutlined,
   PauseOutlined,
@@ -10,11 +10,13 @@ import { Slider } from 'ant-design-vue';
 
 import SectionBox from '@/layouts/SectionBox.vue';
 import { useI18n } from '@/hooks/useI18n';
+import { useFullScreen } from '@/hooks/useFullScreen';
 
 import { useResourceStore } from '@/store/resource';
 import { usePreviewStore } from '@/store/preview';
 import { useTrackStore } from '@/store/track';
-import { CanvasId } from '@/settings/playerSetting';
+import { CanvasId, PlayerId } from '@/settings/playerSetting';
+import { ResourceItem } from '@/logic/resource';
 
 export default defineComponent({
   name: 'Preview',
@@ -72,34 +74,11 @@ export default defineComponent({
     };
 
     const isInFullScreen = ref(false);
-    const fullScreen = async () => {
-      if (!isInFullScreen.value) {
-        isInFullScreen.value = true;
+    const panelVisiable = ref(false);
+    const { switchFullScreen } = useFullScreen(isInFullScreen, panelVisiable);
 
-        previewStore.player.onPlaying = function () {
-          const preview = document.getElementById('preview-box') as HTMLDivElement;
-          const { height, width } = getComputedStyle(preview);
-          this.setCanvas(document.getElementById(CanvasId) as HTMLCanvasElement);
-          if (this.canvas.width < parseInt(width) || this.canvas.height < parseInt(height)) {
-            this.canvas.width = parseInt(width);
-            this.canvas.height = parseInt(height);
-          }
-        };
-      } else {
-        isInFullScreen.value = false;
-        previewStore.player.onPlaying = function () {
-          this.setCanvas(document.getElementById(CanvasId) as HTMLCanvasElement);
-        };
-      }
-    };
-    const clickFullScreen = async () => {
-      if (!active.value) return;
-      if (!isInFullScreen.value) {
-        const preview = document.getElementById('preview-box') as HTMLDivElement;
-        await preview.requestFullscreen();
-      } else if (isInFullScreen.value && document.exitFullscreen) {
-        await document.exitFullscreen();
-      }
+    const clickFullScreen = () => {
+      if (active.value) switchFullScreen();
     };
 
     const shortcut = (e: KeyboardEvent) => {
@@ -107,22 +86,23 @@ export default defineComponent({
         e.preventDefault();
         pauseResume();
       } else if (e.code === 'ArrowLeft') {
+        if (!paused.value) pauseResume();
         previewStore.prev();
       } else if (e.code === 'ArrowRight') {
+        if (!paused.value) pauseResume();
         previewStore.next();
       } else if (e.code === 'Escape') {
         clickFullScreen();
       }
     };
 
-    watch(active, (val: boolean) => {
-      if (val) window.addEventListener('keydown', shortcut);
-      else window.removeEventListener('keydown', shortcut);
-    });
-    watch(isInFullScreen, (val: boolean) => {
-      if (val) window.addEventListener('mousemove', showPanel);
-      else window.removeEventListener('mousemove', showPanel);
-    });
+    watch(
+      () => resourceStore.resource,
+      (val?: ResourceItem) => {
+        if (val) window.addEventListener('keydown', shortcut);
+        else window.removeEventListener('keydown', shortcut);
+      }
+    );
 
     const canvas = () => <canvas id={CanvasId} class="mx-auto bg-black" />;
     const content = () => (
@@ -169,9 +149,7 @@ export default defineComponent({
               value={percent.value}
               onChange={jumpTo}
             />
-          ) : (
-            ''
-          )}
+          ) : null}
 
           <div
             class={[
@@ -197,25 +175,8 @@ export default defineComponent({
       </div>
     );
 
-    onMounted(() => {
-      const preview = document.getElementById('preview-box') as HTMLDivElement;
-      preview.addEventListener('fullscreenchange', fullScreen);
-    });
-    onUnmounted(() => {
-      const preview = document.getElementById('preview-box') as HTMLDivElement;
-      preview.removeEventListener('fullscreenchange', fullScreen);
-    });
-
-    const panelVisiable = ref(false);
-    const showPanel = () => {
-      if (!isInFullScreen.value) return;
-      panelVisiable.value = true;
-      setTimeout(() => {
-        panelVisiable.value = false;
-      }, 3000);
-    };
     return () => (
-      <div id="preview-box" class={'h-full w-full'}>
+      <div id={PlayerId} class={'h-full w-full'}>
         {isInFullScreen.value ? (
           <div class={'h-full w-full relative text-white'}>
             <div class={'absolute h-full w-full'}>{canvas()}</div>

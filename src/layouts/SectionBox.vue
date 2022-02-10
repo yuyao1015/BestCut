@@ -39,21 +39,24 @@
   </Layout>
 </template>
 <script lang="ts" setup>
-import type { VNode, RendererNode, RendererElement } from 'vue';
+import type { PropType } from 'vue';
 import { Layout } from 'ant-design-vue';
 
 import { isString } from '@/utils/is';
 
-type Props = {
-  title?: string | VNode<RendererNode, RendererElement, { [key: string]: any }>;
-  sider?: { class: string; width: number };
-  footer?: boolean;
-};
-
-withDefaults(defineProps<Props>(), {
-  title: 'header',
-  sider: undefined,
-  footer: false,
+defineProps({
+  title: {
+    type: [String, Object],
+    default: 'header',
+  },
+  sider: {
+    type: Object as PropType<{ class: string; width: number }>,
+    default: null,
+  },
+  footer: {
+    type: Boolean,
+    default: false,
+  },
 });
 </script>
 <style scoped lang="less">

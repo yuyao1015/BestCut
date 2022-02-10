@@ -99,7 +99,8 @@ import { updateMainOrder, updateOrder, deleteTrack } from '@/logic/tracks/op';
 import TrackBorder from './TrackBorder.vue';
 import Track from '@/components/Track.vue';
 import { ContainerType } from '@/enums/track';
-import useTrakDrag from '@/hooks/useTrakDrag';
+import { useTrakDrag } from '@/hooks/useTrakDrag';
+import { trackFocusShortCut } from '@/shortcuts/track';
 
 type Props = {
   lists: TrackItem[][];
@@ -325,31 +326,7 @@ const onTrackDown = (e: MouseEvent, track: TrackItem, i: number, j: number) => {
   window.addEventListener('keyup', offShortcut);
 };
 
-const shortcutEvent = () => {
-  let isCtrlPressing = false;
-  return {
-    onShortcut: (e: KeyboardEvent) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-      } else if (e.code === 'MetaLeft' || e.code === 'ControlLeft') {
-        isCtrlPressing = true;
-      } else if (e.code === 'Backspace') {
-        if (isCtrlPressing) {
-          const { i, j } = activeIdxs.value;
-          const track = lists.value[i][j];
-          deleteTrack(lists.value, i, j, inMain());
-          activeIdxs.value = { i: -1, j: -1 };
-          draggedIdxs.value = { i: -1, j: -1 };
-          updateMap(track, lists.value);
-        }
-      }
-    },
-    offShortcut: () => {
-      isCtrlPressing = false;
-    },
-  };
-};
-const { onShortcut, offShortcut } = shortcutEvent();
+const { onShortcut, offShortcut } = trackFocusShortCut();
 
 const onClickOutside = (track: TrackItem) => {
   if (track.active) {

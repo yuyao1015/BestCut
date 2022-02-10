@@ -45,6 +45,7 @@ import { PropType, ref, watch, nextTick, computed, onBeforeMount } from 'vue';
 import ResourceBox from './ResourceBox.vue';
 import Track from '@/components/Track.vue';
 
+import { PlayerId } from '@/settings/playerSetting';
 import { ResourceItem, TextResource, AudioResource, StickerResource } from '@/logic/resource';
 import { setStyle, toggleClass } from '@/utils/dom';
 import { useTrackStore } from '@/store/track';
@@ -225,7 +226,7 @@ const onDragEnd = () => {
 const exclude = ref<Element[]>([]);
 onBeforeMount(() => {
   if (!exclude.value.length) {
-    const preview = document.getElementById('preview-box') as HTMLElement;
+    const preview = document.getElementById(PlayerId) as HTMLElement;
     const splitters = document.getElementsByClassName('splitter') as HTMLCollection;
     exclude.value = [preview, ...Array.from(splitters)];
   }
