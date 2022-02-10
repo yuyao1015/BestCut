@@ -135,7 +135,7 @@ const maskRef = ref<ComponentPublicInstance | undefined>(undefined);
 const trackRef = ref<ComponentPublicInstance | undefined>(undefined);
 const track = computed(() => {
   const trak = props.resource.toTrack();
-  if (trackStore.calcWidth) trak.width = trackStore.calcWidth(trak).width;
+  if (trackStore.calcWidth) trak.width = trackStore.calcWidth(trak);
   return trak;
 });
 

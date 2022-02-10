@@ -158,7 +158,7 @@ watch(
 const trackStore = useTrackStore();
 const add2Track = () => {
   const track = props.resource.toTrack();
-  if (trackStore.calcWidth) track.width = trackStore.calcWidth(track).width;
+  if (trackStore.calcWidth) track.width = trackStore.calcWidth(track);
   trackStore.addTrack(track);
 };
 

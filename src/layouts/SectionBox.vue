@@ -39,12 +39,13 @@
   </Layout>
 </template>
 <script lang="ts" setup>
+import type { VNode, RendererNode, RendererElement } from 'vue';
 import { Layout } from 'ant-design-vue';
 
 import { isString } from '@/utils/is';
 
 type Props = {
-  title?: string | Record<string, unknown>;
+  title?: string | VNode<RendererNode, RendererElement, { [key: string]: any }>;
   sider?: { class: string; width: number };
   footer?: boolean;
 };

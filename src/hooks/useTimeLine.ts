@@ -3,9 +3,8 @@ import type { Ref } from 'vue';
 import { watch } from 'vue';
 
 import { setDPI } from '@/utils';
-import { TrackItem, VideoTrack } from '@/logic/tracks';
 import { TimelineScale, TrackHeadWidth, TimelineTailWidth } from '@/settings/tracksSetting';
-import { clipDurationString, getDurationString, durationString2Sec } from '@/utils/player';
+import { clipDurationString, getDurationString } from '@/utils/player';
 
 import { useTrackStore } from '@/store/track';
 
@@ -17,6 +16,8 @@ export default (duration: number, fps: number) => {
   let ctx: CanvasRenderingContext2D | null = null;
 
   const trackStore = useTrackStore();
+  trackStore.setTinfo({ unit, step, gap });
+
   function getScaleUnit(duration: number, fps: number) {
     let ret = 30;
     const half = duration / 2;
@@ -127,23 +128,5 @@ export default (duration: number, fps: number) => {
     });
   };
 
-  const calcWidth = (track: TrackItem) => {
-    let w;
-    let ml = 0;
-
-    if (!track.duration) {
-      w = track.width ? track.width : 50;
-    } else {
-      const s = durationString2Sec(track.duration) / unit;
-      w = s * step;
-    }
-    ml = (track.offset / unit) * step;
-
-    if (track instanceof VideoTrack && track.transition)
-      w -= durationString2Sec(track.transition.duration) / unit;
-
-    return { width: w, marginLeft: ml };
-  };
-
-  return { initTimeLine, useUnit, calcWidth, drawTimeline };
+  return { initTimeLine, useUnit, drawTimeline };
 };

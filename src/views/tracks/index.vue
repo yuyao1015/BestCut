@@ -118,16 +118,16 @@ watch(
 );
 
 const wrapperWidth = ref(0);
-const { useUnit, initTimeLine, calcWidth, drawTimeline } = useTimeLine(600, 30);
+const { useUnit, initTimeLine, drawTimeline } = useTimeLine(600, 30);
 const footerRef = ref<ComponentPublicInstance | null>(null);
 const updateTrackWidth = () => {
   let trackWidth = 0;
   const updateWidth = (key: string, track: TrackStateItem | TrackItem) => {
     let left = 0;
     if (!Array.isArray(track)) {
-      const { width, marginLeft } = calcWidth(track);
+      const width = trackStore.calcWidth(track);
       track.width = width;
-      track.marginLeft = marginLeft;
+      track.marginLeft = trackStore.tp2x(track.offset);
       if (key === 'main') track.marginLeft = 0;
       left = width + track.marginLeft;
     } else {

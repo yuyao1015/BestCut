@@ -3,10 +3,10 @@ import { defineStore } from 'pinia';
 import { store } from '@/store';
 import { deleteTrack } from '@/logic/tracks/op';
 import { TrackManager } from '@/logic/tracks/manager';
-import { TrackMap, TrackItem, isVideo, isAudio } from '@/logic/tracks';
+import { TrackMap, TrackItem, VideoTrack, isVideo, isAudio } from '@/logic/tracks';
 
 import { ContainerType } from '@/enums/track';
-import { getDurationString } from '@/utils/player';
+import { getDurationString, durationString2Sec } from '@/utils/player';
 import { mainList, audioList, videoList } from '@/../mocks/_track';
 
 const Flag = 2;
@@ -126,6 +126,23 @@ export const useTrackStore = defineStore({
       const { unit, step } = this.tinfo;
       if (unit === 0 || step === 0) return 0;
       return (x / step) * unit;
+    },
+    calcWidth(track: TrackItem) {
+      const { unit, step } = this.tinfo;
+      if (unit === 0 || step === 0) return 0;
+      let w;
+
+      if (!track.duration) {
+        w = track.width ? track.width : 50;
+      } else {
+        const s = durationString2Sec(track.duration) / unit;
+        w = s * step;
+      }
+
+      if (track instanceof VideoTrack && track.transition)
+        w -= durationString2Sec(track.transition.duration) / unit;
+
+      return w;
     },
 
     switchHover() {

@@ -21,21 +21,20 @@
         ]"
       >
         <!-- PlaceholderInMain -->
-        <div v-if="inMain() && !tracks.length">
-          <div
-            :class="[
-              'rounded-md w-full flex items-center justify-start pl-10 opacity-50 mr-2',
-              !trackStore.isMapEmpty() || trackStore.isResourceOver
-                ? 'h-24'
-                : 'border border-light-50 border-dashed h-20',
-            ]"
-            :style="'background-color: rgba(255, 255, 255, 0.1);'"
-          >
-            <div>
-              <span v-if="!trackStore.isMapEmpty() || trackStore.isResourceOver">
-                视频拖拽到这里
-              </span>
-            </div>
+        <div
+          v-if="inMain() && !tracks.length"
+          :class="[
+            'rounded-md w-full flex items-center justify-start pl-10 opacity-50 mr-2',
+            !trackStore.isMapEmpty() || trackStore.isResourceOver
+              ? 'h-24'
+              : 'border border-light-50 border-dashed h-20',
+          ]"
+          :style="'background-color: rgba(255, 255, 255, 0.1);'"
+        >
+          <div>
+            <span v-if="trackStore.isMapEmpty() && !trackStore.isResourceOver">
+              视频拖拽到这里
+            </span>
           </div>
         </div>
 
@@ -140,7 +139,10 @@ watch(activeIdxs, (idxs: { i: number; j: number }) => {
 watch(
   () => trackStore.track,
   () => {
-    if (!trackStore.track) activeIdxs.value = { i: -1, j: -1 };
+    if (!trackStore.track) {
+      activeIdxs.value = { i: -1, j: -1 };
+      draggedIdxs.value = { i: -1, j: -1 };
+    }
   }
 );
 
