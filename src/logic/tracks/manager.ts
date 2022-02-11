@@ -84,8 +84,8 @@ export class TrackManager {
       if (item.track?.transition) {
         const { fn, duration } = item.track.transition;
         const d = durationString2Sec(duration);
-        t += d;
-        item.endTime -= d;
+        t += d * 1000;
+        item.endTime -= d * 1000;
         let endFrame = d * 30;
         const next = this.displayQueue.video[i + 1];
         next.attachments?.push({
@@ -270,9 +270,6 @@ export class TrackManager {
         if (!this.displayed) {
           this.active = false;
           player?.stop();
-        } else {
-          this.displayed.startTime *= 1000;
-          this.displayed.endTime *= 1000;
         }
       }
 
@@ -296,13 +293,14 @@ export class TrackManager {
     this._play();
   }
 
-  jumpTo(tp: number) {
+  async jumpTo(tp: number) {
     this.lastTime = this.currentTime = tp;
     const { displayed } = this;
     if (displayed && tp > displayed.startTime && tp < displayed.endTime) {
       const idx = ((tp - displayed.startTime) * player.fps) / 1000;
       return player.jumpTo(Math.floor(idx));
     }
+    player.stop();
 
     let l = 0;
     let r = this.displayQueue.video.length - 1;
@@ -312,23 +310,21 @@ export class TrackManager {
       if (tp < target.startTime) r = mid - 1;
       else if (tp > target.endTime) l = mid + 1;
       else {
-        (async () => {
-          player = new MP4Player({ id: CanvasId, url: target.track?.src });
-          this.pause();
-          await player.samplesLoaded();
-          player.prevFrame(player.chunkSize);
-          player.prevFrame(1);
-          const idx = ((tp - target.startTime) * player.fps) / 1000;
-          player.jumpTo(Math.floor(idx));
-        })();
+        player = new MP4Player({ id: CanvasId, url: target.track?.src });
+        await this.holdOn();
+        const idx = ((tp - target.startTime) * player.fps) / 1000;
+        player.jumpTo(Math.floor(idx));
+
+        this.displayedIdx = mid;
         this.displayed = target;
+        player.attachments = this.displayed.attachments || [];
         break;
       }
     }
     if (l > r) player.renderer?.clear();
   }
 
-  async ready() {
+  async holdOn() {
     this.pause();
     await player.samplesLoaded();
     player.prevFrame(player.chunkSize);
@@ -336,14 +332,24 @@ export class TrackManager {
   }
 
   prevFrame(n: number) {
-    if (!player) return;
+    if (!player || !this.displayed) return;
     const tp = Math.max(this.currentTime - 1000 / player.fps, 0);
+    console.log(tp, this.displayed.startTime);
+    if (this.displayed.startTime - tp > 17) {
+      this.jumpTo(tp);
+      return;
+    }
     player.prevFrame(n);
     this.lastTime = this.currentTime = tp;
   }
   nextFrame(n: number) {
-    if (!player) return;
+    if (!player || !this.displayed) return;
     const tp = Math.min(this.currentTime + 1000 / player.fps, this.duration() * 1000);
+    console.log(tp, this.displayed.endTime);
+    if (tp - this.displayed.endTime > 17) {
+      this.jumpTo(tp);
+      return;
+    }
     player.nextFrame(n);
     this.lastTime = this.currentTime = tp;
   }

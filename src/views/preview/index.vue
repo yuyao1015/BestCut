@@ -106,7 +106,7 @@ export default defineComponent({
       window.addEventListener('keydown', shortcut);
       nextTick(() => {
         trackStore.pauseResume();
-        trackStore.manager.ready();
+        trackStore.manager.holdOn();
       });
     }
     watch([() => !!resourceStore.resource, () => !trackStore.isMapEmpty()], (bs: boolean[]) => {
