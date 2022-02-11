@@ -130,6 +130,7 @@ export class MP4Player {
   refs = reactive({ current: 0, total: 0 });
 
   renderer?: Renderer;
+  sample_resolver?: (value?: unknown) => void;
   frame_resolver?: (value?: unknown) => void;
   _canvas: HTMLCanvasElement;
   _ctx: CanvasRenderingContext2D | null = null;
@@ -194,6 +195,7 @@ export class MP4Player {
 
       this.samples = this.source?.getSamples(this.source.videoTrack.id);
       if (!this.samples?.length) return;
+      if (this.sample_resolver) this.sample_resolver();
 
       this.chunkSize = this.samples?.length;
       // const sample = this.samples[0];
@@ -248,6 +250,12 @@ export class MP4Player {
     });
   }
 
+  samplesLoaded() {
+    return new Promise((resolve) => {
+      this.sample_resolver = resolve;
+    });
+  }
+
   frameRendered() {
     return new Promise((resolve) => {
       this.frame_resolver = resolve;
@@ -292,16 +300,23 @@ export class MP4Player {
           if (
             !this._ctx ||
             ![ResourceType.Sticker, ResourceType.Text].includes(track.type) ||
-            frameCount < startFrame ||
-            frameCount > endFrame
+            this.chunkStart < startFrame ||
+            this.chunkStart > endFrame
           )
             continue;
+          // console.log(this.chunkStart, startFrame, endFrame);
           if (track.type === ResourceType.Text) this.drawText(this._ctx, track as TextTrack);
           if (track.type === ResourceType.Sticker)
-            this.drawSticker(this._ctx, track as StickerTrack, frameCount, startFrame, endFrame);
+            this.drawSticker(
+              this._ctx,
+              track as StickerTrack,
+              this.chunkStart,
+              startFrame,
+              endFrame
+            );
         }
 
-        this.renderer?.draw(this._canvas, this.attachments, frameCount);
+        this.renderer?.draw(this._canvas, this.attachments, this.chunkStart);
         if (this.frame_resolver) this.frame_resolver();
       }
 
@@ -363,20 +378,21 @@ export class MP4Player {
 
   jumpTo(idx: number) {
     const { paused, samples } = this;
+    this.renderer?.resetCamera();
 
     if (!samples?.length || samples?.length < idx - 1) return;
     if (this.configured() && !paused) this.pause();
     let i = idx;
     this.canPaint = false;
     while (samples[i] && !samples[i].is_sync) i--;
-    while (i < idx) {
-      const sample = samples[i++];
+    while (i <= idx) {
+      const sample = samples[i];
+      if (i++ == idx) this.canPaint = true;
       const chunk = this.getChunk(sample);
       this.decoder.decode(chunk);
     }
-    this.canPaint = true;
     this.chunkStart = idx;
-    this.refs.current = (idx - 1) / this.fps;
+    this.refs.current = idx / this.fps;
     if (!paused) this.resume();
   }
 
@@ -392,7 +408,7 @@ export class MP4Player {
     this.decoder.decode(chunk);
   }
 
-  // TODO: first call current duration 2 frame ++
+  // TODO: first call current timepoint 2 frame ++
   nextFrame(n: number) {
     const { paused, samples } = this;
 

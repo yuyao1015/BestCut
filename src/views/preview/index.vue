@@ -1,5 +1,5 @@
 <script lang="tsx">
-import { defineComponent, ref, watch, computed, h } from 'vue';
+import { defineComponent, ref, watch, computed, h, onUnmounted, nextTick } from 'vue';
 import {
   CaretRightOutlined,
   PauseOutlined,
@@ -15,8 +15,7 @@ import { useFullScreen } from '@/hooks/useFullScreen';
 import { useResourceStore } from '@/store/resource';
 import { usePreviewStore } from '@/store/preview';
 import { useTrackStore } from '@/store/track';
-import { CanvasId, PlayerId } from '@/settings/playerSetting';
-import { ResourceItem } from '@/logic/resource';
+import { CanvasId, PlayerId, Duration0 } from '@/settings/playerSetting';
 
 export default defineComponent({
   name: 'Preview',
@@ -49,13 +48,13 @@ export default defineComponent({
       return Boolean(resourceStore.resource) || !trackStore.isMapEmpty();
     });
     const total = computed(() => {
-      let _total = '00:00:00:00';
+      let _total = Duration0;
       if (!trackStore.isMapEmpty()) _total = trackStore.total;
       if (resourceStore.resource) _total = previewStore.total;
       return _total;
     });
     const current = computed(() => {
-      let _current = '00:00:00:00';
+      let _current = Duration0;
       if (!trackStore.isMapEmpty()) _current = trackStore.current;
       if (resourceStore.resource) _current = previewStore.current;
       return _current;
@@ -67,10 +66,13 @@ export default defineComponent({
       if (!trackStore.isMapEmpty()) return trackStore.manager.paused;
       return true;
     });
+
+    const store = computed(() =>
+      resourceStore.resource && previewStore.player.active ? previewStore : trackStore
+    );
     const pauseResume = () => {
       if (!active.value) return;
-      previewStore.player.active && previewStore.pauseResume();
-      !resourceStore.resource && trackStore.pauseResume();
+      store.value.pauseResume();
     };
 
     const isInFullScreen = ref(false);
@@ -85,24 +87,36 @@ export default defineComponent({
       if (e.code === 'Space') {
         e.preventDefault();
         pauseResume();
+      } else if (e.code === 'KeyA') {
+        store.value.jumpTo(0);
       } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
         if (!paused.value) pauseResume();
-        previewStore.prev();
+        store.value.prev();
       } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
         if (!paused.value) pauseResume();
-        previewStore.next();
+        store.value.next();
       } else if (e.code === 'Escape') {
         clickFullScreen();
       }
     };
 
-    watch(
-      () => resourceStore.resource,
-      (val?: ResourceItem) => {
-        if (val) window.addEventListener('keydown', shortcut);
-        else window.removeEventListener('keydown', shortcut);
-      }
-    );
+    if (!trackStore.isMapEmpty()) {
+      window.addEventListener('keydown', shortcut);
+      nextTick(() => {
+        trackStore.pauseResume();
+        trackStore.manager.ready();
+      });
+    }
+    watch([() => !!resourceStore.resource, () => !trackStore.isMapEmpty()], (bs: boolean[]) => {
+      if (bs[0] || bs[1]) window.addEventListener('keydown', shortcut);
+      else window.removeEventListener('keydown', shortcut);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('keydown', shortcut);
+    });
 
     const canvas = () => <canvas id={CanvasId} class="mx-auto bg-black" />;
     const content = () => (

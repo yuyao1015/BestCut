@@ -23,16 +23,18 @@ export class Renderer {
     this._renderer.setClearColor(new THREE.Color(0x000000), 1.0);
     this._renderer.shadowMap.enabled = true;
 
+    this.resetCamera();
     this.setSize(canvas.width, canvas.height);
     this.scene.add(this.plane);
   }
 
+  resetCamera() {
+    this.camera = new THREE.OrthographicCamera(-FRUSTUM, FRUSTUM, FRUSTUM, -FRUSTUM, 0, 1);
+    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+  }
+
   setSize(width: number, height: number) {
     this._renderer.setSize(width, height);
-
-    this.camera = new THREE.OrthographicCamera(-FRUSTUM, FRUSTUM, FRUSTUM, -FRUSTUM, 0, 1);
-
-    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     this.geom.parameters.width = width;
     this.geom.parameters.height = height;

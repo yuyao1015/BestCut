@@ -125,7 +125,7 @@ export const useTrackStore = defineStore({
     x2tp(x: number) {
       const { unit, step } = this.tinfo;
       if (unit === 0 || step === 0) return 0;
-      return (x / step) * unit;
+      return (x / step) * unit * 1000;
     },
     calcWidth(track: TrackItem) {
       const { unit, step } = this.tinfo;
@@ -160,8 +160,13 @@ export const useTrackStore = defineStore({
     },
 
     jumpTo(x: number) {
-      const tp = this.x2tp(x) * 1000;
-      this.manager.jumpTo(tp);
+      this.manager.jumpTo(this.x2tp(x));
+    },
+    prev(n = 1) {
+      this.manager.prevFrame(n);
+    },
+    next(n = 1) {
+      this.manager.nextFrame(n);
     },
 
     pauseResume() {

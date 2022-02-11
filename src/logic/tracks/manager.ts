@@ -22,7 +22,7 @@ export type Attachment = {
 export type DisplayItem = {
   active: boolean;
   track?: MediaTrack;
-  startTime: number;
+  startTime: number; // ms
   endTime: number;
   attachments?: Attachment[];
 };
@@ -39,10 +39,10 @@ export class TrackManager {
   map: TrackMap;
   active = false;
   paused = true;
-  private lastTime = 0;
-  private _duration = 0;
   rAF = 0;
-  currentTime = 0;
+  private lastTime = 0; // ms
+  private _duration = 0; // ms
+  currentTime = 0; // ms
   displayedIdx = 0;
   displayed?: DisplayItem;
   displayQueue: DisplayQueue = { video: [], audio: [] };
@@ -131,8 +131,8 @@ export class TrackManager {
         const item = Object.assign(
           {
             active: false,
-            startTime,
-            endTime,
+            startTime: startTime * 1000,
+            endTime: endTime * 1000,
             track,
           },
           isMedia(track.type) ? { attachments: [] } : {}
@@ -174,8 +174,8 @@ export class TrackManager {
       else if (target.startTime <= item.startTime && target.endTime >= item.endTime) {
         target.attachments?.push({
           track,
-          startFrame: (item.startTime - target.startTime) * fps,
-          endFrame: (item.endTime - target.startTime) * fps,
+          startFrame: ((item.startTime - target.startTime) * fps) / 1000,
+          endFrame: ((item.endTime - target.startTime) * fps) / 1000,
         });
         return;
       }
@@ -192,7 +192,9 @@ export class TrackManager {
         return this._enque(que, itemRight, mid + 1, r);
       }
     }
-    item.attachments = [{ track, startFrame: item.startTime * fps, endFrame: item.endTime * fps }];
+    item.attachments = [
+      { track, startFrame: (item.startTime * fps) / 1000, endFrame: (item.endTime * fps) / 1000 },
+    ];
     item.track = undefined;
     que.splice(l, 0, item);
   }
@@ -290,14 +292,59 @@ export class TrackManager {
     this.paused = false;
     this._duration = this.duration() * 1000;
     this.displayed = this.displayQueue.video[this.displayedIdx];
-    this.displayed.startTime *= 1000;
-    this.displayed.endTime *= 1000;
     this.lastTime = performance.now();
     this._play();
   }
 
   jumpTo(tp: number) {
-    console.log('jump');
+    this.lastTime = this.currentTime = tp;
+    const { displayed } = this;
+    if (displayed && tp > displayed.startTime && tp < displayed.endTime) {
+      const idx = ((tp - displayed.startTime) * player.fps) / 1000;
+      return player.jumpTo(Math.floor(idx));
+    }
+
+    let l = 0;
+    let r = this.displayQueue.video.length - 1;
+    while (l <= r) {
+      const mid = l + Math.floor((r - l) / 2);
+      const target = this.displayQueue.video[mid];
+      if (tp < target.startTime) r = mid - 1;
+      else if (tp > target.endTime) l = mid + 1;
+      else {
+        (async () => {
+          player = new MP4Player({ id: CanvasId, url: target.track?.src });
+          this.pause();
+          await player.samplesLoaded();
+          player.prevFrame(player.chunkSize);
+          player.prevFrame(1);
+          const idx = ((tp - target.startTime) * player.fps) / 1000;
+          player.jumpTo(Math.floor(idx));
+        })();
+        this.displayed = target;
+        break;
+      }
+    }
+    if (l > r) player.renderer?.clear();
+  }
+
+  async ready() {
+    this.pause();
+    await player.samplesLoaded();
+    player.prevFrame(player.chunkSize);
+    player.prevFrame(1);
+  }
+
+  prevFrame(n: number) {
+    if (!player) return;
+    const tp = Math.max(this.currentTime - 1000 / player.fps, 0);
+    player.prevFrame(n);
+    this.lastTime = this.currentTime = tp;
+  }
+  nextFrame(n: number) {
+    if (!player) return;
+    const tp = Math.min(this.currentTime + 1000 / player.fps, this.duration() * 1000);
+    player.nextFrame(n);
     this.lastTime = this.currentTime = tp;
   }
 
