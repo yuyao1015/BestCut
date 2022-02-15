@@ -396,6 +396,7 @@ export class MP4Player {
     if (!paused) this.resume();
   }
 
+  // TODO: backword decode
   prevFrame(n: number) {
     const { paused, samples } = this;
 
@@ -408,7 +409,6 @@ export class MP4Player {
     this.decoder.decode(chunk);
   }
 
-  // TODO: first call current timepoint 2 frame ++
   nextFrame(n: number) {
     const { paused, samples } = this;
 
@@ -456,6 +456,7 @@ export class MP4Player {
   }
 
   pause() {
+    this.refs.current = this.chunkStart / this.fps;
     this.rAF && cancelAnimationFrame(this.rAF);
     this.paused = true;
   }

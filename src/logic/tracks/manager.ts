@@ -294,8 +294,9 @@ export class TrackManager {
   }
 
   async jumpTo(tp: number) {
-    this.lastTime = this.currentTime = tp;
-    const { displayed } = this;
+    this.lastTime -= tp - this.currentTime;
+    this.currentTime = tp;
+    const { displayed, paused } = this;
     if (displayed && tp > displayed.startTime && tp < displayed.endTime) {
       const idx = ((tp - displayed.startTime) * player.fps) / 1000;
       return player.jumpTo(Math.floor(idx));
@@ -318,10 +319,15 @@ export class TrackManager {
         this.displayedIdx = mid;
         this.displayed = target;
         player.attachments = this.displayed.attachments || [];
+        if (!paused) this.pauseResume();
         break;
       }
     }
-    if (l > r) player.renderer?.clear();
+    if (l > r) {
+      this.displayed = undefined;
+      this.displayedIdx = 0;
+      player.renderer?.clear();
+    }
   }
 
   async holdOn() {
@@ -333,25 +339,27 @@ export class TrackManager {
 
   prevFrame(n: number) {
     if (!player || !this.displayed) return;
-    const tp = Math.max(this.currentTime - 1000 / player.fps, 0);
-    console.log(tp, this.displayed.startTime);
+    const s = 1000 / player.fps;
+    const tp = Math.max(this.currentTime - s, 0);
     if (this.displayed.startTime - tp > 17) {
       this.jumpTo(tp);
       return;
     }
     player.prevFrame(n);
-    this.lastTime = this.currentTime = tp;
+    this.lastTime += s;
+    this.currentTime = tp;
   }
   nextFrame(n: number) {
     if (!player || !this.displayed) return;
-    const tp = Math.min(this.currentTime + 1000 / player.fps, this.duration() * 1000);
-    console.log(tp, this.displayed.endTime);
+    const s = 1000 / player.fps;
+    const tp = Math.min(this.currentTime + s, this.duration() * 1000);
     if (tp - this.displayed.endTime > 17) {
       this.jumpTo(tp);
       return;
     }
     player.nextFrame(n);
-    this.lastTime = this.currentTime = tp;
+    this.lastTime -= s;
+    this.currentTime = tp;
   }
 
   pauseResume() {
