@@ -14,9 +14,9 @@ import { CanvasId } from '@/settings/playerSetting';
 
 export type Attachment = {
   track: AttachmentTrack;
-  // offset: number; // TODO: for segmented attachment
   startFrame: number;
   endFrame: number;
+  // offset: number; // TODO: for segmented attachment
 };
 
 export type DisplayItem = {
@@ -24,6 +24,7 @@ export type DisplayItem = {
   track?: MediaTrack;
   startTime: number; // ms
   endTime: number;
+  offset: number;
   attachments?: Attachment[];
 };
 
@@ -134,6 +135,7 @@ export class TrackManager {
             startTime: startTime * 1000,
             endTime: endTime * 1000,
             track,
+            offset: 0,
           },
           isMedia(track.type) ? { attachments: [] } : {}
         );
@@ -206,7 +208,8 @@ export class TrackManager {
       const mid = l + Math.floor((r - l) / 2);
       const target = que[mid];
       const itemLeft = Object.assign({}, item, { endTime: target.startTime });
-      const itemRight = Object.assign({}, item, { startTime: target.endTime });
+      const offset = item.offset + target.endTime - item.startTime;
+      const itemRight = Object.assign({}, item, { startTime: target.endTime, offset });
 
       if (target.endTime <= item.startTime) l = mid + 1;
       else if (target.startTime >= item.endTime) r = mid - 1;
@@ -251,7 +254,7 @@ export class TrackManager {
     );
   }
 
-  private _play() {
+  private async _play() {
     this.currentTime = performance.now() - this.lastTime;
     if (this.displayed && this.currentTime < this._duration) {
       const startTime = Math.abs(this.currentTime - this.displayed.startTime);
@@ -278,6 +281,12 @@ export class TrackManager {
 
         player = new MP4Player({ id: CanvasId, url: this.displayed.track?.src });
         player.attachments = this.displayed.attachments || [];
+
+        if (this.displayed.offset) {
+          await player.samplesLoaded();
+          const idx = (this.displayed.offset / 1000) * 30;
+          player.jumpTo(idx);
+        }
       }
     }
 
@@ -298,10 +307,11 @@ export class TrackManager {
     this.currentTime = tp;
     const { displayed, paused } = this;
     if (displayed && tp > displayed.startTime && tp < displayed.endTime) {
-      const idx = ((tp - displayed.startTime) * player.fps) / 1000;
+      const idx = ((tp - displayed.startTime + displayed.offset) * player.fps) / 1000;
       return player.jumpTo(Math.floor(idx));
     }
     player.stop();
+    displayed && (displayed.active = false);
 
     let l = 0;
     let r = this.displayQueue.video.length - 1;
@@ -318,6 +328,7 @@ export class TrackManager {
 
         this.displayedIdx = mid;
         this.displayed = target;
+        this.displayed.active = true;
         player.attachments = this.displayed.attachments || [];
         if (!paused) this.pauseResume();
         break;

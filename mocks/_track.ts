@@ -24,7 +24,7 @@ export const videoList = [
   [new StickerTrack({ duration: '00:01', sticker: '', offset: 0, src: '/media/totoro.gif' })],
 
   [new VideoTrack({ name: 'bbb.mp4', duration: '00:10:34:17', src: '/media/bbb.mp4' })],
-  [new VideoTrack({ name: 'bbb.mp4', duration: '00:10:34:17', src: '/media/bbb.mp4', offset: 20 })],
+  [new VideoTrack({ name: 'out.mp4', duration: '00:00:08:03', src: '/media/out.mp4', offset: 20 })],
   [new VideoTrack({ name: 'bbb.mp4', duration: '00:10:34:17', src: '/media/bbb.mp4', offset: 15 })],
 ];
 
@@ -33,7 +33,7 @@ export const mainList = [
     name: 'out.mp4',
     duration: '00:00:08:03',
     src: '/media/out.mp4',
-    transition: new TransitionTrack({ duration: '00:03' }),
+    // transition: new TransitionTrack({ duration: '00:03' }),
   }),
   new VideoTrack({ name: 'g.mp4', duration: '00:00:46:06', src: '/media/g.mp4' }),
   new VideoTrack({ name: 'ccc.mp4', duration: '00:05:30:20', src: '/media/bbb.mp4' }),
