@@ -18,7 +18,7 @@ const mocks = [
     video: [
       videoList[0],
       videoList[2],
-      videoList[3],
+      videoList[4],
       videoList[5],
       videoList[6],
       videoList[8],

@@ -8,7 +8,7 @@ import {
   isVideo,
   isAudio,
 } from '@/logic/tracks';
-import { durationString2Sec } from '@/utils/player';
+import { durationString2Sec, ms2fs } from '@/utils/player';
 import { MP4Player } from '@/logic/mp4';
 import { CanvasId } from '@/settings/playerSetting';
 
@@ -16,7 +16,8 @@ export type Attachment = {
   track: AttachmentTrack;
   startFrame: number;
   endFrame: number;
-  // offset: number; // TODO: for segmented attachment
+  offset: number;
+  total: number;
 };
 
 export type DisplayItem = {
@@ -69,7 +70,7 @@ export class TrackManager {
     this.flatten(attachment);
     this.addTransition();
     // this.flatten(audio);
-    // console.log(this.displayQueue.video);
+    console.log(this.displayQueue.video);
   }
 
   addTransition() {
@@ -93,17 +94,20 @@ export class TrackManager {
           track: item.track.transition,
           startFrame: 0,
           endFrame,
+          total: endFrame,
+          offset: 0,
         });
 
         item.track.transition.fn = async function (...args) {
           const _canvas = (await extractor!.extract()) as HTMLCanvasElement;
-          this.renderToScreen = false;
-          this.buffer = this.buffer2;
-          this.draw(_canvas, extractor!.attachments, extractor!.chunkStart);
-          this.buffer = this.buffer1;
-          this.renderToScreen = true;
+          const renderer = args[0];
+          renderer.renderToScreen = false;
+          renderer.buffer = renderer.buffer2;
+          renderer.draw(_canvas, extractor!.attachments, extractor!.chunkStart);
+          renderer.buffer = renderer.buffer1;
+          renderer.renderToScreen = true;
           if (!endFrame--) extractor = undefined;
-          return fn.apply(this, [...args, this.buffer2]);
+          return fn(...args);
         };
       }
       return t;
@@ -158,11 +162,14 @@ export class TrackManager {
     }
   }
 
-  _enque(que: DisplayItem[], item: DisplayItem, l = 0, r = 0): void {
+  _enque(que: DisplayItem[], item: DisplayItem, l = 0, r = 0, total = 0, offset = 0): void {
     const track = item.track as AttachmentTrack;
     if (!track || item.startTime === item.endTime) return;
 
     const fps = player?.fps || 30;
+    const _ms2fs = (tp: number) => ms2fs(tp, fps);
+    total = total || _ms2fs(item.endTime - item.startTime);
+
     r = r ? r : que.length - 1;
     while (l <= r) {
       const mid = l + Math.floor((r - l) / 2);
@@ -170,32 +177,38 @@ export class TrackManager {
       const itemLeft = Object.assign({}, item, { endTime: target.startTime });
       const itemRight = Object.assign({}, item, { startTime: target.endTime });
 
+      const startFrame = _ms2fs(item.startTime - target.startTime);
+      const endFrame = _ms2fs(item.endTime - target.startTime);
+      const leftFrames = _ms2fs(target.startTime - item.startTime);
+      const targetFrames = _ms2fs(target.endTime - target.startTime);
+
       if (target.endTime <= item.startTime) l = mid + 1;
       else if (target.startTime >= item.endTime) r = mid - 1;
       // fully covered
       else if (target.startTime <= item.startTime && target.endTime >= item.endTime) {
-        target.attachments?.push({
-          track,
-          startFrame: ((item.startTime - target.startTime) * fps) / 1000,
-          endFrame: ((item.endTime - target.startTime) * fps) / 1000,
-        });
+        target.attachments?.push({ track, startFrame, endFrame, total, offset });
         return;
       }
       // bilateral slice
       else if (item.startTime < target.startTime && item.endTime > target.endTime) {
-        this._enque(que, itemLeft, l, mid - 1);
-        return this._enque(que, itemRight, mid + 1, 0);
+        this._enque(que, itemLeft, l, mid - 1, total, offset);
+        offset += leftFrames;
+        target.attachments?.push({ track, startFrame: 0, endFrame: targetFrames, total, offset });
+        return this._enque(que, itemRight, mid + 1, 0, total, offset + targetFrames);
       }
       // left slice
       else if (target.endTime > item.endTime) {
-        return this._enque(que, itemLeft, l, mid - 1);
+        const _offset = offset + leftFrames;
+        target.attachments?.push({ track, startFrame: 0, endFrame, total, offset: _offset });
+        return this._enque(que, itemLeft, l, mid - 1, total, offset);
         // right slice
       } else if (target.startTime < item.startTime) {
-        return this._enque(que, itemRight, mid + 1, r);
+        target.attachments?.push({ track, startFrame, endFrame: targetFrames, total, offset: 0 });
+        return this._enque(que, itemRight, mid + 1, r, total, targetFrames - startFrame);
       }
     }
     item.attachments = [
-      { track, startFrame: (item.startTime * fps) / 1000, endFrame: (item.endTime * fps) / 1000 },
+      { track, startFrame: 0, endFrame: _ms2fs(item.endTime - item.startTime), total, offset },
     ];
     item.track = undefined;
     que.splice(l, 0, item);
@@ -284,7 +297,7 @@ export class TrackManager {
 
         if (this.displayed.offset) {
           await player.samplesLoaded();
-          const idx = (this.displayed.offset / 1000) * 30;
+          const idx = ms2fs(this.displayed.offset, player.fps);
           player.jumpTo(idx);
         }
       }
@@ -307,7 +320,7 @@ export class TrackManager {
     this.currentTime = tp;
     const { displayed, paused } = this;
     if (displayed && tp > displayed.startTime && tp < displayed.endTime) {
-      const idx = ((tp - displayed.startTime + displayed.offset) * player.fps) / 1000;
+      const idx = ms2fs(tp - displayed.startTime + displayed.offset, player.fps);
       return player.jumpTo(Math.floor(idx));
     }
     player.stop();
@@ -323,7 +336,7 @@ export class TrackManager {
       else {
         player = new MP4Player({ id: CanvasId, url: target.track?.src });
         await this.holdOn();
-        const idx = ((tp - target.startTime) * player.fps) / 1000;
+        const idx = ms2fs(tp - target.startTime, player.fps);
         player.jumpTo(Math.floor(idx));
 
         this.displayedIdx = mid;

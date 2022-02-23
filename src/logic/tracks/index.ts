@@ -1,3 +1,4 @@
+import { toRaw } from 'vue';
 import { v4 as uuid } from 'uuid';
 import { FireFilled, FilterOutlined } from '@ant-design/icons-vue';
 import * as THREE from 'three';
@@ -7,7 +8,7 @@ import axios from 'axios';
 
 import { Base } from '@/logic/data';
 import { MP4Source } from '@/logic/mp4';
-import { Renderer } from '@/logic/renderer';
+import { Renderer, AttachmentParams } from '@/logic/renderer';
 import GifUtil from '@/logic/gif';
 
 import { ResourceType } from '@/enums/resource';
@@ -32,6 +33,7 @@ type ItemRequired = {
 export type TrackOption = Partial<ItemOptional> & ItemRequired;
 
 type Shader = {
+  name: string;
   uniforms: {
     [prop: string]: any;
   };
@@ -122,7 +124,13 @@ export class AudioTrack extends MediaTrack {
 }
 
 export class AttachmentTrack extends TrackItem {
-  fn: any = (x: number) => x;
+  fn: (
+    renderer: Renderer,
+    args: AttachmentParams,
+    buffer1: THREE.WebGLRenderTarget | null,
+    buffer2: THREE.WebGLRenderTarget | null
+  ) => void = function () {};
+  shader?: Shader;
 }
 
 export class StickerTrack extends AttachmentTrack {
@@ -176,60 +184,55 @@ export class StickerTrack extends AttachmentTrack {
 
 export class FilterTrack extends AttachmentTrack {
   icon: any;
-  fn = function (this: Renderer, i: number, s: number, e: number, buffer: any) {
-    const GrayShader: Shader = {
-      uniforms: {
-        tDiffuse: {
-          value: null,
-        },
-        time: {
-          value: 0.0,
-        },
+  shader = {
+    name: 'GrayShader',
+    uniforms: {
+      tDiffuse: {
+        value: {},
       },
-      vertexShader: `
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-      }`,
-      fragmentShader: `
-      uniform sampler2D tDiffuse;
-      uniform float time;
-      varying vec2 vUv;
-      void main() {
-        vec4 cTextureScreen = texture2D( tDiffuse, vUv );
-        vec3 cResult = vec3( cTextureScreen.r * 0.3 + cTextureScreen.g * 0.59 + cTextureScreen.b * 0.11 );
-        gl_FragColor =  vec4( cResult, cTextureScreen.a );
-      }`,
-    };
-    GrayShader.uniforms.tDiffuse.value = buffer.texture;
-    GrayShader.uniforms.time.value = (i - s) / (e - s);
-    const material = new THREE.ShaderMaterial({
-      uniforms: GrayShader.uniforms,
-      vertexShader: GrayShader.vertexShader,
-      fragmentShader: GrayShader.fragmentShader,
-    });
-
-    const mesh = new THREE.Mesh(_geometry, material);
-    this.render(mesh, _camera);
+    },
+    vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }`,
+    fragmentShader: `
+    uniform sampler2D tDiffuse;
+    varying vec2 vUv;
+    void main() {
+      vec4 cTextureScreen = texture2D( tDiffuse, vUv );
+      vec3 cResult = vec3( cTextureScreen.r * 0.3 + cTextureScreen.g * 0.59 + cTextureScreen.b * 0.11 );
+      gl_FragColor =  vec4( cResult, cTextureScreen.a );
+    }`,
   };
 
   constructor(options: Omit<TrackOption, 'type'> & { icon?: any }) {
     super(Object.assign({ height: 20 }, options, { type: ResourceType.Filter }));
     this.icon = options.icon || FilterOutlined;
+    this.fn = function (renderer: Renderer, _: AttachmentParams, buffer1: THREE.WebGLRenderTarget) {
+      const shader = toRaw(this.shader);
+      shader.uniforms.tDiffuse.value = buffer1.texture;
+      const material = new THREE.ShaderMaterial({
+        uniforms: shader.uniforms,
+        vertexShader: shader.vertexShader,
+        fragmentShader: shader.fragmentShader,
+      });
+      renderer.plane.material = material;
+    };
   }
 }
 
 export class EffectTrack extends AttachmentTrack {
   icon: any;
 
-  fn = function (this: Renderer, i: number, s: number, e: number) {
-    let { frustum } = this;
+  fn = function (renderer: Renderer, args: AttachmentParams) {
+    let { frustum } = renderer;
 
-    const fn = (x: number) => (i === e ? x : x * (1 - (i - s) / (e - s + 1)));
+    const fn = (x: number) => (args.idx === args.endFrame ? x : x * (1 - args.progress));
 
     frustum = fn(frustum);
-    this.camera = new THREE.OrthographicCamera(-frustum, frustum, frustum, -frustum, 0, 1);
+    renderer.camera = new THREE.OrthographicCamera(-frustum, frustum, frustum, -frustum, 0, 1);
   };
 
   constructor(options: Omit<TrackOption, 'type'> & { icon?: any }) {
@@ -256,71 +259,70 @@ export class TextTrack extends AttachmentTrack {
   }
 }
 
+const transition = GLTransitions[33];
+const { glsl } = transition;
 export class TransitionTrack extends AttachmentTrack {
-  fn = function (
-    this: Renderer,
-    i: number,
-    s: number,
-    e: number,
-    buffer1: THREE.WebGLRenderTarget,
-    buffer2: THREE.WebGLRenderTarget
-  ) {
-    const transition = GLTransitions[33];
-    const { glsl } = transition;
-    // console.log(GLTransitions);
-
-    const TransitionShader: Shader = {
-      uniforms: {
-        from: {
-          value: null,
-        },
-        to: {
-          value: null,
-        },
-        progress: {
-          value: 0.0,
-        },
-        ratio: {
-          value: buffer1.width / buffer1.height,
-        },
+  shader = {
+    name: transition.name,
+    uniforms: {
+      from: {
+        value: {},
       },
-      vertexShader: `
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-      }`,
-      fragmentShader: `
-      precision highp float;
-      varying vec2 vUv;
-      uniform float progress, ratio;
-      uniform sampler2D from, to;
-      vec4 getFromColor(vec2 vUv){
-        return texture2D(from, vUv);
-      }
-      vec4 getToColor(vec2 vUv){
-        return texture2D(to, vUv);
-      }
-      ${glsl}
-      void main(){
-        gl_FragColor=transition(vUv);
-      }`,
-    };
-
-    TransitionShader.uniforms.from.value = buffer2.texture;
-    TransitionShader.uniforms.to.value = buffer1.texture;
-    TransitionShader.uniforms.progress.value = (i - s) / (e - s);
-    const material = new THREE.ShaderMaterial({
-      uniforms: TransitionShader.uniforms,
-      vertexShader: TransitionShader.vertexShader,
-      fragmentShader: TransitionShader.fragmentShader,
-    });
-
-    const mesh = new THREE.Mesh(_geometry, material);
-    this.render(mesh, _camera);
+      to: {
+        value: {},
+      },
+      progress: {
+        value: 0.0,
+      },
+      ratio: {
+        value: 16 / 9,
+      },
+    },
+    vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }`,
+    fragmentShader: `
+    precision highp float;
+    varying vec2 vUv;
+    uniform float progress, ratio;
+    uniform sampler2D from, to;
+    vec4 getFromColor(vec2 vUv){
+      return texture2D(from, vUv);
+    }
+    vec4 getToColor(vec2 vUv){
+      return texture2D(to, vUv);
+    }
+    ${glsl}
+    void main(){
+      gl_FragColor=transition(vUv);
+    }`,
   };
+
   constructor(options: Omit<TrackOption, 'type'>) {
     super(Object.assign({ height: 84 }, options, { type: ResourceType.Transition }));
+    this.fn = (
+      renderer: Renderer,
+      args: AttachmentParams,
+      buffer1: THREE.WebGLRenderTarget,
+      buffer2: THREE.WebGLRenderTarget
+    ) => {
+      const shader = toRaw(this.shader);
+      shader.uniforms.from.value = buffer2.texture;
+      shader.uniforms.to.value = buffer1.texture;
+      shader.uniforms.progress.value = args.progress;
+      shader.uniforms.ratio.value = buffer1.width / buffer1.height;
+      const material = new THREE.ShaderMaterial({
+        uniforms: shader.uniforms,
+        vertexShader: shader.vertexShader,
+        fragmentShader: shader.fragmentShader,
+      });
+
+      const mesh = new THREE.Mesh(_geometry, material);
+      renderer.render(mesh, _camera);
+    };
   }
 }
 

@@ -133,3 +133,7 @@ export function durationString2Sec(duration: string, fps = 30) {
   }
   return ret;
 }
+
+export function ms2fs(tp: number, fps: number) {
+  return (tp * fps) / 1000;
+}

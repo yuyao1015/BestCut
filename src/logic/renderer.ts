@@ -1,9 +1,18 @@
-import { ResourceType } from '@/enums/resource';
 import * as THREE from 'three';
 
+import { ResourceType } from '@/enums/resource';
 import { Attachment } from '@/logic/tracks/manager';
 
 const FRUSTUM = 0.5;
+
+export type AttachmentParams = {
+  idx: number;
+  startFrame: number;
+  endFrame: number;
+  offset: number;
+  total: number;
+  progress: number;
+};
 
 export class Renderer {
   scene = new THREE.Scene();
@@ -78,7 +87,7 @@ export class Renderer {
   attach(attachments: Attachment[], idx: number) {
     let attached = false;
     for (const attachment of attachments) {
-      const { startFrame, endFrame, track } = attachment;
+      const { startFrame, endFrame, total, offset, track } = attachment;
       if (
         [ResourceType.Sticker, ResourceType.Text].includes(track.type) ||
         idx < startFrame ||
@@ -87,8 +96,11 @@ export class Renderer {
         continue;
       attached = true;
 
-      this.render(this.scene, this.camera, false);
-      track.fn.apply(this, [idx, startFrame, endFrame, this.buffer1]);
+      if (track.shader) this.render(this.scene, this.camera, false);
+      const progress = (offset + idx - startFrame) / total;
+      const args: AttachmentParams = { idx, startFrame, endFrame, offset, total, progress };
+      track.fn(this, args, this.buffer1, this.buffer2);
+      if (track.type !== ResourceType.Transition) this.render(this.scene, this.camera);
     }
     return attached;
   }
