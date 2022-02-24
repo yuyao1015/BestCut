@@ -336,7 +336,7 @@ export class TrackManager {
       else {
         player = new MP4Player({ id: CanvasId, url: target.track?.src });
         await this.holdOn();
-        const idx = ms2fs(tp - target.startTime, player.fps);
+        const idx = ms2fs(tp - target.startTime + target.offset, player.fps);
         player.jumpTo(Math.floor(idx));
 
         this.displayedIdx = mid;
@@ -349,7 +349,6 @@ export class TrackManager {
     }
     if (l > r) {
       this.displayed = undefined;
-      this.displayedIdx = 0;
       player.renderer?.clear();
     }
   }
@@ -362,28 +361,30 @@ export class TrackManager {
   }
 
   prevFrame(n: number) {
-    if (!player || !this.displayed) return;
     const s = 1000 / player.fps;
     const tp = Math.max(this.currentTime - s, 0);
+    this.lastTime += s;
+    this.currentTime = tp;
+
+    if (!this.displayed) return;
     if (this.displayed.startTime - tp > 17) {
       this.jumpTo(tp);
       return;
     }
     player.prevFrame(n);
-    this.lastTime += s;
-    this.currentTime = tp;
   }
   nextFrame(n: number) {
-    if (!player || !this.displayed) return;
     const s = 1000 / player.fps;
     const tp = Math.min(this.currentTime + s, this.duration() * 1000);
+    this.lastTime -= s;
+    this.currentTime = tp;
+
+    if (!this.displayed) return;
     if (tp - this.displayed.endTime > 17) {
       this.jumpTo(tp);
       return;
     }
     player.nextFrame(n);
-    this.lastTime -= s;
-    this.currentTime = tp;
   }
 
   pauseResume() {

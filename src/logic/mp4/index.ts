@@ -132,6 +132,7 @@ export class MP4Player {
   renderer?: Renderer;
   sample_resolver?: (value?: unknown) => void;
   frame_resolver?: (value?: unknown) => void;
+  jumpCount = 0;
   _canvas: HTMLCanvasElement;
   _ctx: CanvasRenderingContext2D | null = null;
 
@@ -293,6 +294,10 @@ export class MP4Player {
       if (!this.active) this.active = true;
       const now = performance.now();
 
+      if (this.jumpCount-- > 0) {
+        return frame.close();
+      }
+
       if (this.canPaint) {
         this._ctx?.drawImage(frame, 0, 0, this.canvas.width, this.canvas.height);
 
@@ -304,7 +309,7 @@ export class MP4Player {
             this.chunkStart > endFrame
           )
             continue;
-          // console.log(this.chunkStart, startFrame, endFrame);
+
           if (track.type === ResourceType.Text) this.drawText(this._ctx, track as TextTrack);
           if (track.type === ResourceType.Sticker)
             this.drawSticker(
@@ -376,15 +381,17 @@ export class MP4Player {
     }
   }
 
-  jumpTo(idx: number) {
+  async jumpTo(idx: number) {
     const { paused, samples } = this;
-    this.renderer?.resetCamera();
-
     if (!samples?.length || samples?.length < idx - 1) return;
+
+    this.renderer?.resetCamera();
     if (this.configured() && !paused) this.pause();
+
     let i = idx;
-    this.canPaint = false;
     while (samples[i] && !samples[i].is_sync) i--;
+    this.jumpCount = idx - i;
+    this.canPaint = false;
     while (i <= idx) {
       const sample = samples[i];
       if (i++ == idx) this.canPaint = true;
@@ -402,6 +409,8 @@ export class MP4Player {
 
     if (!paused) return;
 
+    this.jumpTo(Math.max(this.chunkStart - n, 0));
+    return;
     this.chunkStart = Math.max(this.chunkStart - n, 0);
     const sample = samples[this.chunkStart];
     this.refs.current = this.chunkStart / this.fps;
