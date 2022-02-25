@@ -319,8 +319,14 @@ export class TrackManager {
     this.lastTime -= tp - this.currentTime;
     this.currentTime = tp;
     const { displayed, paused } = this;
+
     if (displayed && tp > displayed.startTime && tp < displayed.endTime) {
       const idx = ms2fs(tp - displayed.startTime + displayed.offset, player.fps);
+      if (!displayed.active) {
+        displayed.active = true;
+        player = new MP4Player({ id: CanvasId, url: displayed.track!.src });
+        await this.holdOn();
+      }
       return player.jumpTo(Math.floor(idx));
     }
     player.stop();
@@ -348,7 +354,9 @@ export class TrackManager {
       }
     }
     if (l > r) {
-      this.displayed = undefined;
+      this.displayedIdx = l;
+      this.displayed = this.displayQueue.video[l];
+      this.displayed && (this.displayed.active = false);
       player.renderer?.clear();
     }
   }
@@ -366,11 +374,15 @@ export class TrackManager {
     this.lastTime += s;
     this.currentTime = tp;
 
-    if (!this.displayed) return;
-    if (this.displayed.startTime - tp > 17) {
+    const prev = this.displayQueue.video[this.displayedIdx - 1];
+    if (
+      (this.displayed && this.displayed.startTime - tp > 17) ||
+      (prev.endTime > tp && prev.endTime - tp < 17)
+    ) {
       this.jumpTo(tp);
       return;
     }
+    if (!this.displayed?.active) return;
     player.prevFrame(n);
   }
   nextFrame(n: number) {
@@ -379,11 +391,14 @@ export class TrackManager {
     this.lastTime -= s;
     this.currentTime = tp;
 
-    if (!this.displayed) return;
-    if (tp - this.displayed.endTime > 17) {
+    if (
+      tp - this.displayed!.endTime > 0 ||
+      (tp - this.displayed!.startTime < 17 && tp > this.displayed!.startTime)
+    ) {
       this.jumpTo(tp);
       return;
     }
+    if (!this.displayed?.active) return;
     player.nextFrame(n);
   }
 
