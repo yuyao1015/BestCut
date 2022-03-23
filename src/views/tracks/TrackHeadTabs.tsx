@@ -58,11 +58,11 @@ export const AutoAttach = () => (
   </div>
 );
 
-const hoverVisiable = computed(() => trackStore.hoverVisiable);
+const hoverVisible = computed(() => trackStore.hoverVisible);
 export const TimelineHover = () => (
   <div class="mr-3 pr-3 border-r border-gray-800">
     <div
-      class={['tab', hoverVisiable.value ? 'bg-black text-blue-300' : 'hover:alpha']}
+      class={['tab', hoverVisible.value ? 'bg-black text-blue-300' : 'hover:alpha']}
       onClick={() => trackStore.switchHover()}
     >
       预览轴

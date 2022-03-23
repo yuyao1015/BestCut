@@ -16,6 +16,7 @@ import { useResourceStore } from '@/store/resource';
 import { usePreviewStore } from '@/store/preview';
 import { useTrackStore } from '@/store/track';
 import { CanvasId, PlayerId, Duration0 } from '@/settings/playerSetting';
+import { logger, LogFlag } from '@/utils/log';
 
 export default defineComponent({
   name: 'Preview',
@@ -60,6 +61,8 @@ export default defineComponent({
       return _current;
     });
 
+    logger.config(LogFlag.Timeline, { fn: () => current.value });
+
     const paused = computed(() => {
       if (!active.value) return true;
       if (resourceStore.resource) return previewStore.player.paused;
@@ -71,13 +74,14 @@ export default defineComponent({
       resourceStore.resource && previewStore.player.active ? previewStore : trackStore
     );
     const pauseResume = () => {
+      logger.log(LogFlag.Timeline, 'pauseResume');
       if (!active.value) return;
       store.value.pauseResume();
     };
 
     const isInFullScreen = ref(false);
-    const panelVisiable = ref(false);
-    const { switchFullScreen } = useFullScreen(isInFullScreen, panelVisiable);
+    const panelVisible = ref(false);
+    const { switchFullScreen } = useFullScreen(isInFullScreen, panelVisible);
 
     const clickFullScreen = () => {
       if (active.value) switchFullScreen();
@@ -195,7 +199,7 @@ export default defineComponent({
           <div class={'h-full w-full relative text-white'}>
             <div class={'absolute h-full w-full'}>{canvas()}</div>
 
-            <div class={['absolute bottom-10 h-10 w-full', panelVisiable.value ? '' : 'hidden']}>
+            <div class={['absolute bottom-10 h-10 w-full', panelVisible.value ? '' : 'hidden']}>
               <div
                 class="absolute flex w-1/3 h-full px-1 transform -translate-x-1/2 rounded-md left-1/2"
                 style="background-color: rgba(84,84,84,.2)"

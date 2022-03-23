@@ -433,7 +433,7 @@ const onTrackOver = (e: DragEvent) => {
   let {
     idx,
     dy: _dy,
-    newListVisiable,
+    newListVisible,
     canRequestNewList,
   } = searchColIdx(lists.value, dy, my, 0, trackStore.track.type);
 
@@ -448,9 +448,9 @@ const onTrackOver = (e: DragEvent) => {
   dragData.idx = idx;
   dragData.canRequestNewList = canRequestNewList;
 
-  // console.log(newListVisiable, canRequestNewList, idx, newListLine.value, dy, _dy);
+  // console.log(newListVisible, canRequestNewList, idx, newListLine.value, dy, _dy);
   // hover over video container
-  if (newListVisiable && inVideo() && !isAudio(trackStore.track.type)) {
+  if (newListVisible && inVideo() && !isAudio(trackStore.track.type)) {
     const { type } = lists.value[idx][0];
     if (isVideo(trackStore.track.type)) {
       if (type !== trackStore.track.type) newListLine.value = { i: trackStore.videoIdx, top: true };
@@ -465,12 +465,12 @@ const onTrackOver = (e: DragEvent) => {
   }
 
   // hover over audio container
-  if (newListVisiable && inAudio() && isAudio(trackStore.track.type)) {
+  if (newListVisible && inAudio() && isAudio(trackStore.track.type)) {
     newListLine.value = { i: idx, top: dy <= 0 };
     draggedIdxs.value.i = -1;
   }
 
-  if (!newListVisiable) {
+  if (!newListVisible) {
     newListLine.value.i = -1;
     draggedIdxs.value.i = idx;
   }

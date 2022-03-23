@@ -121,7 +121,7 @@ export const searchColIdx = (
   }
 
   // active track type different with current list or hovering over margin area
-  let newListVisiable = false;
+  let newListVisible = false;
   // hovering over current list and paused 500ms
   let canRequestNewList = true;
 
@@ -131,13 +131,13 @@ export const searchColIdx = (
     (lists[idx] && _dy > (lists[idx][0].height * 2) / 3) ||
     (idx === lists.length - 1 && _dy > (lists[lists.length - 1][0].height * 2) / 3)
   )
-    newListVisiable = true;
+    newListVisible = true;
 
   if (lists[idx]) canRequestNewList = dy > 0 && _dy > (lists[idx][0].height * 2) / 3;
 
   return {
     idx,
-    newListVisiable,
+    newListVisible,
     canRequestNewList,
     dy: _dy,
   };

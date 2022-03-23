@@ -10,7 +10,7 @@
         @pointermove="onResourceMove"
       />
 
-      <div class="resource-box-mask absolute top-0 left-0 w-fulll h-full" v-show="maskVisiable">
+      <div class="resource-box-mask absolute top-0 left-0 w-fulll h-full" v-show="maskVisible">
         <ResourceBox
           ref="maskRef"
           draggable="true"
@@ -131,7 +131,7 @@ watch(
   }
 );
 
-const maskVisiable = ref(false);
+const maskVisible = ref(false);
 const maskRef = ref<ComponentPublicInstance | undefined>(undefined);
 const trackRef = ref<ComponentPublicInstance | undefined>(undefined);
 const track = computed(() => {
@@ -144,7 +144,7 @@ let maskView: HTMLElement | undefined;
 let dragView: DragView = { el: maskView, left: 0, top: 0 };
 
 const onResourceMove = (e: PointerEvent) => {
-  maskVisiable.value = true;
+  maskVisible.value = true;
 
   const resource = e.currentTarget as HTMLElement;
   const rect = resource.getBoundingClientRect();
@@ -193,7 +193,7 @@ const onResourceMove = (e: PointerEvent) => {
 };
 
 const onResourceLeave = () => {
-  maskVisiable.value = false;
+  maskVisible.value = false;
   if (maskView) {
     maskView.parentNode?.removeChild(maskView);
     maskView = undefined;
@@ -219,7 +219,7 @@ const onDragOver = (e: DragEvent) => {
 };
 const onDragEnd = () => {
   window.removeEventListener('dragover', onDragOver);
-  maskVisiable.value = false;
+  maskVisible.value = false;
   if (dragView.el) dragView.el.style.display = 'none';
 };
 

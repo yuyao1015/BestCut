@@ -3,7 +3,7 @@ import { Ref, watch, onMounted, onUnmounted } from 'vue';
 import { usePreviewStore } from './../store/preview';
 import { CanvasId, PlayerId } from '@/settings/playerSetting';
 
-export const useFullScreen = (isInFullScreen: Ref<boolean>, panelVisiable: Ref<boolean>) => {
+export const useFullScreen = (isInFullScreen: Ref<boolean>, panelVisible: Ref<boolean>) => {
   const previewStore = usePreviewStore();
 
   const fullScreen = async () => {
@@ -38,9 +38,9 @@ export const useFullScreen = (isInFullScreen: Ref<boolean>, panelVisiable: Ref<b
 
   const showPanel = () => {
     if (!isInFullScreen.value) return;
-    panelVisiable.value = true;
+    panelVisible.value = true;
     setTimeout(() => {
-      panelVisiable.value = false;
+      panelVisible.value = false;
     }, 3000);
   };
 

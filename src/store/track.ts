@@ -40,7 +40,7 @@ interface TrackState {
   tinfo: Tinfo; // timeline
   track?: TrackItem; // active track
   offset: number; // for dx of dragger
-  hoverVisiable: boolean; // timeline hover
+  hoverVisible: boolean; // timeline hover
   manager: TrackManager;
 }
 
@@ -50,7 +50,7 @@ export const useTrackStore = defineStore({
     trackMap,
     offset: 0,
     track: undefined,
-    hoverVisiable: true,
+    hoverVisible: true,
     minfo: { i: -1, j: -1 },
     tinfo: { step: 0, gap: 0, unit: 0 },
     _area: ContainerType.OutSide,
@@ -146,7 +146,7 @@ export const useTrackStore = defineStore({
     },
 
     switchHover() {
-      this.hoverVisiable = !this.hoverVisiable;
+      this.hoverVisible = !this.hoverVisible;
     },
 
     updateMap<K extends keyof TrackMap>(lists: TrackMap[K], type?: K) {

@@ -96,7 +96,7 @@ const events: string[] = ['pointermove', 'pointerdown'];
 const onTimelineOver = () => {
   // console.log('over');
   events.forEach((event) => on(window, event, onMouse));
-  if (trackStore.hoverVisiable) hover.value = true;
+  if (trackStore.hoverVisible) hover.value = true;
 };
 const onTimelineLeave = () => {
   // console.log('leave');
