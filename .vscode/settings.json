@@ -119,5 +119,7 @@
   "i18n-ally.sourceLanguage": "en",
   "i18n-ally.enabledFrameworks": ["vue", "react"],
   "css.validate": false,
-  "less.validate": false
+  "less.validate": false,
+
+  "cSpell.enabledLanguageIds": ["markdown", "plaintext", "text", "yml"]
 }
