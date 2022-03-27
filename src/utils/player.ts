@@ -1,4 +1,6 @@
 import { Duration0 } from '@/settings/playerSetting';
+
+const canvas = document.createElement('canvas');
 class Writer {
   data: Uint8Array;
   idx: number;
@@ -136,4 +138,13 @@ export function durationString2Sec(duration: string, fps = 30) {
 
 export function ms2fs(tp: number, fps: number) {
   return (tp * fps) / 1000;
+}
+
+export function videoFrame2Url(frame: VideoFrame) {
+  const { codedWidth, codedHeight } = frame;
+  canvas.width = codedWidth;
+  canvas.height = codedHeight;
+  const ctx = canvas.getContext('2d');
+  ctx?.drawImage(frame, 0, 0);
+  return canvas.toDataURL('image/png');
 }

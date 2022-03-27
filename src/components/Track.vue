@@ -1,4 +1,7 @@
 <script lang="tsx">
+import { defineComponent, PropType, h, computed } from 'vue';
+import { RetweetOutlined } from '@ant-design/icons-vue';
+
 import { ResourceType } from '@/enums/resource';
 import {
   AudioTrack,
@@ -8,10 +11,6 @@ import {
   EffectTrack,
   TrackItem,
 } from '@/logic/tracks';
-
-import { defineComponent, PropType, h, computed } from 'vue';
-
-import { RetweetOutlined } from '@ant-design/icons-vue';
 
 export default defineComponent({
   name: 'Track',
@@ -67,9 +66,7 @@ export default defineComponent({
         {track instanceof FilterTrack || track instanceof EffectTrack
           ? h(track.icon, { class: 'track-item-title' })
           : null}
-        {track instanceof StickerTrack ? (
-          <img class="track-item-title" src={track.sticker} />
-        ) : null}
+        {track instanceof StickerTrack ? <img class="track-item-title" src={track.cover} /> : null}
         {track.type !== ResourceType.Sticker ? (
           <div class="track-item-title">{track.name}</div>
         ) : null}
@@ -99,11 +96,6 @@ export default defineComponent({
       [ResourceType.Filter]: Attachment,
       [ResourceType.Transition]: Transition,
     };
-
-    if (track.value instanceof StickerTrack) {
-      // TODO: to async
-      // track.value.parse();
-    }
 
     return () => (
       <div

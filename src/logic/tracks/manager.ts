@@ -70,7 +70,7 @@ export class TrackManager {
     this.flatten(attachment);
     this.addTransition();
     // this.flatten(audio);
-    console.log(this.displayQueue.video);
+    // console.log(this.displayQueue.video);
   }
 
   addTransition() {

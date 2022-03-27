@@ -3,13 +3,10 @@ import { v4 as uuid } from 'uuid';
 import { FireFilled, FilterOutlined } from '@ant-design/icons-vue';
 import * as THREE from 'three';
 import GLTransitions from 'gl-transitions';
-import { parseGIF, decompressFrames, ParsedFrame, ParsedGif } from 'gifuct-js';
-import axios from 'axios';
 
 import { Base } from '@/logic/data';
 import { MP4Source } from '@/logic/mp4';
 import { Renderer, AttachmentParams } from '@/logic/renderer';
-import GifUtil from '@/logic/gif';
 
 import { ResourceType } from '@/enums/resource';
 
@@ -131,55 +128,6 @@ export class AttachmentTrack extends TrackItem {
     buffer2: THREE.WebGLRenderTarget | null
   ) => void = function () {};
   shader?: Shader;
-}
-
-export class StickerTrack extends AttachmentTrack {
-  src: string;
-  sticker: string;
-  x = 0.5;
-  y = 0.5;
-  scale = 1;
-  rotate = 0;
-  frames: ParsedFrame[] = [];
-  gif?: ParsedGif;
-
-  frameImageData?: ImageData;
-  constructor(options: Omit<TrackOption, 'type'> & { src: string; sticker: string }) {
-    super(Object.assign({ height: 20 }, options, { type: ResourceType.Sticker }));
-    this.src = options.src;
-    this.sticker = options.sticker;
-  }
-
-  parse() {
-    try {
-      if (!this.frames.length || !this.gif) {
-        axios.get(this.src, { responseType: 'arraybuffer' }).then((res) => {
-          this.gif = parseGIF(res.data);
-          this.frames = decompressFrames(this.gif, true);
-        });
-      }
-    } catch {
-      return false;
-    }
-    return true;
-  }
-
-  getProps() {
-    const { gif, frames, x, y, scale, rotate } = this;
-    if (!frames.length || !gif) this.parse();
-    return { gif, frames, x, y, scale, rotate };
-  }
-
-  getImageData(canvas: HTMLCanvasElement, idx: number) {
-    const { frames } = this.getProps();
-
-    if (frames[idx].disposalType === 2) {
-      GifUtil.clearRect(canvas.width, canvas.height);
-    }
-    GifUtil.setSize(frames[0]);
-
-    return GifUtil.drawPatch(frames[idx]);
-  }
 }
 
 export class FilterTrack extends AttachmentTrack {
@@ -347,3 +295,5 @@ export function isAudio(type?: ResourceType) {
 export function isPicture(type?: ResourceType) {
   return type === ResourceType.Picture;
 }
+
+export { StickerTrack } from './sticker';

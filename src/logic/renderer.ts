@@ -2,6 +2,7 @@ import * as THREE from 'three';
 
 import { ResourceType } from '@/enums/resource';
 import { Attachment } from '@/logic/tracks/manager';
+import type { TextTrack, StickerTrack } from '@/logic/tracks';
 
 const FRUSTUM = 0.5;
 
@@ -27,10 +28,16 @@ export class Renderer {
   buffer2: THREE.WebGLRenderTarget | null = null;
   renderToScreen = true;
 
+  _canvas: HTMLCanvasElement;
+  _ctx: CanvasRenderingContext2D | null = null;
+
   constructor(public canvas: HTMLCanvasElement) {
     this._renderer = new THREE.WebGLRenderer({ canvas });
     this._renderer.setClearColor(new THREE.Color(0x000000), 1.0);
     this._renderer.shadowMap.enabled = true;
+
+    this._canvas = document.createElement('canvas');
+    this._ctx = this._canvas.getContext('2d');
 
     this.resetCamera();
     this.setSize(canvas.width, canvas.height);
@@ -44,6 +51,9 @@ export class Renderer {
 
   setSize(width: number, height: number) {
     this._renderer.setSize(width, height);
+    this._canvas.width = width;
+    this._canvas.height = height;
+    this._ctx = this._canvas.getContext('2d');
 
     this.geom.parameters.width = width;
     this.geom.parameters.height = height;
@@ -69,14 +79,10 @@ export class Renderer {
     );
   }
 
-  draw(
-    image: HTMLImageElement | HTMLCanvasElement | HTMLVideoElement,
-    attachments: Attachment[],
-    idx: number
-  ) {
+  draw(attachments: Attachment[], idx: number) {
     const material = new THREE.MeshBasicMaterial();
     material.side = THREE.FrontSide;
-    material.map = new THREE.Texture(image);
+    material.map = new THREE.Texture(this._canvas);
     material.map!.needsUpdate = true;
     this.plane.material = material;
 
@@ -113,5 +119,29 @@ export class Renderer {
 
   clear() {
     this._renderer.clear();
+  }
+
+  drawImage(image: CanvasImageSource, dw: number, dh: number) {
+    this._ctx?.drawImage(image, 0, 0, dw, dh);
+  }
+
+  drawText(track: TextTrack) {
+    const { name, x, y, size, fontFamily } = track;
+    this._ctx!.font = `${size}px ${fontFamily}`;
+    this._ctx!.fillStyle = '#fff';
+    this._ctx!.textAlign = 'center';
+    this._ctx!.textBaseline = 'middle';
+    this._ctx!.fillText(name, this.canvas.width * x, this.canvas.height * y);
+    this._ctx?.stroke();
+  }
+
+  drawSticker(track: StickerTrack, idx: number, s: number, _: number) {
+    const { x, y, scale, chunkSize } = track;
+    const i = (idx - s) % chunkSize;
+    const f = track.frames[i] || track.frames[track.frames.length - 1];
+
+    const w = this.canvas.width * 0.5 * scale;
+    const h = (w * f.codedHeight) / f.codedWidth;
+    this._ctx?.drawImage(f, this.canvas.width * x - w / 2, this.canvas.height * y - h / 2, w, h);
   }
 }

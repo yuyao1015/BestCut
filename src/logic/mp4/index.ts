@@ -133,8 +133,6 @@ export class MP4Player {
   sample_resolver?: (value?: unknown) => void;
   frame_resolver?: (value?: unknown) => void;
   jumpCount = 0;
-  _canvas: HTMLCanvasElement;
-  _ctx: CanvasRenderingContext2D | null = null;
 
   constructor(opts: MP4PlayerOption) {
     if (opts.id) {
@@ -148,9 +146,6 @@ export class MP4Player {
       this.id = '';
     }
 
-    this._canvas = document.createElement('canvas');
-    this._ctx = this._canvas.getContext('2d');
-
     this.url = opts.url;
     this.paused = opts.paused || false;
     opts.url && this.demux(opts.url);
@@ -159,15 +154,10 @@ export class MP4Player {
   setCanvas(canvas: HTMLCanvasElement) {
     this.id = canvas.id || '';
     this.canvas = canvas;
-    this._canvas.width = canvas.width;
-    this._canvas.height = canvas.height;
-    this._ctx = this._canvas.getContext('2d');
     this.renderer = new Renderer(canvas);
   }
 
   updateSize() {
-    this._canvas.width = this.canvas.width;
-    this._canvas.height = this.canvas.height;
     this.renderer?.setSize(this.canvas.width, this.canvas.height);
   }
 
@@ -265,7 +255,7 @@ export class MP4Player {
 
   async extract() {
     const sample = this.samples[this.chunkStart++];
-    if (!sample) return this._canvas;
+    if (!sample) return this.renderer!._canvas;
     const chunk = this.getChunk(sample);
     this.configured() && this.decoder.decode(chunk);
 
@@ -274,7 +264,7 @@ export class MP4Player {
     // console.error('<<<<<');
     this.frame_resolver = undefined;
 
-    return this._canvas;
+    return this.renderer!._canvas;
   }
 
   onPlayStart() {
@@ -299,21 +289,19 @@ export class MP4Player {
       }
 
       if (this.canPaint) {
-        this._ctx?.drawImage(frame, 0, 0, this.canvas.width, this.canvas.height);
+        this.renderer?.drawImage(frame, this.canvas.width, this.canvas.height);
 
         for (const { track, startFrame, endFrame } of this.attachments) {
           if (
-            !this._ctx ||
             ![ResourceType.Sticker, ResourceType.Text].includes(track.type) ||
             this.chunkStart < startFrame ||
             this.chunkStart > endFrame
           )
             continue;
 
-          if (track.type === ResourceType.Text) this.drawText(this._ctx, track as TextTrack);
+          if (track.type === ResourceType.Text) this.renderer!.drawText(track as TextTrack);
           if (track.type === ResourceType.Sticker)
-            this.drawSticker(
-              this._ctx,
+            this.renderer?.drawSticker(
               track as StickerTrack,
               this.chunkStart,
               startFrame,
@@ -321,7 +309,7 @@ export class MP4Player {
             );
         }
 
-        this.renderer?.draw(this._canvas, this.attachments, this.chunkStart);
+        this.renderer?.draw(this.attachments, this.chunkStart);
         if (this.frame_resolver) this.frame_resolver();
       }
 
@@ -351,34 +339,6 @@ export class MP4Player {
       }
       div.innerHTML = fpsAvg;
     };
-  }
-
-  drawText(ctx: CanvasRenderingContext2D, track: TextTrack) {
-    const { name, x, y, size, fontFamily } = track;
-    ctx!.font = `${size}px ${fontFamily}`;
-    ctx!.fillStyle = '#fff';
-    ctx!.textAlign = 'center';
-    ctx!.textBaseline = 'middle';
-    ctx!.fillText(name, this.canvas.width * x, this.canvas.height * y);
-    ctx?.stroke();
-  }
-  drawSticker(
-    ctx: CanvasRenderingContext2D,
-    track: StickerTrack,
-    idx: number,
-    s: number,
-    e: number
-  ) {
-    e;
-    const { x, y, scale } = track;
-    const { frames } = track;
-    if (frames.length) {
-      const i = (idx - s) % frames.length;
-      const c = track.getImageData(this._canvas, i);
-      const w = this.canvas.width * 0.5 * scale;
-      const h = (w * c.height) / c.width;
-      ctx.drawImage(c, this.canvas.width * x - w / 2, this.canvas.height * y - h / 2, w, h);
-    }
   }
 
   async jumpTo(idx: number) {

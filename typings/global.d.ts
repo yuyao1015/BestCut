@@ -24,12 +24,18 @@ declare global {
   type VideoDecoder = any;
   type VideoFrame = any;
   type VideoEncoder = any;
+  type ImageDecoder = any;
+  type AudioDecoder = any;
+  type AudioEncoder = any;
   interface Window {
     MP4Box: MP4Box;
     EncodedVideoChunk: EncodedVideoChunk;
     VideoDecoder: VideoDecoder;
     VideoFrame: VideoFrame;
     VideoEncoder: VideoEncoder;
+    ImageDecoder: ImageDecoder;
+    AudioDecoder: AudioDecoder;
+    AudioEncoder: AudioEncoder;
 
     setTimeout: (callback: any, ms: number) => number;
   }
