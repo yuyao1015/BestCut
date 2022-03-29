@@ -1,3 +1,4 @@
+import { logger, LogFlag } from './../../utils/log';
 import { ResourceType } from '@/enums/resource';
 import {
   TrackMap,
@@ -103,7 +104,7 @@ export class TrackManager {
           const renderer = args[0];
           renderer.renderToScreen = false;
           renderer.buffer = renderer.buffer2;
-          renderer.draw(_canvas, extractor!.attachments, extractor!.chunkStart);
+          renderer.draw(extractor!.attachments, extractor!.chunkStart, _canvas);
           renderer.buffer = renderer.buffer1;
           renderer.renderToScreen = true;
           if (!endFrame--) extractor = undefined;
@@ -270,7 +271,6 @@ export class TrackManager {
   private async _play() {
     this.currentTime = performance.now() - this.lastTime;
     if (this.displayed && this.currentTime < this._duration) {
-      const startTime = Math.abs(this.currentTime - this.displayed.startTime);
       const endTime = Math.abs(this.currentTime - this.displayed.endTime);
 
       if (endTime < 17) {
@@ -283,14 +283,17 @@ export class TrackManager {
         }
 
         this.displayed = this.displayQueue.video[++this.displayedIdx];
+
         if (!this.displayed) {
           this.active = false;
           player?.stop();
         }
       }
 
+      const startTime = Math.abs(this.currentTime - this.displayed.startTime);
       if (startTime < 17 && !this.displayed.active) {
         this.displayed.active = true;
+        logger.log(LogFlag.Timeline, startTime.toFixed(2), !this.displayed.active);
 
         player = new MP4Player({ id: CanvasId, url: this.displayed.track?.src });
         player.attachments = this.displayed.attachments || [];

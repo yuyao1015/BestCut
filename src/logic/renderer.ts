@@ -19,7 +19,6 @@ export class Renderer {
   scene = new THREE.Scene();
   frustum = FRUSTUM;
   camera = new THREE.OrthographicCamera();
-  geom = new THREE.PlaneGeometry(1, 1);
   plane = new THREE.Mesh();
 
   private _renderer: THREE.WebGLRenderer;
@@ -38,10 +37,11 @@ export class Renderer {
 
     this._canvas = document.createElement('canvas');
     this._ctx = this._canvas.getContext('2d');
-
     this.resetCamera();
     this.setSize(canvas.width, canvas.height);
     this.scene.add(this.plane);
+
+    this.plane.geometry = new THREE.PlaneGeometry(1, 1);
   }
 
   resetCamera() {
@@ -54,10 +54,6 @@ export class Renderer {
     this._canvas.width = width;
     this._canvas.height = height;
     this._ctx = this._canvas.getContext('2d');
-
-    this.geom.parameters.width = width;
-    this.geom.parameters.height = height;
-    this.plane.geometry = this.geom;
 
     const size = this._renderer.getSize(new THREE.Vector2());
     const pixelRatio = this._renderer.getPixelRatio();
@@ -79,10 +75,11 @@ export class Renderer {
     );
   }
 
-  draw(attachments: Attachment[], idx: number) {
-    const material = new THREE.MeshBasicMaterial();
-    material.side = THREE.FrontSide;
-    material.map = new THREE.Texture(this._canvas);
+  draw(attachments: Attachment[], idx: number, canvas = this._canvas) {
+    const material = new THREE.MeshBasicMaterial({
+      side: THREE.FrontSide,
+      map: new THREE.Texture(canvas),
+    });
     material.map!.needsUpdate = true;
     this.plane.material = material;
 
@@ -131,7 +128,7 @@ export class Renderer {
     this._ctx!.fillStyle = '#fff';
     this._ctx!.textAlign = 'center';
     this._ctx!.textBaseline = 'middle';
-    this._ctx!.fillText(name, this.canvas.width * x, this.canvas.height * y);
+    this._ctx!.fillText(name, this._canvas.width * x, this._canvas.height * y);
     this._ctx?.stroke();
   }
 
@@ -140,8 +137,12 @@ export class Renderer {
     const i = (idx - s) % chunkSize;
     const f = track.frames[i] || track.frames[track.frames.length - 1];
 
-    const w = this.canvas.width * 0.5 * scale;
+    const w = this._canvas.width * 0.5 * scale;
     const h = (w * f.codedHeight) / f.codedWidth;
-    this._ctx?.drawImage(f, this.canvas.width * x - w / 2, this.canvas.height * y - h / 2, w, h);
+    this._ctx?.drawImage(f, this._canvas.width * x - w / 2, this._canvas.height * y - h / 2, w, h);
+  }
+
+  getCanvas() {
+    return this._ctx?.canvas;
   }
 }

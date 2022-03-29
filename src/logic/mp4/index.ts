@@ -254,8 +254,8 @@ export class MP4Player {
   }
 
   async extract() {
-    const sample = this.samples[this.chunkStart++];
-    if (!sample) return this.renderer!._canvas;
+    const sample = this.samples[this.chunkStart];
+    if (!sample || ++this.chunkStart > this.chunkSize) return this.renderer!.getCanvas();
     const chunk = this.getChunk(sample);
     this.configured() && this.decoder.decode(chunk);
 
@@ -264,7 +264,7 @@ export class MP4Player {
     // console.error('<<<<<');
     this.frame_resolver = undefined;
 
-    return this.renderer!._canvas;
+    return this.renderer!.getCanvas();
   }
 
   onPlayStart() {
@@ -363,19 +363,11 @@ export class MP4Player {
     if (!paused) this.resume();
   }
 
-  // TODO: backword decode
   prevFrame(n: number) {
-    const { paused, samples } = this;
-
+    const { paused } = this;
     if (!paused) return;
 
     this.jumpTo(Math.max(this.chunkStart - n, 0));
-    return;
-    this.chunkStart = Math.max(this.chunkStart - n, 0);
-    const sample = samples[this.chunkStart];
-    this.refs.current = this.chunkStart / this.fps;
-    const chunk = this.getChunk(sample);
-    this.decoder.decode(chunk);
   }
 
   nextFrame(n: number) {

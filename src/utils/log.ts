@@ -54,13 +54,13 @@ class Logger {
     Object.assign(modules[flag], options);
   }
 
-  log(flag: LogFlag, msg?: unknown) {
+  log(flag: LogFlag, ...msg: unknown[]) {
     if (!(flag & this.flag)) return;
 
     const _module = modules[flag];
     let head = _module.name;
     if (_module.fn) head += ' ' + _module.fn();
-    console.log(`%c[${head}]: `, _module.style, msg);
+    console.log(`%c[${head}]: `, _module.style, ...msg);
   }
 }
 

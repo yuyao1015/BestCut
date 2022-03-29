@@ -61,7 +61,8 @@ export default defineComponent({
       return _current;
     });
 
-    logger.config(LogFlag.Timeline, { fn: () => current.value });
+    const fn = () => current.value;
+    logger.config(LogFlag.Timeline, { fn });
 
     const paused = computed(() => {
       if (!active.value) return true;

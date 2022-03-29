@@ -20,8 +20,8 @@ export const videoList = [
 
   [new EffectTrack({ name: '渐渐放大', duration: '00:03', offset: 1 })],
   [new EffectTrack({ name: '渐渐放大', duration: '00:05', offset: 18 })],
-  [new StickerTrack({ duration: '00:01', sticker: '', offset: 6, src: '/media/totoro.gif' })],
-  [new StickerTrack({ duration: '00:01', sticker: '', offset: 0, src: '/media/totoro.gif' })],
+  [new StickerTrack({ duration: '00:01', offset: 6, src: '/media/totoro.gif' })],
+  [new StickerTrack({ duration: '00:01', offset: 0, src: '/media/totoro.gif' })],
 
   [new VideoTrack({ name: 'bbb.mp4', duration: '00:10:34:17', src: '/media/bbb.mp4' })],
   [new VideoTrack({ name: 'out.mp4', duration: '00:00:08:03', src: '/media/out.mp4', offset: 20 })],
