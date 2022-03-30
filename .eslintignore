@@ -9,6 +9,7 @@ dist
 /public
 /docs
 .husky
+scripts/*.js
 .local
 /bin
 Dockerfile

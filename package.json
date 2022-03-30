@@ -7,16 +7,46 @@
     "lint:eslint": "eslint --cache --max-warnings 0 \"{src,plugins,mocks,tests}/**/*.{vue,js,ts,tsx}\" --fix",
     "lint:format": "prettier --write --loglevel warn \"src/**/*.{js,json,tsx,css,less,scss,vue,html,md}\"",
     "lint:stylelint": "stylelint --fix \"**/*.{vue,less,postcss,css,scss}\" --cache --cache-location node_modules/.cache/stylelint/",
-    "lint:lint-staged": "lint-staged -c ./.husky/lintstagedrc.js",
-    "prettier": "prettier --write --loglevel warn \"src/**/*.{js,json,tsx,css,less,scss,vue,html,md}\"",
+    "lint:lint-staged": "lint-staged",
+    "clean:lib": "rimraf node_modules",
+    "clean:cache": "rimraf node_modules/.cache/ && rimraf node_modules/.vite",
     "build": "vue-tsc --noEmit --skipLibCheck && vite build",
     "build:test": "vite build --mode test",
-    "build:no-cache": "yarn clean:cache && npm run build",
+    "build:no-cache": "pnpm clean:cache && pnpm build",
     "type:check": "vue-tsc --noEmit --skipLibCheck",
-    "reinstall": "rimraf yarn.lock && rimraf package-lock.json && rimraf node_modules && yarn",
     "test:unit": "jest --watch",
     "test:coverage": "jest --coverage",
-    "prepare": "is-ci || husky install"
+    "bootstrap": "pnpm install",
+    "preinstall": "npx only-allow pnpm",
+    "reinstall": "rimraf pnpm-lock.yaml && rimraf package.lock.json && rimraf node_modules && pnpm bootstrap"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged --concurrent false",
+    "commit-msg": "pnpm exec node scripts/verifyCommit.js $1"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "{!(package)*.json,*.code-snippets,.!(browserslist)*rc}": [
+      "prettier --write--parser json"
+    ],
+    "package.json": [
+      "prettier --write"
+    ],
+    "*.vue": [
+      "eslint --fix",
+      "prettier --write",
+      "stylelint --fix"
+    ],
+    "*.{scss,less,styl,html}": [
+      "stylelint --fix",
+      "prettier --write"
+    ],
+    "*.md": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@vueuse/core": "^5.0.3",
@@ -38,7 +68,7 @@
     "@types/jest": "^27.0.1",
     "@types/lodash-es": "^4.17.4",
     "@types/mockjs": "^1.0.4",
-    "@types/node": "^16.3.1",
+    "@types/node": "^16.11.26",
     "@types/three": "^0.135.0",
     "@types/uuid": "^8.3.1",
     "@typescript-eslint/eslint-plugin": "^4.28.3",
@@ -55,10 +85,9 @@
     "eslint-plugin-import": "^2.24.0",
     "eslint-plugin-jest": "^24.4.2",
     "eslint-plugin-prettier": "^3.4.0",
-    "husky": "^7.0.2",
     "jest": "^27.2.0",
     "less": "^4.1.1",
-    "lint-staged": "^11.1.2",
+    "lint-staged": "12",
     "postcss": "^8.0.9",
     "prettier": "^2.4.1",
     "rimraf": "^3.0.2",
@@ -74,6 +103,8 @@
     "vite-plugin-html": "^2.0.7",
     "vite-plugin-mock": "^2.9.6",
     "vue-eslint-parser": "^7.8.0",
-    "vue-tsc": "^0.2.2"
+    "vue-tsc": "^0.2.2",
+    "chalk": "^4.1.0",
+    "simple-git-hooks": "^2.7.0"
   }
 }

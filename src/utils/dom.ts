@@ -1,5 +1,5 @@
 import { isObject, isServer } from './is';
-import { camelize } from '@vue/shared';
+import { camelize } from 'vue';
 
 export const on = function (
   element: HTMLElement | Document | Window,

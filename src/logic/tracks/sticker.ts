@@ -1,8 +1,8 @@
 import axios from 'axios';
 
+import { videoFrame2Url } from '@/utils/player';
 import { ResourceType } from '@/enums/resource';
 import { AttachmentTrack, TrackOption } from './index';
-import { videoFrame2Url } from '@/utils/player';
 
 export class StickerTrack extends AttachmentTrack {
   src: string;

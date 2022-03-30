@@ -277,6 +277,7 @@ export class TrackManager {
         this.displayed.active = false;
         if (this.displayed.track?.transition) {
           extractor = player;
+          extractor.pause();
           extractor.setCanvas(extractor.canvas.cloneNode() as HTMLCanvasElement);
         } else {
           player?.stop();

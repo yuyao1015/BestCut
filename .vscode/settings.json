@@ -1,8 +1,6 @@
 {
   "typescript.tsdk": "./node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  "volar.tsPlugin": true,
-  "volar.tsPluginStatus": false,
   //===========================================
   //============= Editor ======================
   //===========================================
@@ -14,7 +12,6 @@
   //============= Other =======================
   //===========================================
   "breadcrumbs.enabled": true,
-  "open-in-browser.default": "chrome",
   //===========================================
   //============= files =======================
   //===========================================
@@ -71,9 +68,6 @@
   "stylelint.packageManager": "yarn",
   "liveServer.settings.donotShowInfoMsg": true,
   "workbench.settings.enableNaturalLanguageSearch": false,
-  "path-intellisense.mappings": {
-    "@/": "${workspaceRoot}/src"
-  },
   "prettier.requireConfig": true,
   "typescript.updateImportsOnFileMove.enabled": "always",
   "workbench.sideBar.location": "left",
