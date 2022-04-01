@@ -1,7 +1,8 @@
 <template>
   <div
     ref="spliter"
-    :class="['bg-black', vertical ? 'splitterV' : 'splitterH']"
+    :class="[vertical ? 'splitterV' : 'splitterH']"
+    bg-black
     :style="splitterStyle"
   />
 </template>

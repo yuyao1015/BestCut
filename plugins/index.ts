@@ -2,6 +2,7 @@ import type { Plugin } from 'vite';
 
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
+import Unocss from 'unocss/vite';
 
 import { configHtmlPlugin } from './html';
 import { configHmrPlugin } from './hmr';
@@ -12,6 +13,7 @@ export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
     //
     vue(),
     vueJsx(),
+    Unocss(),
   ];
 
   !isBuild && vitePlugins.push(configHmrPlugin());

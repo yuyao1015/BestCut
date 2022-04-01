@@ -154,7 +154,7 @@ export default defineComponent({
               isInFullScreen.value ? 'flex left-5 leading-none bottom-1/3' : 'flex flex-col left-2',
             ]}
           >
-            <div class="active-color">{current.value}</div>
+            <div class="color-[aqua]">{current.value}</div>
             <div
               class={['border-gray-200', isInFullScreen.value ? 'ml-2 border-l px-1' : 'border-t']}
             >
@@ -201,10 +201,7 @@ export default defineComponent({
             <div class={'absolute h-full w-full'}>{canvas()}</div>
 
             <div class={['absolute bottom-10 h-10 w-full', panelVisible.value ? '' : 'hidden']}>
-              <div
-                class="absolute flex w-1/3 h-full px-1 transform -translate-x-1/2 rounded-md left-1/2"
-                style="background-color: rgba(84,84,84,.2)"
-              >
+              <div class="absolute flex w-1/3 h-full px-1 transform -translate-x-1/2 rounded-md left-1/2 bg-#272728">
                 {footer()}
               </div>
             </div>
@@ -221,8 +218,14 @@ export default defineComponent({
 </script>
 
 <style lang="less" scoped>
-.preview-panel {
-  background-color: #272728;
+:deep(.ant-slider) {
+  position: absolute;
+  left: 50%;
+  width: 40%;
+  bottom: 33.3%;
+  transform: translateX(-0.75rem);
+  margin: 0;
+  margin: 0 0.5rem;
 }
 
 :deep(.ant-slider-track),

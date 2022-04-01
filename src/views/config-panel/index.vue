@@ -1,7 +1,7 @@
 <template>
   <SectionBox :title="title">
     <template #content>
-      <div class="h-full w-full"> </div>
+      <div h-full w-full> </div>
     </template>
   </SectionBox>
 </template>

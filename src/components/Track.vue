@@ -33,7 +33,7 @@ export default defineComponent({
     };
 
     const Video = (track: VideoTrack) => (
-      <div class="video-track h-full w-full relative">
+      <div class="video-track relative h-full w-full">
         <div class="track-item-head">
           {(props.isMute ? ['已静音', ...getTrackHead(track)] : getTrackHead(track)).map(
             (title) => (
@@ -51,7 +51,7 @@ export default defineComponent({
     );
 
     const Audio = (track: AudioTrack) => (
-      <div class="audio-track h-full w-full">
+      <div class="audio-track" h-full w-full>
         <div class="track-item-head">
           {getTrackHead(track).map((title) => (
             <span class="track-item-title">{title}</span>
@@ -62,7 +62,7 @@ export default defineComponent({
     );
 
     const Attachment = (track: TrackItem) => (
-      <div class={'attachment-track track-item-head w-full'}>
+      <div class={'attachment-track track-item-head'} w-full>
         {track instanceof FilterTrack || track instanceof EffectTrack
           ? h(track.icon, { class: 'track-item-title' })
           : null}
@@ -78,9 +78,8 @@ export default defineComponent({
         class={[
           'flex items-center justify-center',
           'rounded-sm  border border-white',
-          'w-full h-full',
+          'w-full h-full bg-[rgba(155,155,155,.5)]',
         ]}
-        style="background-color: rgba(155, 155, 155, 0.5);"
       >
         <RetweetOutlined />
       </div>

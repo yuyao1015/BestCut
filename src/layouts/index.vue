@@ -1,20 +1,20 @@
 <template>
-  <Layout class="layout">
-    <Layout.Header class="bg-black layout-header">
+  <Layout>
+    <Layout.Header>
       <slot name="header">
-        <div class="center">
+        <div center h-full>
           {{ t('common.header') }}
-          <a-button class="absolute right-36" @click="switchLang">
+          <a-button @click="switchLang" absolute right-36>
             {{ getLocaleText }}
           </a-button>
         </div>
       </slot>
     </Layout.Header>
 
-    <Layout class="px-2 bg-black layout-content" :style="`height: ${95 - trackRatio}vh;`">
+    <Layout class="layout-content" :style="`height: ${95 - trackRatio}vh;`" bg-black px-2>
       <Layout.Sider :width="resourceW">
         <slot name="resource">
-          <div class="bg-blue-500 rounded-md center">{{ t('common.resource') }}</div>
+          <div center bg-blue-500 rounded-md>{{ t('common.resource') }}</div>
         </slot>
       </Layout.Sider>
 
@@ -22,26 +22,23 @@
 
       <Layout.Content class="bg-black">
         <slot name="preview">
-          <div class="bg-green-500 rounded-md center">{{ t('common.preview') }}</div>
+          <div center rounded-md bg-green-500>{{ t('common.preview') }}</div>
         </slot>
       </Layout.Content>
 
       <Splitter class="splitter" vertical :value="splitterWidth" @width="onWidthChangeRight" />
       <Layout.Sider :width="configW">
         <slot name="config">
-          <div class="bg-red-500 rounded-md center">{{ t('common.config') }}</div>
+          <div center rounded-md bg-red-500>{{ t('common.config') }}</div>
         </slot>
       </Layout.Sider>
     </Layout>
 
     <Splitter class="splitter" :value="splitterHeight" @height="onHeightChange" />
 
-    <Layout.Footer
-      class="px-2 pt-0 pb-2 bg-black layout-footer"
-      :style="`height: calc(${trackRatio}vh - ${splitterHeight}px)`"
-    >
+    <Layout.Footer bg-black :style="`height: calc(${trackRatio}vh - ${splitterHeight}px)`">
       <slot name="track">
-        <div class="bg-purple-500 rounded-md center">{{ t('common.track') }}</div>
+        <div center rounded-md bg-purple-500>{{ t('common.track') }}</div>
       </slot>
     </Layout.Footer>
   </Layout>
@@ -185,21 +182,18 @@ const switchLang = async () => {
 </script>
 
 <style lang="less" scoped>
-.center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  color: #fff;
-  font-size: 30px;
-}
-
-.layout-header {
+.ant-layout-header {
   height: 5vh;
+  background: black;
 }
 
-.ant-layout-sider {
+.ant-layout .ant-layout-has-sider {
   transition: 0ms;
-  background-color: black;
+  background: black;
+}
+
+.ant-layout-footer {
+  background: black;
+  padding: 0 0.5rem 0.5rem;
 }
 </style>

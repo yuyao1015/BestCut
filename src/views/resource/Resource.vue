@@ -10,7 +10,7 @@
         @pointermove="onResourceMove"
       />
 
-      <div class="resource-box-mask absolute top-0 left-0 w-fulll h-full" v-show="maskVisible">
+      <div class="resource-box-mask" absolute top-0 left-0 w-fulll h-full v-show="maskVisible">
         <ResourceBox
           ref="maskRef"
           draggable="true"
@@ -24,14 +24,11 @@
           @dragend="onDragEnd"
           v-click-outside:[exclude]="resource.active ? onClickOutside : () => {}"
         />
-        <Track class="resource-drag-view hidden" ref="trackRef" :track="track" />
+        <Track class="resource-drag-view" hidden ref="trackRef" :track="track" />
       </div>
     </div>
 
-    <div
-      v-if="showName(resource) && resource.name"
-      class="desc-color text-left text-xs ml-2 mt-1 h-4"
-    >
+    <div v-if="showName(resource) && resource.name" text="#838383 left xs" ml-2 mt-1 h-4>
       {{ resource.name }}
     </div>
   </div>

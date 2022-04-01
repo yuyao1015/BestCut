@@ -5,8 +5,8 @@
     @pointerleave="onTimelineLeave"
     @mousewheel="onTimelineScroll"
   >
-    <div class="absolute h-2.5 w-screen" :style="`margin-left: ${marginLeft}px;`">
-      <canvas id="scaler" class="h-full w-full m-0" />
+    <div class="h-2.5" absolute w-screen :style="`margin-left: ${marginLeft}px;`">
+      <canvas id="scaler" h-full w-full m-0 />
     </div>
     <div
       v-show="hover"
@@ -23,14 +23,15 @@
       :style="`left: ${locatorX}px;${''}`"
     >
       <div
+        border="2 rounded-bl-1/2 rounded-br-1/2"
         :class="[
-          'timeline-locator-head border-2',
+          'timeline-locator-head w-2.4 h-3.4 -translate-x-1/2',
           isDragging ? 'bg-white' : '',
           isMapEmpty ? 'border-gray-400' : 'border-white',
         ]"
       ></div>
-      <div class="timeline-locator-body">
-        <div :class="['h-full w-px top-0', isMapEmpty ? 'bg-gray-500' : 'bg-white']" />
+      <div h="[calc(100%-0.85rem)]">
+        <div :class="[isMapEmpty ? 'bg-gray-500' : 'bg-white']" h-full w-px top-0 />
       </div>
     </div>
 
@@ -149,19 +150,3 @@ onUnmounted(() => {
   mLocator && mLocator.stopAllListeners();
 });
 </script>
-
-<style lang="less" scoped>
-.timeline-locator {
-  &-head {
-    width: 10px;
-    height: 15px;
-    transform: translateX(-50%);
-    border-bottom-left-radius: 50%;
-    border-bottom-right-radius: 50%;
-  }
-
-  &-body {
-    height: calc(100% - 15px);
-  }
-}
-</style>

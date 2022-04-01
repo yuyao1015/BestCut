@@ -1,6 +1,6 @@
 <template>
   <Collapse
-    class="overflow-y-scroll h-full px-2"
+    class="overflow-y-scroll h-full"
     :bordered="false"
     accordion
     :expandIcon="icon"
@@ -9,7 +9,7 @@
     <CollapsePanel
       v-for="(resource, i) of libs"
       :key="i"
-      :class="[selectedLib === i ? 'active-color' : 'text-white', 'my-2']"
+      :class="[selectedLib === i ? 'color-[aqua]' : 'text-white', 'my-2']"
       :header="t(`resource.${resource.libName}`)"
       :showArrow="Boolean(resource.fragments.length > 1)"
     >
@@ -17,7 +17,7 @@
         <div
           v-for="(fragment, j) in resource.fragments"
           :key="fragment.name"
-          :class="[selectedFragment === j ? 'active-color' : '', 'my-2']"
+          :class="[selectedFragment === j ? 'color-[aqua]' : '', 'my-2']"
           @click="switchItem(j)"
         >
           {{ fragment.name }}
@@ -87,6 +87,7 @@ const icon = (prop: { [prop: string]: any }) => {
 <style scoped lang="less">
 .ant-collapse {
   background-color: #272728;
+  padding: 0 0.5rem;
 }
 
 :deep(.ant-collapse-item) {
@@ -131,9 +132,5 @@ const icon = (prop: { [prop: string]: any }) => {
     padding: 0 !important;
     color: #fff;
   }
-}
-
-.resourceLib:first-child {
-  margin-top: 1rem;
 }
 </style>

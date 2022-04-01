@@ -1,18 +1,20 @@
 <template>
   <Layout>
     <template #header>
-      <div class="h-full flex justify-between items-center text-white">
-        <div class="left text-xs text-gray-400">
+      <div h-full flex justify-between items-center text-white>
+        <div class="left" text="xs gray-400">
           {{ new Date().toString().slice(16, 24) + ' 自动保存本地' }}
         </div>
 
         <div class="right">
-          <a-button class="absolute right-36"></a-button>
-
-          <a-button class="export h-8 px-2" @click="exportWorkspace">
-            <ExportOutlined class="text-md" />
+          <button right-36 absolute></button>
+          <button
+            class="flex items-center justify-center h-8 w-16 p-2 rounded-sm texx-white bg-#6dced7"
+            @click="exportWorkspace"
+          >
+            <ExportOutlined text-md mr-1 />
             {{ t('components.export') }}
-          </a-button>
+          </button>
         </div>
       </div>
     </template>
@@ -55,14 +57,3 @@ const exportWorkspace = () => {
   trackStore.export();
 };
 </script>
-
-<style scoped>
-.export {
-  background-color: #6dced7;
-  outline: 0;
-  border: 0;
-  color: #fff;
-  display: flex;
-  align-items: center;
-}
-</style>

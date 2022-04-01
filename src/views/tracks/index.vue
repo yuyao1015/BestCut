@@ -7,7 +7,8 @@
     <template #content>
       <TimeLine
         id="timeline"
-        class="relative h-full"
+        relative
+        h-full
         :draw="drawTimeline"
         :style="`width: ${wrapperWidth}px`"
       >
@@ -18,7 +19,7 @@
         >
           <div
             class="tracks absolute w-full mt-2.5 overflow-y-scroll"
-            :style="`height: calc(100% - 0.625rem);`"
+            h="[calc(100%-0.625rem)]"
             @dragenter="onResourceEnter"
             @dragleave="onResourceLeave"
             @drop="onResourceDrop"
@@ -46,7 +47,8 @@
               >
                 <div
                   class="rounded-xl flex items-center justify-center w-14 h-14"
-                  :style="'border: 5px solid #313135; background-color: #464649'"
+                  border="5px solid #313135"
+                  bg="#464649"
                   @click="onMute"
                 >
                   <AudioMutedOutlined v-if="isMute" />

@@ -262,14 +262,4 @@ export default defineComponent({
 :deep(.ant-slider-disabled .ant-slider-handle) {
   cursor: pointer;
 }
-
-.tab {
-  @apply ml-1 p-1 rounded-md;
-}
-
-@variants hover {
-  .alpha {
-    background-color: rgba(255, 255, 255, 0.3);
-  }
-}
 </style>

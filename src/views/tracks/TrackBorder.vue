@@ -1,20 +1,20 @@
 <template>
-  <div class="absolute w-full h-full top-0 left-0">
+  <div absolute w-full h-full top-0 left-0>
     <div
       ref="trackLeftRef"
       @pointerdown.stop="onTrackLeft(track, i, j)"
       @pointerup.stop="offTrackLeft"
-      class="track-scale track-scale-left -left-0"
+      class="track-scale -left-0"
     >
-      <MoreOutlined class="absolute -left-1 w-2" />
+      <MoreOutlined absolute left--1 w-2 />
     </div>
     <div
       ref="trackRightRef"
       @pointerdown.stop="onTrackRight(track, i, j)"
       @pointerup.stop="offTrackRight"
-      class="track-scale track-scale-right right-0"
+      class="track-scale right-0"
     >
-      <MoreOutlined class="absolute -right-1" />
+      <MoreOutlined absolute right--1 />
     </div>
   </div>
 </template>
@@ -141,13 +141,6 @@ export default defineComponent({
   background-size: 100% 100%;
   color: #000;
   font-size: 10px;
-
-  &-left {
-    cursor: ew-resize;
-  }
-
-  &-right {
-    cursor: ew-resize;
-  }
+  cursor: ew-resize;
 }
 </style>

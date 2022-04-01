@@ -124,7 +124,7 @@ export default defineComponent({
         {tabsData.value.map((tab, idx) => (
           <div
             class={[
-              activeTab.value === idx ? 'active-color' : '',
+              activeTab.value === idx ? 'color-[aqua]' : '',
               'flex flex-col items-center mx-1',
             ]}
             style={{ width: `${100 / tabsData.value.length}%` }}

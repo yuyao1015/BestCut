@@ -7,17 +7,19 @@
     @dragend="onTrackend"
     @drop="onTrackDrop"
   >
-    <div class="track-container-head h-full" :style="`flex:0 0 ${TrackHeadWidth}px;`">
+    <div class="track-container-head" h-full :style="`flex:0 0 ${TrackHeadWidth}px;`">
       <slot></slot>
     </div>
 
-    <div class="list w-full h-full flex flex-col justify-center">
+    <div class="list" w-full h-full flex flex-col justify-center>
       <div
         v-for="(tracks, i) in lists"
         :key="i"
         :class="[
           'track-list relative flex w-full my-2',
-          draggedIdxs.i === i || activeIdxs.i === i ? 'track-list-active' : '',
+          draggedIdxs.i === i || activeIdxs.i === i
+            ? 'bg-#383839 border-b-1 border-t-1 border-#4d4d4e'
+            : '',
         ]"
       >
         <!-- PlaceholderInMain -->
@@ -29,7 +31,7 @@
               ? 'h-24'
               : 'border border-light-50 border-dashed h-20',
           ]"
-          :style="'background-color: rgba(255, 255, 255, 0.1);'"
+          bg="[rgba(225,225,225,0.1)]"
         >
           <div>
             <span v-if="trackStore.isMapEmpty() && !trackStore.isResourceOver">
@@ -74,7 +76,7 @@
         <!-- NewTrackList -->
         <div
           v-if="newListLine.i === i"
-          class="new-list-line absolute w-full h-0.5 left-0 pointer-events-none"
+          class="new-list-line bg-#276161 absolute w-full h-0.5 left-0 pointer-events-none"
           :style="`transform: translateY(${newListLine.top ? '-' : ''}0.6rem);
                       ${newListLine.top ? 'top' : 'bottom'}: 0;`"
         />
@@ -601,18 +603,6 @@ onMounted(() => {
   }
 });
 </script>
-
-<style lang="less" scoped>
-.track-list-active {
-  background-color: #383839;
-  border-top: solid 1px #4d4d4e;
-  border-bottom: solid 1px #4d4d4e;
-}
-
-.new-list-line {
-  background: #276161;
-}
-</style>
 
 <style lang="less">
 .video-container {

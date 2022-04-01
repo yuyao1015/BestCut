@@ -52,7 +52,7 @@ const getTips = (row1: string, row2: string, offline = false) => [
     <div>{row1}</div>
   </div>,
 
-  <div class="desc-color text-xs text-center">{row2}</div>,
+  <div class="color-[#838383] text-xs text-center">{row2}</div>,
 ];
 
 export const cachedResource = (empty: boolean, offline = false) => {

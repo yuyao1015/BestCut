@@ -8,8 +8,9 @@ import { setupStore } from '@/store';
 import { setupI18n } from '@/locales';
 import { setupErrorHandle } from '@/logic/error-handle';
 
+import 'uno.css';
+import '@unocss/reset/tailwind.css';
 import 'ant-design-vue/dist/antd.css';
-import '@/design/tailwind.css';
 
 async function bootstrap() {
   const app = createApp(App);
