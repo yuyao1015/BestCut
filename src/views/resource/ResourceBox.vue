@@ -84,7 +84,7 @@
 <script lang="ts" setup>
 import { ResourceItem, AudioResource, VideoResource, PictureResource } from '@/logic/resource';
 
-import { PropType, ref, watch, computed } from 'vue';
+import type { PropType } from 'vue';
 import {
   PlusCircleFilled,
   DownloadOutlined,

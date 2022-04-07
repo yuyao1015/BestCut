@@ -1,4 +1,4 @@
-import { Ref, watch, onMounted, onUnmounted } from 'vue';
+import type { Ref } from 'vue';
 
 import { usePreviewStore } from './../store/preview';
 import { CanvasId, PlayerId } from '@/settings/playerSetting';

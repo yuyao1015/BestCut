@@ -1,5 +1,4 @@
 <script lang="tsx">
-import { defineComponent, ref, watch, computed, h, onUnmounted, nextTick } from 'vue';
 import {
   CaretRightOutlined,
   PauseOutlined,

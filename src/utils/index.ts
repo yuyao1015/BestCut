@@ -2,7 +2,6 @@ export * from './axios';
 
 export const noop = () => {};
 
-import { defineAsyncComponent, h } from 'vue';
 import { Spin } from 'ant-design-vue';
 
 interface Options {

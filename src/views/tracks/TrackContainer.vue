@@ -86,9 +86,6 @@
 </template>
 
 <script lang="ts" setup>
-import { useAttrs } from 'vue';
-import { computed, ref, watch, nextTick, reactive, onMounted } from 'vue';
-
 import { ClickOutside as vClickOutside } from '@/directives';
 
 import { TrackHeadWidth } from '@/settings/tracksSetting';

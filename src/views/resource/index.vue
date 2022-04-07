@@ -1,6 +1,4 @@
 <script lang="tsx">
-import { computed, defineComponent, watch, ref, onMounted, onUnmounted } from 'vue';
-
 import SectionBox from '@/layouts/SectionBox.vue';
 import CollapsedMenu from '@/views/resource/CollapsedMenu.vue';
 

@@ -1,7 +1,6 @@
-import { Ref } from 'vue';
+import type { Ref } from 'vue';
 import type { TrackItem } from '@/logic/tracks';
 
-import { ref, onMounted, onUnmounted } from 'vue';
 import _ from 'lodash-es';
 
 import { setStyle } from '@/utils/dom';

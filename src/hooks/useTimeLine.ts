@@ -1,7 +1,5 @@
 import type { Ref } from 'vue';
 
-import { watch } from 'vue';
-
 import { setDPI } from '@/utils';
 import { TimelineScale, TrackHeadWidth, TimelineTailWidth } from '@/settings/tracksSetting';
 import { clipDurationString, getDurationString } from '@/utils/player';

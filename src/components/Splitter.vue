@@ -8,8 +8,6 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, nextTick, computed } from 'vue';
-
 type Props = {
   vertical?: boolean;
   value?: number;

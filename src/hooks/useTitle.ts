@@ -1,9 +1,7 @@
-import { watch, unref } from 'vue';
 import { useTitle as usePageTitle } from '@vueuse/core';
 
 import { useI18n } from '@/hooks/useI18n';
 import { useGlobSetting } from '@/hooks/useGlobSetting';
-import { useRouter } from 'vue-router';
 
 export function useTitle() {
   const { title } = useGlobSetting();

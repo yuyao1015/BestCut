@@ -42,8 +42,6 @@
 <script lang="ts" setup>
 import type { ComponentPublicInstance } from 'vue';
 
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-
 import { on, off } from '@/utils/dom';
 import { MouseCtl } from '@/logic/mouse';
 import { useTrackStore } from '@/store/track';

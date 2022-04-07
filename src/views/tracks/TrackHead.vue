@@ -1,6 +1,5 @@
 <script lang="tsx">
-import { defineComponent, ref, h, computed, Ref } from 'vue';
-
+import type { Ref } from 'vue';
 import { Tooltip, Slider } from 'ant-design-vue';
 import { ZoomInOutlined, ZoomOutOutlined } from '@ant-design/icons-vue';
 

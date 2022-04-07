@@ -4,8 +4,6 @@ import type { TextTrack, StickerTrack } from '../tracks';
 import type { MP4PlayerOption } from '#/player';
 import type { DowndloadCallback } from './downloader';
 
-import { reactive } from 'vue';
-
 import { getExtraData } from '@/utils/player';
 import { Downloader } from './downloader';
 import { isString } from '@/utils/is';

@@ -35,9 +35,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { ComponentPublicInstance } from 'vue';
-
-import { PropType, ref, watch, nextTick, computed, onBeforeMount } from 'vue';
+import type { ComponentPublicInstance, PropType } from 'vue';
 
 import ResourceBox from './ResourceBox.vue';
 import Track from '@/components/Track.vue';

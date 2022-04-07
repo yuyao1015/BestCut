@@ -70,10 +70,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ComponentPublicInstance, onUnmounted } from 'vue';
+import type { ComponentPublicInstance } from 'vue';
 import { TrackMap, TrackItem } from '@/logic/tracks';
-
-import { ref, onMounted, watch, nextTick, computed } from 'vue';
 
 import { SoundFilled, AudioMutedOutlined } from '@ant-design/icons-vue';
 

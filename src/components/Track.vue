@@ -1,5 +1,5 @@
 <script lang="tsx">
-import { defineComponent, PropType, h, computed } from 'vue';
+import type { PropType } from 'vue';
 import { RetweetOutlined } from '@ant-design/icons-vue';
 
 import { ResourceType } from '@/enums/resource';

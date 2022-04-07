@@ -23,7 +23,6 @@
 import type { ComponentPublicInstance, PropType } from 'vue';
 
 import { isMedia, TrackItem } from '@/logic/tracks';
-import { defineComponent, ref } from 'vue';
 import { MoreOutlined } from '@ant-design/icons-vue';
 
 import { MouseCtl } from '@/logic/mouse';
