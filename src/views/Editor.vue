@@ -41,10 +41,10 @@
 import { ExportOutlined } from '@ant-design/icons-vue';
 
 import Layout from '@/layouts/index.vue';
-import Preview from '@/views/preview/index.vue';
-import ResourceBox from '@/views/resource/index.vue';
-import Tracks from '@/views/tracks/index.vue';
-import ConfigPanel from '@/views/config-panel/index.vue';
+import Preview from '@/components/preview/index.vue';
+import ResourceBox from '@/components/resource/index.vue';
+import Tracks from '@/components/tracks/index.vue';
+import ConfigPanel from '@/components/config-panel/index.vue';
 
 import { useI18n } from '@/hooks/useI18n';
 import { useTrackStore } from '@/store/track';
@@ -57,3 +57,8 @@ const exportWorkspace = () => {
   trackStore.export();
 };
 </script>
+
+<route lang="yaml">
+meta:
+  title: routes.editor
+</route>

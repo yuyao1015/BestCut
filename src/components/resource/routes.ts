@@ -11,7 +11,7 @@ import {
   ForkOutlined,
 } from '@ant-design/icons-vue';
 
-import { resourceWrapper } from '@/views/resource/Resource';
+import { resourceWrapper } from './Resource';
 
 import { useI18n } from '@/hooks/useI18n';
 const { t } = useI18n();

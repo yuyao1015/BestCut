@@ -9,6 +9,7 @@ import { configHtmlPlugin } from './html';
 import { configHmrPlugin } from './hmr';
 import { configMockPlugin } from './mock';
 import { configAutoImportPlugin } from './auto-import';
+import { configPagePlugin } from './page';
 
 export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
   const vitePlugins: (Plugin | Plugin[])[] = [
@@ -26,6 +27,8 @@ export function createVitePlugins(viteEnv: ViteEnv, isBuild: boolean) {
   vitePlugins.push(configMockPlugin(isBuild));
 
   vitePlugins.push(configAutoImportPlugin());
+
+  vitePlugins.push(configPagePlugin());
 
   !isBuild && vitePlugins.push(Inspect());
 

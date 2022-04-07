@@ -1,6 +1,6 @@
 import { PlusCircleFilled } from '@ant-design/icons-vue';
 
-import Resource from '@/views/resource/Resource.vue';
+import Resource from './Resource.vue';
 import { useResourceStore } from '@/store/resource';
 import { usePreviewStoreWithOut } from '@/store/preview';
 

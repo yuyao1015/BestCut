@@ -4,7 +4,7 @@ import type { ResourceTab, ResourceLib } from '@/logic/resource/tab';
 import { defineStore } from 'pinia';
 
 import { store } from '@/store';
-import { tabsData } from '@/views/resource/routes';
+import { tabsData } from '@/components/resource/routes';
 import * as Resource from '@/logic/resource';
 import { ResourceType } from '@/enums/resource';
 
