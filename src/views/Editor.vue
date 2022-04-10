@@ -46,7 +46,6 @@ import ResourceBox from '@/components/resource/index.vue';
 import Tracks from '@/components/tracks/index.vue';
 import ConfigPanel from '@/components/config-panel/index.vue';
 
-import { useI18n } from '@/hooks/useI18n';
 import { useTrackStore } from '@/store/track';
 
 const { t } = useI18n();

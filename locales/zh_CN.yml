@@ -1,0 +1,57 @@
+common:
+  title: '优剪'
+  language: '简体中文'
+  header: '标题栏'
+  resource: '资源面板'
+  preview: '预览区'
+  config: '配置面板'
+  track: '音视频轨道'
+
+components:
+  preview: '预览区'
+  resource: '资源库'
+  config: '配置面板'
+  tracks: '音视频轨道'
+  export: '导出'
+
+  player: '播放器'
+  video: '视频'
+  audio: '音频'
+  picture: '图片'
+
+resource:
+  # tabs
+  media: '媒体'
+  audio: '音频'
+  text: '文本'
+  sticker: '贴纸'
+  effect: '特效'
+  transition: '转场'
+  filter: '滤镜'
+  adjust: '调节'
+
+  # media
+  local: '本地'
+  mediaMaterial: '素材库'
+
+  # audio
+  audioMusic: '音乐素材'
+  audioSound: '音效素材'
+  audioExtract: '音乐提取'
+  audioLink: '链接下载'
+
+  # text
+  textCreate: '新建文本'
+  textTemplate: '文字模版'
+
+  stickerMaterial: '贴纸素材'
+  effectEffect: '特效效果'
+  transitionEffect: '转场效果'
+  filterLib: '滤镜库'
+
+  lut: 'Lut'
+
+routes:
+  login: '登陆'
+  editor: '编辑器'
+  layout: '布局'

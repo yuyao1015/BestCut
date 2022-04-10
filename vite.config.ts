@@ -34,12 +34,12 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
     build: {
       target: 'es2015',
       outDir: './dist',
-      terserOptions: {
-        compress: {
-          keep_infinity: true,
-          drop_console: true,
-        },
-      },
+      // terserOptions: {
+      //   compress: {
+      //     keep_infinity: true,
+      //     drop_console: true,
+      //   },
+      // },
       chunkSizeWarningLimit: 2000,
     },
     server: {

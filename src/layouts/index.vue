@@ -49,12 +49,10 @@ import { Layout } from 'ant-design-vue';
 import _ from 'lodash-es';
 
 import Splitter from '@/components/Splitter.vue';
-import { useI18n } from '@/hooks/useI18n';
-import { useLocale } from '@/locales/useLocale';
-import { localeList } from '@/locales/localeSetting';
-import { useResourceStore } from '@/store/resource';
+import { useLocale } from '@/hooks/useLocale';
 
 import { CanvasId } from '@/settings/playerSetting';
+import { useResourceStore } from '@/store/resource';
 import { usePreviewStore } from '@/store/preview';
 import { useTrackStore } from '@/store/track';
 
@@ -162,18 +160,18 @@ const onHeightChange = (heightChange: any) => {
 
 const { t } = useI18n();
 const idx = ref<number>(0);
-const { changeLocale, getLocale } = useLocale();
+const { locale, availableLocales, changeLocale } = useLocale();
 
 const getLocaleText = computed(() => {
-  return localeList[Number(!idx.value)].text;
+  return t(`common.language`);
 });
 
 watchEffect(() => {
-  idx.value = localeList.findIndex((v) => v.event === unref(getLocale));
+  idx.value = availableLocales.findIndex((v) => v === unref(locale));
 });
 
 const switchLang = async () => {
-  const lang = localeList[Number(!idx.value)].event;
+  const lang = availableLocales[Number(!idx.value)];
   await changeLocale(lang);
   location.reload();
 };

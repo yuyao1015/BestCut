@@ -1,10 +1,10 @@
-import type { LocaleSetting, LocaleType } from '#/config';
+import type { LocaleSetting, LocaleType } from '@/modules/i18n';
 
 import { defineStore } from 'pinia';
 import { store } from '@/store';
+import { localeSetting } from '@/settings/localeSetting';
 
 export const LOCALE_KEY = 'LOCALE__';
-import { localeSetting } from '@/locales/localeSetting';
 
 const setting = localStorage.getItem(LOCALE_KEY);
 const lsLocaleSetting: LocaleSetting = setting ? JSON.parse(setting) : localeSetting;
@@ -22,8 +22,11 @@ export const useLocaleStore = defineStore({
     getShowPicker(): boolean {
       return !!this.localInfo?.showPicker;
     },
-    getLocale(): LocaleType {
-      return this.localInfo?.locale ?? 'zh_CN';
+    getLocale(): { locale: LocaleType; fallbackLocale: LocaleType } {
+      return {
+        locale: this.localInfo?.locale ?? 'zh_CN',
+        fallbackLocale: this.localInfo?.fallbackLocale ?? 'zh_CN',
+      };
     },
   },
   actions: {

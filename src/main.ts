@@ -3,7 +3,7 @@ import App from './App.vue';
 import { registerGlobComp } from '@/components/registerGlobComp';
 import { setupRouter } from './router';
 import { setupStore } from '@/store';
-import { setupI18n } from '@/locales';
+import { setupI18n } from '@/modules/i18n';
 import { setupErrorHandle } from '@/logic/error-handle';
 
 import 'uno.css';

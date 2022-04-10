@@ -13,8 +13,8 @@ import {
 
 import { resourceWrapper } from './Resource';
 
-import { useI18n } from '@/hooks/useI18n';
-const { t } = useI18n();
+import { useLocale } from '@/hooks/useLocale';
+const { t } = useLocale();
 
 export const tabsData: ResourceTab[] = [
   {

@@ -9,8 +9,6 @@
 <script lang="ts" setup>
 import SectionBox from '@/layouts/SectionBox.vue';
 
-import { useI18n } from '@/hooks/useI18n';
-
 const { t } = useI18n();
 const title = t('components.config');
 </script>

@@ -1,0 +1,57 @@
+common:
+  title: 'chiulipine'
+  language: 'English'
+  header: 'header'
+  resource: 'resource panel'
+  preview: 'preview panel'
+  config: 'config panel'
+  track: 'track lay'
+
+components:
+  preview: 'Preview'
+  resource: 'Resource Libarary'
+  config: 'Config Panel'
+  tracks: 'Audio/Video tracks'
+  export: 'Export'
+
+  player: 'Player'
+  video: 'Video'
+  audio: 'Audio'
+  picture: 'picture'
+
+resource:
+  # tabs
+  media: 'Media'
+  audio: 'Audio'
+  text: 'Text'
+  sticker: 'Sticker'
+  effect: 'Effect'
+  transition: 'Transition'
+  filter: 'Filter'
+  adjust: 'Adjust'
+
+  # media
+  local: 'Local'
+  mediaMaterial: 'Material'
+
+  # audio
+  audioMusic: 'Music Material'
+  audioSound: 'Sound Material'
+  audioExtract: 'Audio Extract'
+  audioLink: 'Link Download'
+
+  # text
+  textCreate: 'Create'
+  textTemplate: 'Template'
+
+  stickerMaterial: 'Material'
+  effectEffect: 'Effect'
+  transitionEffect: 'Effect'
+  filterLib: 'Library'
+
+  lut: 'Lut'
+
+routes:
+  login: 'Login'
+  editor: 'Editor'
+  layout: 'Layout'

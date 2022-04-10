@@ -2,8 +2,6 @@
 import SectionBox from '@/layouts/SectionBox.vue';
 import CollapsedMenu from './CollapsedMenu.vue';
 
-import { useI18n } from '@/hooks/useI18n';
-
 import axios from 'axios';
 
 import { useResourceStore } from '@/store/resource';

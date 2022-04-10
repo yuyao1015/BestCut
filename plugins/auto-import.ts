@@ -10,7 +10,13 @@ export function configAutoImportPlugin(): Plugin {
       /\.vue\?vue/, // .vue
       /\.md$/, // .md
     ],
-    imports: ['vue', 'vue-router', 'vue-i18n', 'vue/macros'],
+    imports: [
+      'vue',
+      'vue-router',
+      'vue-i18n',
+      'vue/macros',
+      // '@vueuse/head',
+    ],
     eslintrc: {
       enabled: true,
     },

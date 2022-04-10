@@ -33,8 +33,6 @@ import type { ResourceLib } from '@/logic/resource/tab';
 import { Collapse, CollapsePanel } from 'ant-design-vue';
 import { CaretRightOutlined, CaretDownOutlined } from '@ant-design/icons-vue';
 
-import { useI18n } from '@/hooks/useI18n';
-
 type Props = {
   libs: ResourceLib[];
   selectedLib: number;

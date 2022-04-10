@@ -8,7 +8,6 @@ import {
 import { Slider } from 'ant-design-vue';
 
 import SectionBox from '@/layouts/SectionBox.vue';
-import { useI18n } from '@/hooks/useI18n';
 import { useFullScreen } from '@/hooks/useFullScreen';
 
 import { useResourceStore } from '@/store/resource';

@@ -82,7 +82,6 @@ import TrackHead from './TrackHead.vue';
 
 import { TrackHeadWidth, TimelineTailWidth } from '@/settings/tracksSetting';
 
-import { useI18n } from '@/hooks/useI18n';
 import { useTimeLine } from '@/hooks/useTimeLine';
 import { getStyle, setStyle } from '@/utils/dom';
 
@@ -171,7 +170,7 @@ const tracksWrapperRef = ref<ComponentPublicInstance | null>(null);
 const stickyTrack = () => {
   const main = mainTrackRef.value?.$el || mainTrackRef.value;
   const wrapper = tracksWrapperRef.value?.$el || tracksWrapperRef.value;
-  const track = wrapper.children[0] as HTMLElement;
+  const track = wrapper?.children[0] as HTMLElement;
   if (!track || !wrapper || !main) return;
 
   const h = parseInt(getStyle(main, 'height'));
@@ -182,7 +181,8 @@ const stickyTrack = () => {
   const max = height - h - margin - pad;
   const min = parseInt(getStyle(track, 'minHeight'));
 
-  const videoContainer = track.children[0] as HTMLElement;
+  const videoContainer = track?.children[0] as HTMLElement;
+  if (!videoContainer) return;
   setStyle(videoContainer, 'max-height', max + 'px');
   if (track.scrollTop === 0 && max > min && main.offsetTop - pad === max) {
     isSticky.value = true;

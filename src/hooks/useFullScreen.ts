@@ -55,7 +55,7 @@ export const useFullScreen = (isInFullScreen: Ref<boolean>, panelVisible: Ref<bo
   });
   onUnmounted(() => {
     const preview = document.getElementById(PlayerId) as HTMLDivElement;
-    preview.removeEventListener('fullscreenchange', fullScreen);
+    preview?.removeEventListener('fullscreenchange', fullScreen);
   });
 
   return { switchFullScreen };

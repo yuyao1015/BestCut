@@ -1,10 +1,7 @@
-import type { LocaleType } from '#/config';
-
 import moment from 'moment';
 
-import { i18n } from '@/locales';
+import { LocaleType, i18n, setHtmlPageLang, availableLocales, resetI18n } from '@/modules/i18n';
 import { useLocaleStoreWithOut } from '@/store/locales';
-import { loadLocalePool, setHtmlPageLang } from './helper';
 
 interface LangModule {
   message: Recordable;
@@ -12,26 +9,33 @@ interface LangModule {
   momentLocaleName: string;
 }
 
-function setI18nLanguage(locale: LocaleType) {
-  const localeStore = useLocaleStoreWithOut();
-
-  if (i18n.mode === 'legacy') {
-    i18n.global.locale = locale;
-  } else {
-    (i18n.global.locale as any).value = locale;
-  }
-  localeStore.setLocaleInfo({ locale });
-  setHtmlPageLang(locale);
-}
+export const LOCALE_KEY = 'LOCALE__';
 
 export function useLocale() {
   const localeStore = useLocaleStoreWithOut();
-  const getLocale = computed(() => localeStore.getLocale);
+  const locale = computed(() => localeStore.getLocale.locale);
   const getShowLocalePicker = computed(() => localeStore.getShowPicker);
 
   const getAntdLocale = computed((): any => {
-    return i18n.global.getLocaleMessage(unref(getLocale))?.antdLocale ?? {};
+    return i18n.global.getLocaleMessage(unref(locale))?.antdLocale ?? {};
   });
+
+  watch(
+    () => i18n,
+    async (val) => {
+      if (!val) await resetI18n();
+    }
+  );
+
+  function setI18nLanguage(locale: LocaleType) {
+    if (i18n.mode === 'legacy') {
+      i18n.global.locale = locale;
+    } else {
+      (i18n.global.locale as any).value = locale;
+    }
+    localeStore.setLocaleInfo({ locale });
+    setHtmlPageLang(locale);
+  }
 
   // Switching the language will change the locale of useI18n
   // And submit to configuration modification
@@ -42,27 +46,30 @@ export function useLocale() {
       return locale;
     }
 
-    if (loadLocalePool.includes(locale)) {
+    if (availableLocales?.includes(locale)) {
       setI18nLanguage(locale);
       return locale;
     }
-    const langModule = ((await import(`./lang/${locale}.ts`)) as any).default as LangModule;
+    const langModule = (await import(`/locales/${locale}.yml`))?.default as LangModule;
     if (!langModule) return;
 
     const { message, momentLocale, momentLocaleName } = langModule;
 
     globalI18n.setLocaleMessage(locale, message);
     moment.updateLocale(momentLocaleName, momentLocale);
-    loadLocalePool.push(locale);
+    availableLocales?.push(locale);
 
     setI18nLanguage(locale);
     return locale;
   }
 
   return {
-    getLocale,
+    locale,
+    availableLocales,
     getShowLocalePicker,
-    changeLocale,
     getAntdLocale,
+
+    changeLocale,
+    t: i18n?.global?.t || ((s) => s),
   };
 }

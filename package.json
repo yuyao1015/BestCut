@@ -86,6 +86,7 @@
     "eslint-plugin-import": "^2.24.0",
     "eslint-plugin-jest": "^24.4.2",
     "eslint-plugin-prettier": "^3.4.0",
+    "vue-eslint-parser": "^7.8.0",
     "jest": "^27.2.0",
     "less": "^4.1.1",
     "lint-staged": "12",
@@ -106,7 +107,7 @@
     "vite-plugin-inspect": "^0.4.3",
     "vite-plugin-mock": "^2.9.6",
     "vite-plugin-pages": "^0.22.0",
-    "vue-eslint-parser": "^7.8.0",
+    "@intlify/vite-plugin-vue-i18n": "^3.4.0",
     "vue-tsc": "^0.2.2"
   }
 }

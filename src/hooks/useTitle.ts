@@ -1,11 +1,10 @@
 import { useTitle as usePageTitle } from '@vueuse/core';
 
-import { useI18n } from '@/hooks/useI18n';
-import { useGlobSetting } from '@/hooks/useGlobSetting';
+import { useLocale } from '@/hooks/useLocale';
 
 export function useTitle() {
-  const { title } = useGlobSetting();
-  const { t } = useI18n();
+  const { t } = useLocale();
+
   const { currentRoute } = useRouter();
 
   const pageTitle = usePageTitle();
@@ -15,8 +14,8 @@ export function useTitle() {
     () => {
       const route = unref(currentRoute);
 
-      const tTitle = t(route?.meta?.title as string);
-      pageTitle.value = tTitle ? ` ${tTitle} - ${title} ` : `${t('common.title')}`;
+      const tTitle = t((route?.meta?.title as string) || '');
+      pageTitle.value = tTitle ? ` ${tTitle} - ${t('common.title')} ` : `${t('common.title')}`;
     },
     { immediate: true }
   );
