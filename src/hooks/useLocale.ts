@@ -1,13 +1,5 @@
-import moment from 'moment';
-
 import { LocaleType, i18n, setHtmlPageLang, availableLocales, resetI18n } from '@/modules/i18n';
 import { useLocaleStoreWithOut } from '@/store/locales';
-
-interface LangModule {
-  message: Recordable;
-  momentLocale: Recordable;
-  momentLocaleName: string;
-}
 
 export const LOCALE_KEY = 'LOCALE__';
 
@@ -50,13 +42,12 @@ export function useLocale() {
       setI18nLanguage(locale);
       return locale;
     }
-    const langModule = (await import(`/locales/${locale}.yml`))?.default as LangModule;
+    const langModule = (await import(`/locales/${locale}.yml`))?.default;
     if (!langModule) return;
 
-    const { message, momentLocale, momentLocaleName } = langModule;
+    const { message } = langModule;
 
     globalI18n.setLocaleMessage(locale, message);
-    moment.updateLocale(momentLocaleName, momentLocale);
     availableLocales?.push(locale);
 
     setI18nLanguage(locale);
