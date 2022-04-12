@@ -218,8 +218,8 @@ export default defineComponent({
 
     return () => (
       <div class="flex w-full h-full justify-between mx-2">
-        <div class="flex items-center w-1/3">{getTabs(left, 'px-2')}</div>
-        <div class="relative flex items-center w-1/3 justify-end">{getTabs(right, 'px-1')}</div>
+        <div class="flex items-center w-1/2">{getTabs(left, 'px-2')}</div>
+        <div class="relative flex items-center w-1/2 justify-end">{getTabs(right, 'px-1')}</div>
       </div>
     );
   },
@@ -229,7 +229,7 @@ export default defineComponent({
 <style lang="less" scoped>
 :deep(.ant-slider-track),
 :deep(.ant-slider:hover .ant-slider-track) {
-  background-color: #525155;
+  background-color: #fff;
   // border: solid 2px #d4d4d4;
   border: solid 2px #fff;
 }

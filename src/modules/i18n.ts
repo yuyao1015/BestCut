@@ -36,7 +36,7 @@ async function createI18nOptions(): Promise<I18nOptions> {
   const localeStore = useLocaleStoreWithOut();
   const { locale, fallbackLocale } = localeStore.getLocale;
 
-  const defaultLocal = (await import(`/locales/${locale}.yml`)).default || {};
+  const defaultLocal = (await import(/* @vite-ignore */ `/locales/${locale}.yml`)).default || {};
   const messages = { [locale]: defaultLocal };
 
   setHtmlPageLang(locale as LocaleType);

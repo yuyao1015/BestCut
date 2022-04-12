@@ -1,9 +1,9 @@
 <template>
   <div
     :class="[
-      'resource-box relative rounded-md overflow-hidden',
-      'w-full h-full',
-      resource.active ? 'active-border' : '',
+      'resource-box group relative rounded-md overflow-hidden',
+      'w-full h-full bg-#070709',
+      resource.active ? 'border-solid border-2px border-[aqua]' : '',
     ]"
     ref="resourceRef"
     @click="play"
@@ -20,10 +20,10 @@
 
         <div class="text-xs flex flex-col justify-between h-5/6">
           <div>
-            <div style="color: #999">{{ resource.album }}</div>
-            <div style="color: #474747">{{ resource.author }}</div>
+            <div text="#999">{{ resource.album }}</div>
+            <div text="#474747">{{ resource.author }}</div>
           </div>
-          <div v-if="resource.album && resource.author" style="color: #474747">
+          <div v-if="resource.album && resource.author" text="#474747">
             {{ resource.duration }}
           </div>
         </div>
@@ -44,11 +44,7 @@
     </div>
 
     <!-- tl referenced -->
-    <div
-      v-if="referenced && offline"
-      class="absolute top-1 left-1"
-      style="background-color: rgb(255, 255, 255, 0.3)"
-    >
+    <div v-if="referenced && offline" class="absolute top-1 left-1" bg="[rgb(255,255,255,0.3)]">
       <div>已添加</div>
     </div>
 
@@ -73,7 +69,8 @@
 
     <PlusCircleFilled
       v-if="usable"
-      :class="[showAdd ? '' : 'hidden', 'absolute bottom-1 right-1 add']"
+      :class="[showAdd ? '' : 'hidden', 'absolute bottom-1 right-1']"
+      group-hover="text-[aqua] block"
       @click.stop="add2Track"
     />
 
@@ -212,20 +209,3 @@ const onPointerLeave = () => {
   isOver.value = false;
 };
 </script>
-
-<style lang="less" scoped>
-.resource-box {
-  background-color: #070709;
-}
-
-.resource-box:hover {
-  .add {
-    color: aqua;
-    display: block;
-  }
-}
-
-.active-border {
-  border: solid 2px aqua;
-}
-</style>

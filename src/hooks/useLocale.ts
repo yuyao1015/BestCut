@@ -42,7 +42,7 @@ export function useLocale() {
       setI18nLanguage(locale);
       return locale;
     }
-    const langModule = (await import(`/locales/${locale}.yml`))?.default;
+    const langModule = (await import(/* @vite-ignore */ `/locales/${locale}.yml`))?.default;
     if (!langModule) return;
 
     const { message } = langModule;
